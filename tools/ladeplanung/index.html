@@ -214,6 +214,7 @@ i.sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:
       <button role="tab" data-tab="sess" aria-selected="false">Ladevorgänge</button>
       <button role="tab" data-tab="lm" aria-selected="false">Lademanagement</button>
       <button role="tab" data-tab="econ" aria-selected="false">Wirtschaftlichkeit</button>
+      <button role="tab" data-tab="dev" aria-selected="false">Entwicklung bis 2050</button>
       <button role="tab" data-tab="tech" aria-selected="false">Herausforderungen &amp; Lösungen</button>
       <button role="tab" data-tab="docs" aria-selected="false">Recht &amp; Annahmen</button>
     </nav>
@@ -273,6 +274,21 @@ i.sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:
       <div class="card"><h2>Jahrestabelle</h2><div class="tablewrap"><table id="yearTable"></table></div><p class="note">Erlöse und Stromkosten steigen mit der Preissteigerung, Wartung mit 2 %/a. Verkaufspreise werden brutto eingegeben und netto (÷ 1,19) gerechnet.</p></div>
     </div>
 
+    <div class="panel" data-panel="dev" hidden>
+      <div class="card"><p class="note" id="devStatus" style="margin:0">–</p></div>
+      <div id="devBody" class="panel" hidden>
+        <div class="kpis" id="devKpis"></div>
+        <div class="card"><h2>Ladeenergie, Fahrzeuge und Ladepunkte</h2><div class="chartbox tall"><canvas id="chDevE"></canvas></div><p class="note">Jedes Jahr ist eine eigene Jahressimulation in Viertelstunden mit der jeweiligen Fahrzeugzahl, Lademenge und Ausstattung.</p></div>
+        <div class="card"><h2>Leistung, Engpässe und Auslastung</h2><div class="chartbox tall"><canvas id="chDevP"></canvas></div></div>
+        <div class="grid2">
+          <div class="card"><h2>Ausbau und Netzanschluss</h2><ul class="warns" id="devEvents"></ul></div>
+          <div class="card"><h2>Preis- und Verhaltenspfade</h2><div class="chartbox"><canvas id="chDevPrice"></canvas></div></div>
+        </div>
+        <div class="card"><h2>Kapitalrückfluss bis zum Endjahr</h2><div class="chartbox tall"><canvas id="chDevCF"></canvas></div><p class="note">Enthält Erstinvestition, Ersatz der Ladestationen nach ihrer Nutzungsdauer (mit Preisentwicklung der Technik), Ausbau und Netzverstärkung. Kein Restwert am Ende.</p></div>
+        <div class="card"><h2>Jahrestabelle</h2><div class="tablewrap"><table id="devTable"></table></div><p class="note">Hervorgehoben: Jahre mit Investitionen. Wartung, Backend und Grundgebühren steigen mit 2 %/a.</p></div>
+      </div>
+    </div>
+
     <div class="panel" data-panel="tech" hidden>
       <div class="card"><h2>Technische Herausforderungen und Lösungen</h2><ul class="warns" id="techList"></ul></div>
     </div>
@@ -286,6 +302,7 @@ i.sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:
           <li><b>Fahrzeugtechnik:</b> Bordlader 3,7/7,4/11/22 kW (10/15/65/10 %), DC 50/100/150/250 kW (12/33/40/15 %). DC-Ladekurve: ab 60 % der Lademenge lineare Abnahme auf 40 % der Leistung. Fahrzeuge bleiben bis zur Abfahrt angesteckt.</li>
           <li><b>Netz und Speicher:</b> Der Speicher (Wirkungsgrad 95 % je Richtung) deckt in jedem Fall Leistung oberhalb der Anschlussgrenze; zusätzlich je nach Betriebsweise Eigenverbrauch oder Spitzenkappung mit Nachladen in lastarmen Zeiten.</li>
           <li><b>Wirtschaftlichkeit:</b> Vergleich mit dem Gebäude ohne Laden (und ohne PV/Speicher, wenn diese Teil der Investition sind): Mehrbezug × Arbeitspreis, Erhöhung der Jahreshöchstlast × Leistungspreis, entgangene Einspeisung. Kapitalwert, interner Zinsfuß und dynamische Amortisation über den Betrachtungszeitraum; Vollkosten je kWh mit Annuität der Investition.</li>
+          <li><b>Entwicklung bis 2050:</b> Für jedes Jahr eine vollständige Jahressimulation: Fahrzeuge je Gruppe steigen entlang einer S-Kurve vom heutigen Wert bis zum Faktor im Endjahr; Lademenge und Ladehäufigkeit ändern sich jährlich; PV altert um 0,5 %/a. Engpässe lösen optional Ausbau bzw. Netzverstärkung aus. Wirtschaftlichkeit mit eigenen Preispfaden für Strombezug, Verkauf und THG-Quote sowie Ersatzinvestitionen.</li>
           <li><b>Zufall:</b> Feste Startzahl – gleiche Eingaben ergeben gleiche Ergebnisse. Feiertage und Urlaubszeiten sind nicht berücksichtigt.</li>
         </ul>
         <h2>Rechtlicher Rahmen (Stand 11/2026)</h2>
@@ -402,7 +419,7 @@ function simulate(o){
     for(let q=0;q<96;q++){
       const s=d*96+q,h=s>>2;
       for(let i=plugged.length-1;i>=0;i--){const x=plugged[i];if(x.dep>s)continue;
-        const G=st[x.g];G.lost+=x.remL;if(x.v>=0){busy[x.g][x.v]=0;need[x.g][x.v]=Math.min(60,need[x.g][x.v]+x.remL)}
+        const G=st[x.g];if(x.v>=0){busy[x.g][x.v]=0;const nd=need[x.g][x.v]+x.remL;need[x.g][x.v]=Math.min(60,nd);G.lost+=Math.max(0,nd-60)}else G.lost+=x.remL;
         free[x.lp]=true;if(o.log)log.push({g:x.g,lp:x.lp,a:x.arr,dep:x.dep,e:x.e,del:x.e-x.remL,c0:x.c0,c1:x.c1});plugged.splice(i,1)}
       while(pi<pending.length&&pending[pi].s<=s){const x=pending[pi++],G=st[x.g];
         if(x.v>=0&&busy[x.g][x.v])continue;
@@ -411,7 +428,7 @@ function simulate(o){
         G.dist.arr[Math.floor((x.s%96)/4)]++;
         let lp=-1;const want=x.dcPref?[true,false]:[false,true];
         for(const dc of want){for(let k=0;k<nLP;k++)if(free[k]&&LP[k].dc===dc){lp=k;break}if(lp>=0)break}
-        if(lp<0){G.rej++;if(x.v>=0)need[x.g][x.v]=Math.min(60,e);else G.lost+=e;continue}
+        if(lp<0){G.rej++;if(x.v>=0){need[x.g][x.v]=Math.min(60,e);G.lost+=Math.max(0,e-60)}else G.lost+=e;continue}
         if(x.v>=0){need[x.g][x.v]=0;busy[x.g][x.v]=1}
         free[lp]=false;const dc=LP[lp].dc;
         const cap=dc?Math.min(LP[lp].kw,pick(CAR_DC)):Math.min(LP[lp].kw,pick(CAR_AC));
@@ -590,7 +607,27 @@ const SECTIONS=[
   {id:'backend',label:'Backend, Mobilfunk, Software je LP',unit:'€/a',def:80,step:5},
   {id:'years',label:'Betrachtungszeitraum',unit:'Jahre',def:12,step:1},
   {id:'disc',label:'Kalkulationszins',unit:'%',def:4,step:0.1},
-  {id:'esc',label:'Preissteigerung Strom und Tarife',unit:'%/a',def:2,step:0.1}]}];
+  {id:'esc',label:'Preissteigerung Strombezug',unit:'%/a',def:2,step:0.1}]},
+ {id:'dev',title:'Entwicklung bis 2050',hint:'Hochlauf, Ladeverhalten, Preise',fields:[
+  {id:'devStart',label:'Inbetriebnahme (Startjahr)',unit:'',def:2027,step:1},
+  {id:'devEnd',label:'Betrachtung bis',unit:'',def:2050,step:1},
+  {id:'devRamp',label:'Hochlauf E-Mobilität',type:'sel',cls:'wide',def:'mittel',opts:()=>[['langsam','langsam (Wendepunkt ca. 2040)'],['mittel','mittel (Wendepunkt ca. 2035, Verbrenner-Aus 2035)'],['schnell','schnell (Wendepunkt ca. 2031)'],['konstant','konstant (heutiger Bestand)']]},
+  {id:'devXma',label:'Faktor Beschäftigte-Fahrzeuge bis Endjahr',unit:'× heute',def:4,step:0.5},
+  {id:'devXfl',label:'Faktor Flotte bis Endjahr',unit:'× heute',def:2,step:0.5},
+  {id:'devXbs',label:'Faktor Besucher-Ladevorgänge bis Endjahr',unit:'× heute',def:4,step:0.5},
+  {id:'devXbw',label:'Faktor Bewohner-Fahrzeuge bis Endjahr',unit:'× heute',def:3,step:0.5},
+  {id:'devKwh',label:'Lademenge je Ladevorgang',unit:'%/a',def:1.5,step:0.5},
+  {id:'devKwhMax',label:'Lademenge höchstens',unit:'× heute',def:1.5,step:0.1},
+  {id:'devFreq',label:'Ladehäufigkeit je Fahrzeug',unit:'%/a',def:-0.5,step:0.5},
+  {id:'devTar',label:'Preisentwicklung Verkauf / Laden extern',unit:'%/a',def:1.5,step:0.1},
+  {id:'thgEnd',label:'THG-Erlöse sicher bis (danach −20 %/a)',unit:'',def:2030,step:1},
+  {id:'devHw',label:'Preisentwicklung Ladetechnik (Ersatz)',unit:'%/a',def:-1.5,step:0.5},
+  {id:'lifeAC',label:'Nutzungsdauer AC-Ladestationen',unit:'Jahre',def:12,step:1},
+  {id:'lifeDC',label:'Nutzungsdauer DC-Ladestationen',unit:'Jahre',def:10,step:1},
+  {id:'devExpand',label:'Ladepunkte bei Engpass ergänzen (> 5 % abgewiesen)',type:'chk',def:true},
+  {id:'devGrid',label:'Netzanschluss bei Engpass verstärken',type:'chk',def:false},
+  {id:'gridStepKw',label:'Verstärkung je Schritt',unit:'kW',def:100,step:10,dep:'devGrid'},
+  {id:'gridStepEur',label:'Kosten je Verstärkung (BKZ, Kabel)',unit:'€',def:30000,step:1000,dep:'devGrid'}]}];
 const TIP={
  pmax:'Höchste Leistung, die am Netzanschluss bezogen werden darf (Gebäude + Laden). Ergibt sich aus der Absicherung (z. B. 250 A ≈ 170 kW) bzw. der vereinbarten Anschlussleistung. Das dynamische Lastmanagement hält diese Grenze ein.',
  bldKwh:'Für das dynamische Lastmanagement und die Spitzenlast: Der Gebäudelastgang wird aus Jahresverbrauch und Profil erzeugt (Stundenwerte).',
@@ -608,6 +645,12 @@ const TIP={
  thg:'Erlös aus dem Handel mit Treibhausgasminderungsquoten für öffentlich zugänglichen Ladestrom (2026 ca. 8–15 ct/kWh, schwankend).',
  vst:'Unternehmen und Betriebe gewerblicher Art rechnen netto. Ohne Vorsteuerabzug werden alle Kosten (Investition, Betrieb, Strom) mit 19 % Umsatzsteuer angesetzt.',
  lpPrice:'Bei registrierender Leistungsmessung (über 100.000 kWh/a) wird die höchste Viertelstundenleistung des Jahres abgerechnet. Jedes zusätzliche kW Spitzenlast kostet diesen Betrag pro Jahr.',
+ devRamp:'S-Kurve für den Hochlauf der E-Fahrzeuge am Standort zwischen heutiger Zahl und dem Faktor im Endjahr. EU-Flottengrenzwerte (ab 2035 praktisch nur noch emissionsfreie Neuwagen) und ca. 15 Jahre Fahrzeugalter lassen den Bestand bis 2050 weitgehend elektrisch werden.',
+ devXma:'Wie viele E-Fahrzeuge der Beschäftigten im Endjahr im Verhältnis zu heute laden wollen – begrenzt durch die Zahl der Pendler mit Pkw und Stellplatz.',
+ devKwh:'Größere Batterien und längere Strecken erhöhen die Lademenge je Vorgang; dafür sinkt die Ladehäufigkeit leicht.',
+ thgEnd:'Die THG-Quote ist gesetzlich bis 2030 festgelegt; danach ist die Höhe unsicher. Das Tool senkt die Erlöse ab diesem Jahr um 20 Prozentpunkte jährlich.',
+ devExpand:'Finden mehr als 5 % der Fahrzeuge keinen freien Ladepunkt, werden im selben Jahr 20 % weitere AC-Ladepunkte gebaut (mit Investition und späterem Ersatz).',
+ devGrid:'Bleiben mit Lastmanagement über 3 % der Energie ungeladen und erreicht der Bezug die Anschlussgrenze, wird der Netzanschluss um den angegebenen Schritt verstärkt.',
  foerd:'Bund und Länder fördern Ladeinfrastruktur in wechselnden Programmen (z. B. für kommunale Flotten oder öffentlich zugängliche Ladepunkte). Fördersatz vor der Beantragung prüfen.'};
 function defaults(){const P={};for(const s of SECTIONS)for(const f of s.fields)if(f.id&&!f.id.startsWith('_'))P[f.id]=f.def;return P}
 const SCENARIOS=[
@@ -715,14 +758,153 @@ function econ(R,P,o={}){
   return {inv,I,foerd:foerd*kf,lis,dImp,dPk,dExp,cEnergy,cPeak,rev,revSum,fleet,fees,thg,opex,y1,rows,npv,irr,dyn,stat,lcoc,eTot,eDC,dcShare,kf,newPV};
 }
 
+/* ===================== Entwicklung bis 2050 =====================
+   Jedes Jahr wird vollständig simuliert: Fahrzeugzahl je Gruppe nach S-Kurve (Hochlauf der E-Mobilität), Lademenge und Ladehäufigkeit
+   ändern sich, Preise folgen eigenen Pfaden. Bei Engpässen werden optional Ladepunkte ergänzt bzw. der Netzanschluss verstärkt.
+   Ersatzinvestitionen nach Ablauf der Nutzungsdauer, Preisentwicklung der Hardware berücksichtigt. */
+const RAMP={langsam:{mid:2040,k:0.20},mittel:{mid:2035,k:0.25},schnell:{mid:2031,k:0.32},konstant:null};
+let DEV=null,devRun=0;
+const sCurve=(y,r)=>1/(1+Math.exp(-r.k*(y-r.mid)));
+function devShare(y,P){ // Anteil des Zuwachses bis 2050, 0 im Startjahr, 1 im Endjahr
+  const r=RAMP[P.devRamp];if(!r)return 0;const a=sCurve(P.devStart,r),b=sCurve(P.devEnd,r);return b>a?clamp((sCurve(y,r)-a)/(b-a),0,1):0;
+}
+function devParams(P,y,state){
+  const t=y-P.devStart,s=devShare(y,P);
+  const kwhF=Math.min(P.devKwhMax,Math.pow(1+P.devKwh/100,t)),fF=Math.pow(1+P.devFreq/100,t);
+  const Q={...P,nAC:state.nAC,nDC:state.nDC,pmax:state.pmax,
+    maN:P.maN*(1+(P.devXma-1)*s),flN:P.flN*(1+(P.devXfl-1)*s),bsN:P.bsN*(1+(P.devXbs-1)*s),bwN:P.bwN*(1+(P.devXbw-1)*s),
+    maKwh:P.maKwh*kwhF,flKwh:P.flKwh*kwhF,bsKwh:P.bsKwh*kwhF,bwKwh:P.bwKwh*kwhF,
+    maF:P.maF*fF,flF:P.flF*fF,bwF:P.bwF*fF};
+  if(P.lm==='static')Q.lmKw=P.lmKw*state.nAC/Math.max(1,P.nAC);   // statische Grenze wächst mit den Ladepunkten
+  return {Q,kwhF,fF,s};
+}
+function runDev(onDone){
+  const my=++devRun,P0=P,years=[];
+  const st={nAC:Math.round(P0.nAC),nDC:Math.round(P0.nDC),pmax:P0.pmax,events:[]};
+  const pvDeg=0.005;let y=P0.devStart;
+  const PVbase=PVH;
+  const lean=r=>{const lp=lpList(r._Q);let eDC=0;for(const x of r.log)if(lp[x.lp]&&lp[x.lp].dc)eDC+=x.del;r.eDC=eDC;for(const k of ['PU','PL','OCC','CHG','IMP','SOC','BAT','byG','occH','log','prof','dlU','dlL','dlI'])r[k]=null;return r};
+  const step=()=>{
+    if(my!==devRun)return;
+    if(y>P0.devEnd){DEV=devEcon(years,P0,st);onDone();return}
+    const t=y-P0.devStart;
+    const pvY=PVbase.map(v=>v*Math.pow(1-pvDeg,t));
+    let r,dp,tries=0;
+    while(true){
+      dp=devParams(P0,y,st);r=simulate({lp:lpList(dp.Q),groups:groupsOf(dp.Q),openDays:+P0.openDays,open:[P0.openFrom,Math.max(P0.openFrom+1,P0.openTo)],lm:dp.Q.lm,lmKw:dp.Q.lmKw,pmax:dp.Q.pmax,prio:P0.prio,
+        bld:BLD,pv:pvY,bat:P0.batKwh>0?{cap:P0.batKwh,pow:P0.batKw,mode:P0.batMode,pcap:P0.batPcap}:{cap:0,pow:0},seed:4711+y,log:true});
+      const rej=r.tot.sess?r.tot.rej/r.tot.sess:0,lost=r.tot.req?r.tot.lost/r.tot.req:0,atLimit=r.impPk>=dp.Q.pmax*0.98;
+      if(tries>=4)break;
+      const bsRej=r.st[2].sess?r.st[2].rej/r.st[2].sess:0;
+      if(P0.devExpand&&st.nDC>0&&bsRej>0.05){st.nDC+=1;st.events.push({y,txt:`+1 DC-Ladepunkt (${pct(bsRej)} der Besucher ohne freien Ladepunkt)`,inv:P0.hwDC+P0.instDC,n:1,kind:'dc'});tries++;continue}
+      if(P0.devExpand&&rej>0.05){const add=Math.max(1,Math.ceil((st.nAC+st.nDC)*0.2));st.nAC+=add;st.events.push({y,txt:`+${add} AC-Ladepunkte (${pct(rej)} der Ankünfte ohne freien Ladepunkt)`,inv:add*(P0.hwAC+P0.instAC),n:add,kind:'lp'});tries++;continue}
+      if(P0.devGrid&&lost>0.03&&atLimit&&P0.lm!=='none'){st.pmax+=P0.gridStepKw;st.events.push({y,txt:`Netzanschluss +${fmt(P0.gridStepKw)} kW auf ${fmt(st.pmax)} kW (${pct(lost)} der Energie nicht geladen)`,inv:P0.gridStepEur,kind:'grid'});tries++;continue}
+      break;
+    }
+    r._Q=dp.Q;lean(r);
+    years.push({y,t,r,Q:dp.Q,s:dp.s,kwhF:dp.kwhF,fF:dp.fF,nAC:st.nAC,nDC:st.nDC,pmax:st.pmax,veh:(dp.Q.maOn?dp.Q.maN:0)+(dp.Q.flOn?dp.Q.flN:0)+(dp.Q.bwOn?dp.Q.bwN:0)});
+    const el=document.getElementById('devStatus');if(el)el.textContent=`Simulation ${y} … (${years.length} von ${P0.devEnd-P0.devStart+1} Jahren)`;
+    y++;setTimeout(step,0);
+  };
+  step();
+}
+function devEcon(years,P,st){
+  const kf=P.vst==='ja'?1:1.19,i=P.disc/100,out=[];
+  const idx=(r,t)=>Math.pow(1+r/100,t);
+  const newPV=P.pvNew&&P.pvKwp>0||P.batNew&&P.batKwh>0;
+  const E0=econ(R,P);           // Erstinvestition aus der Standardrechnung
+  // Ersatzinvestitionen: Ladepunkte nach Nutzungsdauer, Speicher nach 15 Jahren
+  const invest=new Map();const addInv=(y,v,txt)=>{if(y>P.devEnd)return;const a=invest.get(y)||{v:0,txt:[]};a.v+=v;a.txt.push(txt);invest.set(y,a)};
+  addInv(P.devStart,E0.I,'Erstinvestition');
+  const lifeAC=P.lifeAC,lifeDC=P.lifeDC,hw=(y)=>idx(P.devHw,y-P.devStart);
+  for(let k=1;P.devStart+k*lifeAC<=P.devEnd;k++){const y=P.devStart+k*lifeAC;addInv(y,Math.round(P.nAC)*(P.hwAC+P.instAC*0.5)*hw(y)*kf,`Ersatz ${Math.round(P.nAC)} AC-Ladestationen`)}
+  for(let k=1;P.nDC>0&&P.devStart+k*lifeDC<=P.devEnd;k++){const y=P.devStart+k*lifeDC;addInv(y,Math.round(P.nDC)*(P.hwDC+P.instDC*0.3)*hw(y)*kf,`Ersatz ${Math.round(P.nDC)} DC-Ladestationen`)}
+  if(P.batKwh>0&&P.batNew)for(let y=P.devStart+15;y<=P.devEnd;y+=15)addInv(y,P.batKwh*P.batEur*0.7*hw(y)*kf,'Ersatz Batteriespeicher');
+  for(const e of st.events){addInv(e.y,e.inv*(e.kind!=='grid'?hw(e.y):1)*kf,e.txt);if(e.kind==='lp')for(let y=e.y+lifeAC;y<=P.devEnd;y+=lifeAC)addInv(y,e.n*(P.hwAC+P.instAC*0.5)*hw(y)*kf,`Ersatz ${e.n} AC-Ladestationen`);if(e.kind==='dc')for(let y=e.y+lifeDC;y<=P.devEnd;y+=lifeDC)addInv(y,(P.hwDC+P.instDC*0.3)*hw(y)*kf,'Ersatz DC-Ladestation')}
+  let cum=0,cumD=0,pay=null,payD=null;
+  for(const Y of years){
+    const r=Y.r,t=Y.t,Q=Y.Q,nLP=Y.nAC+Y.nDC;
+    const pEl=P.price/100*idx(P.esc,t),pLp=P.lpPrice*idx(P.esc,t),tar=idx(P.devTar,t),ext=idx(P.devTar,t);
+    const delG=r.st.map(g=>g.del),eTot=sum(delG);
+    const dcS=eTot>0?r.eDC/eTot:0;
+    const ref=newPV?{imp:r.impN,pk:r.pkN,exp:0}:{imp:r.impB,pk:r.pkB,exp:r.expB};
+    const dImp=r.imp-ref.imp,dPk=r.impPk-ref.pk,dExp=r.exp-ref.exp;
+    const cEnergy=(dImp*pEl-dExp*P.feed/100*(t<20?1:0.3))*kf,cPeak=dPk*pLp*kf;
+    const rev=P.sale?(delG[0]*P.tarMA+delG[2]*((1-dcS)*P.tarBS+dcS*P.tarDC)+delG[3]*P.tarBW)/100/1.19*tar:0;
+    const fleet=delG[1]*P.extFL/100/(P.vst==='ja'?1.19:1)*ext;
+    const thgF=Y.y<=P.thgEnd?1:Math.max(0,1-(Y.y-P.thgEnd)/5);
+    const thg=P.public?eTot*P.thg/100*thgF:0;
+    const fees=P.sale?nLP*P.feeM*12*kf*idx(2,t)+rev*P.feePct/100:0;
+    const opex=(Y.nAC*P.mAC+Y.nDC*P.mDC+nLP*P.backend)*kf*idx(2,t);
+    const inv=(invest.get(Y.y)||{v:0}).v;
+    const cf=rev+fleet+thg-cEnergy-cPeak-fees-opex-inv;
+    const pc=cum,pd=cumD;cum+=cf;cumD+=cf/Math.pow(1+i,t);
+    if(pay===null&&t>0&&cum>=0&&pc<0)pay=Y.y-1+(-pc)/(cum-pc);if(payD===null&&t>0&&cumD>=0&&pd<0)payD=Y.y-1+(-pd)/(cumD-pd);
+    out.push({y:Y.y,veh:Y.veh,nLP,pmax:Y.pmax,sess:r.tot.sess-r.tot.rej,rej:r.tot.sess?r.tot.rej/r.tot.sess:0,del:eTot,lost:r.tot.req?r.tot.lost/r.tot.req:0,util:r.util,pkL:r.pkL,imp:r.impPk,
+      evPV:r.evPV,pEl,tarF:tar,thgF,rev,fleet,thg,cEnergy,cPeak,fees,opex,inv,invTxt:(invest.get(Y.y)||{txt:[]}).txt,cf,cum,cumD,kwhF:Y.kwhF});
+  }
+  const disc=out.map((o,k)=>Math.pow(1+i,-(o.y-P.devStart)));
+  const eD=sum(out.map((o,k)=>o.del*disc[k])),cD=sum(out.map((o,k)=>(o.cEnergy+o.cPeak+o.fees+o.opex+o.inv)*disc[k]));
+  const irr=(()=>{const f=r=>sum(out.map(o=>o.cf/Math.pow(1+r,o.y-P.devStart)));let lo=-0.9,hi=1.5;if(f(lo)*f(hi)>0)return null;for(let k=0;k<80;k++){const m=(lo+hi)/2;if(f(lo)*f(m)<=0)hi=m;else lo=m}return (lo+hi)/2})();
+  return {rows:out,rowsG:years.map(Y=>Y.r.st.map(g=>g.del/1000)),events:st.events,npv:cumD,cum,pay,payD,irr,lcoc:eD>0?cD/eD:null,invest};
+}
+
+function renderDev(){
+  const box=document.getElementById('devBody'),st=document.getElementById('devStatus');
+  if(!lpList(P).length){st.textContent='Keine Ladepunkte angegeben.';box.hidden=true;return}
+  if(!DEV){box.hidden=true;st.textContent='Simulation wird gestartet …';runDev(()=>{dirty.dev=1;if(activeTab==='dev')renderTab('dev')});dirty.dev=0;return}
+  box.hidden=false;const D=DEV,rows=D.rows,c=C(),lab=rows.map(r=>String(r.y)),last=rows[rows.length-1],first=rows[0];
+  st.textContent=`${rows.length} Jahre simuliert (${P.devStart}–${P.devEnd}) · Hochlauf „${P.devRamp}“`;
+  const k=(l,v,u,s,cls='')=>`<div class="kpi ${cls}"><span class="k">${l}</span><span class="v">${v}${u?`<small>${u}</small>`:''}</span><span class="s">${s||'&nbsp;'}</span></div>`;
+  document.getElementById('devKpis').innerHTML=[
+    k(`Ladeenergie ${last.y}`,fmt(last.del/1000,0),'MWh/a',`${first.y}: ${fmt(first.del/1000,0)} MWh (×${fmt(last.del/Math.max(1,first.del),1)})`),
+    k(`Fahrzeuge ${last.y}`,fmt(last.veh),'',`${first.y}: ${fmt(first.veh)} · Ladepunkte ${first.nLP} → ${last.nLP}`),
+    k('Ladespitze',fmt(Math.max(...rows.map(r=>r.pkL))),'kW',`Netzspitze max. ${fmt(Math.max(...rows.map(r=>r.imp)))} kW · Anschluss ${fmt(last.pmax)} kW`),
+    k('nicht geladen',fmt(Math.max(...rows.map(r=>r.lost))*100,1),'%',`höchster Jahreswert · abgewiesen max. ${pct(Math.max(...rows.map(r=>r.rej)),1)}`,Math.max(...rows.map(r=>r.lost))>0.05?'neg':''),
+    k(`Kapitalwert bis ${P.devEnd}`,eur(D.npv),'',`Zins ${fmt(P.disc,1)} % · IRR ${D.irr!=null?fmt(D.irr*100,1)+' %':'–'}`,D.npv>=0?'pos':'neg'),
+    k('Amortisation',D.payD!=null?fmt(Math.ceil(D.payD)):'–',D.payD!=null?'':'',D.payD!=null?`abgezinst im Jahr ${fmt(D.payD,1)} · nominal ${D.pay!=null?fmt(D.pay,1):'–'}`:`nicht bis ${P.devEnd}`,D.payD!=null?'pos':'neg'),
+    k('Vollkosten',fmt((D.lcoc||0)*100,1),'ct/kWh','Barwert Kosten ÷ Barwert Energie'),
+    k('Ausbau',fmt(D.events.length),'Schritte',D.events.length?D.events.map(e=>e.y).join(', '):'kein Ausbau nötig')].join('');
+  chart('chDevE',{type:'bar',data:{labels:lab,datasets:[
+    ...GROUPS.map((g,gi)=>({label:g.name,data:rows.map((r,k)=>DEV.rowsG[k][gi]),backgroundColor:gcol(gi),stack:'e'})).filter((d,gi)=>d.data.some(v=>v>0)),
+    {label:'Ladepunkte',data:rows.map(r=>r.nLP),type:'line',yAxisID:'y2',borderColor:c.ink,backgroundColor:c.ink,stepped:true,pointRadius:0,borderWidth:2},
+    {label:'E-Fahrzeuge (Stammnutzer)',data:rows.map(r=>r.veh),type:'line',yAxisID:'y2',borderColor:c.muted,borderDash:[4,3],pointRadius:0,borderWidth:1.6}]},
+    options:baseOpts({scales:{x:{stacked:true},y:{stacked:true,title:{display:true,text:'MWh/a',color:c.muted}},y2:{position:'right',beginAtZero:true,grid:{drawOnChartArea:false},title:{display:true,text:'Anzahl',color:c.muted}}},plugins:{tooltip:{callbacks:{label:t=>`${t.dataset.label}: ${fmt(t.raw,t.dataset.yAxisID==='y2'?0:1)}`}}}})});
+  chart('chDevP',{type:'line',data:{labels:lab,datasets:[
+    {label:'Ladespitze kW',data:rows.map(r=>r.pkL),borderColor:c.ev,backgroundColor:c.ev,pointRadius:0,borderWidth:2},
+    {label:'Netzspitze kW',data:rows.map(r=>r.imp),borderColor:c.ink,backgroundColor:c.ink,pointRadius:0,borderWidth:2},
+    {label:'Netzanschluss kW',data:rows.map(r=>r.pmax),borderColor:c.bad,borderDash:[6,4],stepped:true,pointRadius:0,borderWidth:1.5},
+    {label:'nicht geladen %',data:rows.map(r=>r.lost*100),yAxisID:'y2',borderColor:c.sun,backgroundColor:c.sun,pointRadius:2,borderWidth:1.5},
+    {label:'Auslastung %',data:rows.map(r=>r.util*100),yAxisID:'y2',borderColor:c.bat,backgroundColor:c.bat,borderDash:[3,3],pointRadius:0,borderWidth:1.5}]},
+    options:baseOpts({scales:{y:{beginAtZero:true,title:{display:true,text:'kW',color:c.muted}},y2:{position:'right',beginAtZero:true,grid:{drawOnChartArea:false},title:{display:true,text:'%',color:c.muted}}}})});
+  chart('chDevCF',{type:'bar',data:{labels:lab,datasets:[{label:'Überschuss je Jahr (inkl. Investitionen)',data:rows.map(r=>r.cf),backgroundColor:rows.map(r=>r.cf>=0?c.good:c.bad)},
+    {label:'kumuliert',data:rows.map(r=>r.cum),type:'line',borderColor:c.ink,backgroundColor:c.ink,pointRadius:2},{label:'kumuliert abgezinst',data:rows.map(r=>r.cumD),type:'line',borderColor:c.ev,backgroundColor:c.ev,borderDash:[4,3],pointRadius:2}]},
+    options:baseOpts({scales:{y:{title:{display:true,text:'€',color:c.muted}}},plugins:{tooltip:{callbacks:{label:t=>`${t.dataset.label}: ${eur(t.raw)}`,afterBody:(it)=>{const r=rows[it[0].dataIndex];return r.invTxt.length?['Investition: '+r.invTxt.join(', ')]:[]}}}}})});
+  chart('chDevPrice',{type:'line',data:{labels:lab,datasets:[
+    {label:'Strombezug ct/kWh (netto)',data:rows.map(r=>r.pEl*100),borderColor:c.ink,backgroundColor:c.ink,pointRadius:0,borderWidth:2},
+    ...(P.sale?[{label:'Verkaufspreis AC Besucher ct/kWh (brutto)',data:rows.map(r=>P.tarBS*r.tarF),borderColor:c.ev,backgroundColor:c.ev,pointRadius:0,borderWidth:2},
+      {label:'Tarif Beschäftigte ct/kWh (brutto)',data:rows.map(r=>P.tarMA*r.tarF),borderColor:c.sun,backgroundColor:c.sun,pointRadius:0,borderWidth:2}]:[]),
+    ...(P.public?[{label:'THG-Erlös ct/kWh',data:rows.map(r=>P.thg*r.thgF),borderColor:c.good,backgroundColor:c.good,borderDash:[4,3],pointRadius:0,borderWidth:1.5}]:[]),
+    {label:'Ø Lademenge kWh (Faktor ×10)',data:rows.map(r=>r.kwhF*10),borderColor:c.muted,borderDash:[2,2],pointRadius:0,borderWidth:1.2}]},
+    options:baseOpts({scales:{y:{beginAtZero:true,title:{display:true,text:'ct/kWh',color:c.muted}}}})});
+  const firstLost=rows.find(r=>r.lost>0.05),firstLim=rows.find(r=>r.imp>=r.pmax*0.98);
+  let hint='';
+  if(firstLost&&!P.devGrid&&firstLim)hint=`<li><span class="chip bad">${firstLost.y}</span><span>Ab ${firstLost.y} bleiben über 5 % der Ladeenergie ungeladen, weil der Netzanschluss (${fmt(firstLost.pmax)} kW) ausgeschöpft ist. Lösungen: „Netzanschluss bei Engpass verstärken“ aktivieren, Speicher zur Spitzenkappung, PV-geführtes Laden oder Gebäudelast senken.</span></li>`;
+  else if(firstLost)hint=`<li><span class="chip warn">${firstLost.y}</span><span>Ab ${firstLost.y} bleiben über 5 % der Ladeenergie ungeladen (kurze Standzeiten oder knappe Leistung) – Leistung je Ladepunkt, Lastmanagement-Grenze oder Priorisierung prüfen.</span></li>`;
+  document.getElementById('devEvents').innerHTML=hint+(D.events.length?D.events.map(e=>`<li><span class="chip warn">${e.y}</span><span>${esc(e.txt)} – ${eur(e.inv)}</span></li>`).join(''):(hint?'':'<li><span class="chip ok">ok</span><span>Die Ladepunkte und der Netzanschluss reichen bis '+P.devEnd+' aus.</span></li>'));
+  const tb=document.getElementById('devTable');
+  tb.innerHTML=`<thead><tr>${['Jahr','E-Fahrz.','LP','Ladevorg.','MWh','Spitze kW','nicht gel.','Auslast.','Erlöse/Nutzen','Strom+Leistung','Gebühren+Betrieb','Investition','Überschuss','kumuliert'].map((h,j)=>`<th class="${j?'n':''}">${h}</th>`).join('')}</tr></thead><tbody>`+
+    rows.map(r=>`<tr${r.inv>0&&r.y>P.devStart?' class="hl"':''}><td>${r.y}</td><td class="n">${fmt(r.veh)}</td><td class="n">${r.nLP}</td><td class="n">${fmt(r.sess)}</td><td class="n">${fmt(r.del/1000,1)}</td><td class="n">${fmt(r.pkL)}</td><td class="n">${pct(r.lost,1)}</td><td class="n">${pct(r.util,1)}</td><td class="n">${eur(r.rev+r.fleet+r.thg)}</td><td class="n">${eur(-(r.cEnergy+r.cPeak))}</td><td class="n">${eur(-(r.fees+r.opex))}</td><td class="n">${r.inv?eur(-r.inv):''}</td><td class="n">${eur(r.cf)}</td><td class="n">${eur(r.cum)}</td></tr>`).join('')+'</tbody>';
+}
+
 /* ===================== Berechnung ===================== */
 function compute(){
   const t0=performance.now();
   try{localStorage.setItem(LSKEY,JSON.stringify(P))}catch(e){}
   BLD=P.bldProf==='keine'?new Float64Array(8760):buildingLoad(P.bldKwh,P.bldProf,+P.openDays,17);
   PVH=pvProfile(P.pvKwp,P.pvYield,3);
-  R=run(P);E=econ(R,P);VAR=null;SWEEP=null;SENS=null;
-  dirty={ov:1,last:1,sess:1,lm:1,econ:1,tech:1,docs:1};
+  R=run(P);E=econ(R,P);VAR=null;SWEEP=null;SENS=null;DEV=null;devRun++;
+  dirty={ov:1,last:1,sess:1,lm:1,econ:1,dev:1,tech:1,docs:1};
   document.getElementById('status').textContent=`Simulation 35.040 Viertelstunden · ${fmt(performance.now()-t0)} ms`;
   renderTab(activeTab);
   setTimeout(()=>{runStudies();['ov','lm','econ','tech'].forEach(k=>dirty[k]=1);renderTab(activeTab)},40);
@@ -762,7 +944,7 @@ const qLabels=Array.from({length:96},(_,q)=>`${String(Math.floor(q/4)).padStart(
 document.getElementById('tabs').addEventListener('click',e=>{const b=e.target.closest('[role=tab]');if(b)selectTab(b.dataset.tab)});
 function selectTab(name){activeTab=name;document.querySelectorAll('[role=tab]').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===name?'true':'false'));
   document.querySelectorAll('[data-panel]').forEach(p=>p.hidden=p.dataset.panel!==name);try{localStorage.setItem(LSKEY+'.tab',name)}catch(e){}renderTab(name)}
-function renderTab(name){if(!R||!dirty[name])return;dirty[name]=0;({ov:renderOverview,last:renderLast,sess:renderSess,lm:renderLM,econ:renderEcon,tech:renderTech,docs:renderDocs})[name]()}
+function renderTab(name){if(!R||!dirty[name])return;dirty[name]=0;({ov:renderOverview,last:renderLast,sess:renderSess,lm:renderLM,econ:renderEcon,dev:renderDev,tech:renderTech,docs:renderDocs})[name]()}
 const kpi=(l,v,u,s,cls='')=>`<div class="kpi ${cls}"><span class="k">${l}</span><span class="v">${v}${u?`<small>${u}</small>`:''}</span><span class="s">${s||'&nbsp;'}</span></div>`;
 const tbl=(id,head,rows,opts={})=>{const el=document.getElementById(id);if(!el)return;el.innerHTML=`<thead><tr>${head.map(h=>`<th class="${h[1]||''}">${esc(h[0])}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr class="${r.cls||''}">${r.c.map((c,j)=>`<td class="${head[j][1]||''}">${c}</td>`).join('')}</tr>`).join('')}</tbody>`};
 
@@ -946,7 +1128,7 @@ function showTip(el){tipEl=el;tipbox.textContent=el.dataset.tip;tipbox.hidden=fa
   tipbox.style.left=clamp(r.left+r.width/2-b.width/2,8,Math.max(8,innerWidth-b.width-8))+'px';let y=r.bottom+6;if(y+b.height>innerHeight-8)y=Math.max(8,r.top-b.height-6);tipbox.style.top=y+'px'}
 document.addEventListener('mouseover',e=>{const t=e.target.closest&&e.target.closest('[data-tip]');if(t)showTip(t);else if(tipEl){tipbox.hidden=true;tipEl=null}});
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-tip]');if(t){e.preventDefault();showTip(t)}},true);
-const rerender=()=>{dirty={ov:1,last:1,sess:1,lm:1,econ:1,tech:1,docs:1};renderTab(activeTab)};
+const rerender=()=>{dirty={ov:1,last:1,sess:1,lm:1,econ:1,dev:1,tech:1,docs:1};renderTab(activeTab)};
 try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',rerender)}catch(e){}
 new MutationObserver(rerender).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
 addEventListener('resize',()=>{if(activeTab==='last')heatmap()});
