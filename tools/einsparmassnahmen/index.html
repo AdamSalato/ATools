@@ -198,8 +198,78 @@ td.muted{white-space:normal}
 .maclist{columns:2;font-size:12px;margin:8px 0 0;padding-left:22px}.maclist i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px}
 @media (max-width:900px){.maclist{columns:1}}
 .okc{color:var(--good)} .badc{color:var(--bad);font-weight:600}
-@media print{header.top .toolbar,aside.inputs,nav.tabs,.catbar,.more{display:none!important}.app{display:block}.panel{display:flex!important;break-before:page}.card{break-inside:avoid}body{background:#fff}}
 
+
+#print-root{display:none}
+.pfld{display:flex;flex-direction:column;gap:3px;font-size:13px}
+.pfld input{border:1px solid var(--line);background:var(--panel2);border-radius:5px;padding:6px 8px}
+.pchecks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 12px;font-size:13px}
+.pcollect [data-panel]{display:flex!important}
+@page{size:A4 landscape;margin:9mm 11mm 12mm;
+  @bottom-left{content:"Einsparmaßnahmen · Orientierende Abschätzung für Bestandsgebäude – ersetzt keine Detailplanung oder Energieaudit nach DIN EN 16247";font:7pt "IBM Plex Sans",Arial,sans-serif;color:#6b7785}
+  @bottom-right{content:"Seite " counter(page) " von " counter(pages);font:7pt "IBM Plex Sans",Arial,sans-serif;color:#6b7785}}
+@media print{
+  html,body{background:#fff!important;font-size:9pt}
+  body>*:not(#print-root){display:none!important}
+  #print-root{display:block}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .psec{break-before:page}
+  .psec:first-child{break-before:auto}
+  .phead{display:flex;justify-content:space-between;align-items:center;background:#1f2a37;color:#fff;padding:7px 12px;font-family:var(--f-disp);font-size:15pt;font-weight:600;border-radius:3px;margin-bottom:6px}
+  .phead .pr{font-family:var(--f-body);font-size:8.5pt;font-weight:400;color:#c9d3de}
+  #print-root .panel{display:flex!important;flex-direction:column;gap:6px}
+  #print-root .card{border:1px solid #d5dbe3;border-radius:5px;padding:6px 10px;margin:0;break-inside:avoid;box-shadow:none}
+  #print-root .card h2{font-size:12pt;margin:0 0 4px}
+  #print-root .chartbox{height:auto!important}
+  #print-root img.pimg{display:block;width:100%;height:auto;max-height:74mm;object-fit:contain}
+  #print-root .grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  #print-root .grid2 img.pimg{max-height:66mm}
+  #print-root .kpis{grid-template-columns:repeat(4,1fr);break-inside:avoid}
+  #print-root .kpi{padding:5px 8px}
+  #print-root .kpi .v{font-size:15pt}
+  #print-root .kpi .s,#print-root .kpi .k{font-size:6.8pt}
+  #print-root .tablewrap,#print-root .svgwrap{overflow:visible}
+  #print-root table{font-size:7.2pt}
+  #print-root th,#print-root td{padding:2px 4px}
+  #print-root thead{display:table-header-group}
+  #print-root tr{break-inside:avoid}
+  #print-root .card:has(table){break-inside:auto}
+  #print-root p.note{font-size:7pt;max-width:none}
+  #print-root .warns li{font-size:7.8pt}
+  #print-root svg{min-width:0!important}
+  #print-root .rec{grid-template-columns:repeat(2,1fr);gap:5px}
+  #print-root .recbox{padding:5px 8px}#print-root .recbox .big{font-size:13pt}#print-root .recbox .det{font-size:7.4pt}
+  #print-root .docs{font-size:8pt}
+  #print-root .card.docs,#print-root .card:has(.warns),#print-root #massWrap{break-inside:auto}
+  #print-root td.wrap{min-width:0;width:44%}
+  #print-root table.pmass{table-layout:fixed;width:100%}
+  #print-root table.pmass td,#print-root table.pmass th{white-space:normal;vertical-align:top}
+  #print-root table.pmass tr.muted td{color:#8a97a5}
+  #print-root .prw{font-size:6.6pt;color:#586777;margin-top:1px}
+  #print-root img.pimg[data-id="chMeas"]{max-height:172mm}
+  #print-root .det p:first-child{display:none}
+  #print-root .det{font-size:6.8pt;max-width:none}
+  #print-root tbody.na{display:none}
+  .cover .cband{display:flex;justify-content:space-between;background:#1f2a37;color:#fff;padding:14px 18px;border-radius:3px}
+  .cover .ct{font-family:var(--f-disp);font-size:24pt;font-weight:600}
+  .cover .cs{color:#c9d3de;font-size:10.5pt;margin-top:4px}
+  .cover .cr{text-align:right;color:#c9d3de;font-size:8.5pt;line-height:1.5}
+  .cover .cr b{color:#fff;font-size:10.5pt}
+  .ptiles{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:10px 0 6px}
+  .ptile{border:1px solid #d5dbe3;border-left:5px solid var(--c);border-radius:5px;padding:5px 9px;background:#f7f9fb}
+  .ptile .tt{font-size:6.8pt;font-weight:700;color:#6b7785;text-transform:uppercase;letter-spacing:.04em}
+  .ptile .tv{font-family:var(--f-disp);font-size:14pt;font-weight:600}
+  .ptile .ts{font-size:7pt;color:#6b7785}
+  .cover h3{font-family:var(--f-disp);color:var(--cell);font-size:12pt;margin:8px 0 3px}
+  .cover .cols{display:grid;grid-template-columns:1.1fr 1fr;gap:14px}
+  table.facts{border-collapse:collapse;font-size:8pt;width:100%}
+  table.facts th{text-align:left;color:#6b7785;font-weight:400;width:36mm;padding:1.5px 0;vertical-align:top;text-transform:none;letter-spacing:0;border:0}
+  table.facts td{padding:1.5px 0;white-space:normal;border:0}
+  .cover ul{margin:2px 0;padding-left:16px;font-size:8pt}.cover li{margin:2px 0}
+  .icols{column-count:3;column-gap:6mm;font-size:7pt;line-height:1.3}
+  .icols .ih{font-weight:700;color:var(--cell);margin:5px 0 1px;break-after:avoid}
+  .icols .ir{display:grid;grid-template-columns:1.3fr 1fr;gap:4px;border-bottom:1px solid #edf0f4;padding:1px 0;break-inside:avoid}
+}
 </style>
 </head>
 <body>
@@ -212,7 +282,7 @@ td.muted{white-space:normal}
   <div class="toolbar">
     <select class="preset" id="scenario" aria-label="Beispiel laden"></select>
     <button class="btn" id="btnCsv" type="button">Maßnahmen als CSV</button>
-    <button class="btn" id="btnPrint" type="button">Drucken / PDF</button>
+    <button class="btn pri" id="btnPrint" type="button">PDF-Bericht</button>
     <button class="btn" id="btnReset" type="button">Zurücksetzen</button>
     <span class="status" id="status">–</span>
   </div>
@@ -275,6 +345,7 @@ td.muted{white-space:normal}
     </div>
   </section>
 </main>
+<div id="print-root"></div>
 <script>
 "use strict";
 /* ===================== Stammdaten ===================== */
@@ -627,6 +698,7 @@ function baseOpts(extra){
   const o={responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:'index',intersect:false},
     plugins:{legend:{labels:{color:ink,boxWidth:12,boxHeight:12}},tooltip:{backgroundColor:tok('--panel'),titleColor:ink,bodyColor:ink,borderColor:line,borderWidth:1}},
     scales:{x:{grid:{color:line},ticks:{color:mut}},y:{grid:{color:line},ticks:{color:mut}}}};
+  if(typeof PRINTING!=='undefined'&&PRINTING)o.devicePixelRatio=2;
   return deepMerge(o,extra||{});
 }
 function deepMerge(a,b){for(const k in b){if(b[k]&&typeof b[k]==='object'&&!Array.isArray(b[k])&&a[k]&&typeof a[k]==='object')deepMerge(a[k],b[k]);else a[k]=b[k]}return a}
@@ -754,6 +826,107 @@ function macCurve(){
 }
 function niceStep(r,n){const raw=r/n,mag=Math.pow(10,Math.floor(Math.log10(raw||1))),q=raw/mag;return (q<=1?1:q<=2?2:q<=5?5:10)*mag}
 
+/* ===================== PDF-Bericht (Druckansicht A4 quer) =====================
+   Alle Reiter werden kurz sichtbar gerendert, Diagramme als Bilder übernommen und mit Deckblatt in #print-root gesetzt. */
+let PRINTING=false;
+function printDialog(){
+  const meta=JSON.parse(localStorage.getItem(LSKEY+'.meta')||'{}');
+  const o=document.createElement('div');o.className='overlay';
+  o.innerHTML=`<div class="dialog" role="dialog" aria-label="PDF-Bericht"><h2>PDF-Bericht</h2>
+    <label class="pfld">Projekt / Liegenschaft<input id="pm_name" value="${esc(meta.name||'')}" placeholder="z. B. Kreishaus Schwelm"></label>
+    <label class="pfld">Adresse<input id="pm_addr" value="${esc(meta.addr||'')}"></label>
+    <label class="pfld">Bearbeitung<input id="pm_auth" value="${esc(meta.auth||'')}"></label>
+    <div class="pchecks">${PRINT_SECTIONS.map(([k,l])=>`<label><input type="checkbox" data-ps="${k}" checked> ${esc(l)}</label>`).join('')}</div>
+    <p class="note">Im Druckdialog „Als PDF speichern“ wählen. Hochformat ist nicht nötig – der Bericht ist für A4 quer angelegt.</p>
+    <div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn" type="button" data-x>Abbrechen</button><button class="btn pri" type="button" data-go>PDF erstellen</button></div></div>`;
+  document.body.appendChild(o);
+  o.querySelector('[data-x]').onclick=()=>o.remove();
+  o.querySelector('[data-go]').onclick=()=>{
+    const m={name:o.querySelector('#pm_name').value.trim(),addr:o.querySelector('#pm_addr').value.trim(),auth:o.querySelector('#pm_auth').value.trim()};
+    try{localStorage.setItem(LSKEY+'.meta',JSON.stringify(m))}catch(e){}
+    const sel=new Set([...o.querySelectorAll('[data-ps]')].filter(x=>x.checked).map(x=>x.dataset.ps));o.remove();buildPdf(m,sel)};
+}
+async function buildPdf(meta,sel){
+  const st=document.getElementById('status'),old=st.textContent;st.textContent='PDF-Bericht wird vorbereitet …';
+  await PRINT_PREPARE(sel);
+  const root=document.documentElement,theme=root.getAttribute('data-theme');
+  PRINTING=true;root.setAttribute('data-theme','light');
+  document.body.classList.add('pcollect');
+  for(const k in dirty)dirty[k]=1;
+  const panels={};
+  for(const [k] of PRINT_SECTIONS){if(k==='cover'||!sel.has(k))continue;const p=document.querySelector(`[data-panel="${k}"]`);if(!p)continue;dirty[k]=1;renderTab(k)}
+  await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+  for(const [k] of PRINT_SECTIONS){
+    if(k==='cover'||!sel.has(k))continue;const p=document.querySelector(`[data-panel="${k}"]`);if(!p)continue;
+    const cl=p.cloneNode(true);cl.removeAttribute('hidden');
+    const src=[...p.querySelectorAll('canvas')],dst=[...cl.querySelectorAll('canvas')];
+    src.forEach((c,i)=>{const img=document.createElement('img');img.className='pimg';try{img.src=c.toDataURL('image/png')}catch(e){}if(c.id)img.dataset.id=c.id;dst[i].replaceWith(img)});
+    cl.querySelectorAll('.rangebar input,.rangebar button,.catbar,.more,button').forEach(e=>e.remove());
+    cl.querySelectorAll('input[type=checkbox]').forEach(e=>e.replaceWith(document.createTextNode(e.checked?'✔':'')));
+    cl.querySelectorAll('input').forEach(e=>e.replaceWith(document.createTextNode(e.value)));
+    cl.querySelectorAll('[hidden]').forEach(e=>{if(!e.classList.contains('det'))e.remove();else e.removeAttribute('hidden')});
+    cl.querySelectorAll('[id]').forEach(e=>e.removeAttribute('id'));
+    panels[k]=cl;
+  }
+  document.body.classList.remove('pcollect');PRINTING=false;
+  const pr=document.getElementById('print-root');pr.innerHTML='';
+  const right=[meta.name,meta.addr].filter(Boolean).join(' · ')||PRINT_TITLE;
+  const head=(t)=>`<div class="phead"><span>${esc(t)}</span><span class="pr">${esc(right)}</span></div>`;
+  if(sel.has('cover')){const s=document.createElement('section');s.className='psec cover';s.innerHTML=PRINT_COVER(meta);pr.appendChild(s)}
+  for(const [k,l] of PRINT_SECTIONS){
+    if(k==='eingaben'&&sel.has(k)){const s=document.createElement('section');s.className='psec';s.innerHTML=head(l)+`<div class="icols">${inputList()}</div>`;pr.appendChild(s);continue}
+    if(typeof PRINT_PANEL==='function'&&sel.has(k)){const h=PRINT_PANEL(k);if(h){const s=document.createElement('section');s.className='psec';s.innerHTML=head(l)+h;pr.appendChild(s);continue}}
+    if(!panels[k])continue;const s=document.createElement('section');s.className='psec';s.innerHTML=head(l);s.appendChild(panels[k]);pr.appendChild(s)}
+  const done=()=>{pr.innerHTML='';if(theme===null)root.removeAttribute('data-theme');else root.setAttribute('data-theme',theme);for(const k in dirty)dirty[k]=1;renderTab(activeTab);st.textContent=old;removeEventListener('afterprint',done)};
+  addEventListener('afterprint',done);
+  setTimeout(()=>window.print(),250);
+}
+const ptile=(t,v,s,c)=>`<div class="ptile" style="--c:${c||'var(--cell)'}"><div class="tt">${t}</div><div class="tv">${v}</div><div class="ts">${s||''}</div></div>`;
+function coverBand(title,sub,meta){
+  return `<div class="cband"><div><div class="ct">${esc(title)}</div><div class="cs">${esc(meta.name||sub)}${meta.addr?' · '+esc(meta.addr):''}</div></div><div class="cr"><b>${new Date().toLocaleDateString('de-DE')}</b><br>${meta.auth?'Bearbeitung: '+esc(meta.auth)+'<br>':''}ATools · ${esc(PRINT_TITLE)}</div></div>`;
+}
+function inputList(){
+  return SECTIONS.map(s=>`<div class="ih">${esc(s.title)}</div>`+s.fields.filter(f=>f.id&&!f.id.startsWith('_')&&f.type!=='head').map(f=>{let v=P[f.id];
+    if(f.type==='sel'){const o=f.opts().find(x=>String(x[0])===String(v));v=o?o[1]:v}else if(f.type==='chk')v=v?'ja':'nein';else v=fmt(v,Math.abs(v)%1?1:0);
+    return `<div class="ir"><span>${esc(f.label)}</span><span>${esc(String(v))} ${esc(f.unit||'')}</span></div>`}).join('')).join('');
+}
+
+const PRINT_TITLE='Einsparmaßnahmen';
+const PRINT_SECTIONS=[['cover','Deckblatt und Zusammenfassung'],['mass','Maßnahmenkatalog'],['ov','Übersicht'],['verb','Verbrauch nach Anwendungen'],['econ','Wirtschaftlichkeit'],['eingaben','Anhang: Gebäudedaten und Eingaben'],['docs','Methodik und rechtlicher Rahmen']];
+async function PRINT_PREPARE(){catFilter='alle'}
+function PRINT_PANEL(k){
+  if(k!=='mass')return null;
+  const pk=Object.fromEntries(PKG.out.map(x=>[x.id,x]));
+  const ok=LIST.filter(x=>!x.na).sort((a,b)=>(isSel(b)-isSel(a))||((a.stat??1e9)-(b.stat??1e9)));
+  const cols=[['',3],['Maßnahme und Rechenweg',43],['Strom kWh/a',8,'n'],['Wärme kWh/a',8,'n'],['Wasser m³/a',6,'n'],['€/a',7,'n'],['CO₂ t/a',5,'n'],['Investition',8,'n'],['Amort.',6,'n'],['Bewertung',8]];
+  const rows=ok.map(x=>{const q=pk[x.id];return `<tr${isSel(x)?'':' class="muted"'}><td>${isSel(x)?'✔':''}</td><td class="wrap"><span class="cat" style="background:var(${CAT[x.m.cat][1]})"></span><b>${esc(x.m.n)}</b><div class="prw">${esc(x.basis)} Nutzungsdauer ${x.life} J.${q&&Math.abs(q.eur-x.eur)>1?` · im Paket ${eur(q.eur)}/a`:''}</div></td>
+    <td class="n">${x.sEl?fmt(x.sEl):''}</td><td class="n">${x.thEnd?fmt(x.thEnd):''}</td><td class="n">${x.w?fmt(x.w):''}</td><td class="n"><b>${eur(x.eur)}</b></td><td class="n">${fmt(x.co2,1)}</td><td class="n">${eur(x.inv)}</td><td class="n">${x.stat!=null?(x.stat<0.1?'sofort':fmt(x.stat,1)+' J.'):'–'}</td><td>${CLS[x.cls][0]}</td></tr>`}).join('');
+  const T=PKG.T;
+  return `<div class="card"><table class="pmass"><colgroup>${cols.map(c=>`<col style="width:${c[1]}%">`).join('')}</colgroup><thead><tr>${cols.map(c=>`<th class="${c[2]||''}">${c[0]}</th>`).join('')}</tr></thead><tbody>${rows}
+    <tr class="sum"><td></td><td>Paket (${PKG.out.length} Maßnahmen, mit Wechselwirkungen)</td><td class="n">${fmt(T.sEl)}</td><td class="n">${fmt(T.thEnd)}</td><td class="n">${fmt(T.w)}</td><td class="n">${eur(T.eur)}</td><td class="n">${fmt(T.co2,1)}</td><td class="n">${eur(T.inv)}</td><td class="n">${PKG.stat!=null?fmt(PKG.stat,1)+' J.':'–'}</td><td></td></tr></tbody></table>
+    <p class="note">✔ = ausgewählt (im Paket). Werte je Zeile gelten für die Maßnahme allein; nicht ausgewählte Maßnahmen grau. Investitionen brutto inkl. Montage (Richtwerte bzw. eigene Angaben).</p></div>`;
+}
+
+function PRINT_COVER(meta){
+  const T=PKG.T,pr=B.pr,co20=B.EL*B.p.co2el+B.TH*B.p.co2th,cost0=B.EL*B.p.el+B.TH*B.p.th+B.water*B.p.w;
+  const facts=[['Nutzung',`${pr.l} · ${fmt(B.A)} m² · ${fmt(P.floors)} Geschosse · Baujahr ${P.bj}`],['Nutzungszeit',`${fmt(B.days)} Tage × ${fmt(B.hours,1)} h · ${fmt(B.pers)} Personen`],
+    ['Strom',`${fmt(B.EL)} kWh/a (${fmt(B.EL/B.A,1)} kWh/m²${B.elKnown?'':', Kennwert'})`],['Wärme',`${fmt(B.TH)} kWh/a ${CARRIER[P.carrier].l} (${fmt(B.heat/B.A,1)} kWh/m²${B.thKnown?'':', Kennwert'})`],
+    ['Wasser',`${fmt(B.water)} m³/a`],['Energiekosten',`${eur(cost0)}/a · CO₂ ${fmt(co20,1)} t/a`],['Ausstattung',`${LIGHT[P.light].l}, ${({schalter:'Schalter',zeit:'Zeitschaltung',praesenz:'Präsenzmelder',dali:'Präsenz + Tageslicht'})[P.lightCtrl]} · Absenkung: ${P.setback} · Abgleich: ${P.abgleich}`]];
+  const by={};for(const x of PKG.out){by[x.cls]=(by[x.cls]||0)+1}
+  let h=coverBand('Energetische Einsparmaßnahmen','Bestandsgebäude',meta)+`<div class="ptiles">`+
+    ptile('Einsparung',eur(T.eur)+'/a',`${pct(T.eur/cost0)} der Energie- und Wasserkosten`,'#2c7d48')+ptile('Strom',fmt(T.sEl)+' kWh/a',`−${pct(T.sEl/B.EL,1)}`,'#1d63a8')+
+    ptile('Wärme',fmt(T.thEnd)+' kWh/a',`−${pct(T.thEnd/B.TH,1)}`,'#b3412f')+ptile('CO₂',fmt(T.co2,1)+' t/a',`−${pct(T.co2/co20,1)}`,'#6b7785')+
+    ptile('Investition',eur(T.inv),`${PKG.out.length} Maßnahmen`)+ptile('Amortisation',PKG.dyn!=null?fmt(PKG.dyn,1)+' Jahre':'–',`statisch ${PKG.stat!=null?fmt(PKG.stat,1)+' J.':'–'}`)+
+    ptile('Kapitalwert',eur(T.npv),'über die Nutzungsdauern',T.npv>=0?'#2c7d48':'#b3412f')+ptile('Wasser',fmt(T.w)+' m³/a',`−${pct(T.w/B.water,1)}`,'#0f8b9c')+`</div>`;
+  const top=PKG.out.slice().sort((a,b)=>b.eur-a.eur).slice(0,8);
+  const quick=PKG.out.filter(x=>x.cls==='sofort'||x.cls==='kurz').sort((a,b)=>(a.stat??1e9)-(b.stat??1e9)).slice(0,8);
+  h+=`<div class="cols"><div><h3>Gebäude</h3><table class="facts">${facts.map(([a,b])=>`<tr><th>${a}</th><td>${b}</td></tr>`).join('')}</table>
+    <h3>Größte Einsparungen</h3><ul>${top.map(x=>`<li><b>${esc(x.m.n)}</b> – ${eur(x.eur)}/a, Investition ${eur(x.inv)}</li>`).join('')}</ul></div>
+    <div><h3>Schnell umsetzbar (Amortisation bis 5 Jahre)</h3><ul>${quick.map(x=>`<li><b>${esc(x.m.n)}</b> – ${eur(x.eur)}/a bei ${eur(x.inv)} (${x.stat!=null&&x.stat<0.1?'sofort':fmt(x.stat,1)+' J.'})</li>`).join('')||'<li>keine</li>'}</ul>
+    <h3>Empfohlenes Vorgehen</h3><ul><li>Sofort- und kurzfristige Maßnahmen im laufenden Betrieb umsetzen (Hausmeister, Haustechnik, Einstellungen).</li><li>Investive Maßnahmen mit Angeboten konkretisieren und Fördermittel prüfen (BEG, Kommunalrichtlinie).</li><li>Verbräuche monatlich erfassen und die Wirkung kontrollieren.</li></ul></div></div>`;
+  return h;
+}
+
 /* ===================== Bedienung ===================== */
 function toast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2200)}
 document.getElementById('btnReset').onclick=()=>{P=defaults();document.getElementById('scenario').value='0';renderInputs();compute();toast('Standardwerte geladen')};
@@ -761,7 +934,7 @@ document.getElementById('btnCsv').onclick=()=>{const f=(v,d=0)=>v==null||!isFini
   let s='Maßnahme;Kategorie;ausgewählt;Strom kWh/a;Wärme kWh/a;Wasser m³/a;Einsparung €/a;CO2 t/a;Investition €;Nutzungsdauer;Amortisation statisch;Kapitalwert €;Rechenweg\n';
   for(const x of LIST)if(!x.na)s+=[x.m.n,CAT[x.m.cat][0],isSel(x)?'ja':'nein',f(x.sEl),f(x.thEnd),f(x.w),f(x.eur),f(x.co2,2),f(x.inv),x.life,f(x.stat,1),f(x.npv),'"'+x.basis.replace(/"/g,"'")+'"'].join(';')+'\n';
   const blob=new Blob(['﻿'+s],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='einsparmassnahmen.csv';a.click();toast('Maßnahmenliste als CSV gespeichert')};
-document.getElementById('btnPrint').onclick=()=>{for(const k in dirty)dirty[k]=1;['mass','ov','verb','econ'].forEach(k=>{dirty[k]=1;renderTab(k)});document.querySelectorAll('.det').forEach(d=>d.hidden=false);setTimeout(()=>window.print(),300)};
+document.getElementById('btnPrint').onclick=()=>printDialog();
 const scSel=document.getElementById('scenario');
 scSel.innerHTML=SCEN.map((s,i)=>`<option value="${i}">${esc(s.label)}</option>`).join('');
 scSel.onchange=()=>{const s=SCEN[+scSel.value];P=Object.assign(defaults(),JSON.parse(JSON.stringify(s.over)));renderInputs();compute();toast('Beispiel geladen')};
