@@ -1,0 +1,963 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ladesäulenplanung · ATools</title>
+<link rel="icon" href="../../assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<!-- Chart.js: lokal aus vendor/, Fallback auf CDN -->
+<script src="../../vendor/chart.umd.min.js"></script>
+<script>window.Chart||document.write('<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"><\/script>')</script>
+<script>if (window.Chart) Chart.defaults.locale = "de-DE";</script>
+<style>
+/* Layout: Datenblatt-Werkzeug. Links Parameterspalte, rechts Ergebnis-Reiter. Zellenblau + Sonnenbernstein. */
+:root{
+  --bg:#e9edf1; --panel:#ffffff; --panel2:#f4f6f9; --ink:#132130; --muted:#586777; --line:#d3dbe3;
+  --cell:#0f7a6b; --cell-soft:#d5ece8; --sun:#c7780a; --sun-soft:#fbecd2;
+  --teal:#23807d; --rose:#b3412f; --grey:#8a97a5; --good:#2c7d48; --warn:#a8670b; --bad:#b3412f;
+  --b8:#d97f0c; --b7:#e8a442; --b6:#f1c27d; --b5:#f4dcb3; --b4:#dde2e7; --b3:#b9c6d2; --b2:#90a6ba; --b1:#6884a0; --b0:#445f7d;
+  --s1:#1d63a8; --s2:#d9730d; --s3:#2a8a5e; --s4:#b8336a; --s5:#6f4fb8; --s6:#0f8b9c; --s7:#8d6b12; --s8:#c23b22;
+  --roof:#dfe5eb; --roofline:#7b8896;
+  --f-disp:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0d141b; --panel:#141e28; --panel2:#18242f; --ink:#e3e9ef; --muted:#93a2b1; --line:#283746;
+  --cell:#4fc1ae; --cell-soft:#173832; --sun:#f0a53a; --sun-soft:#3a2a12;
+  --teal:#4fb7b2; --rose:#e2735f; --grey:#7f8d9b; --good:#5bbf7c; --warn:#e5a443; --bad:#e2735f;
+  --b8:#f0a032; --b7:#d88a2a; --b6:#b5762e; --b5:#8a6638; --b4:#4c5866; --b3:#3d5268; --b2:#33495f; --b1:#2a3e53; --b0:#213244;
+  --s1:#6ea8e6; --s2:#f29b45; --s3:#5cc08f; --s4:#e277a4; --s5:#a68be8; --s6:#4cc3d1; --s7:#d1ac4a; --s8:#ef7158;
+  --roof:#1f2b37; --roofline:#6b7a8a;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d141b; --panel:#141e28; --panel2:#18242f; --ink:#e3e9ef; --muted:#93a2b1; --line:#283746;
+  --cell:#4fc1ae; --cell-soft:#173832; --sun:#f0a53a; --sun-soft:#3a2a12;
+  --teal:#4fb7b2; --rose:#e2735f; --grey:#7f8d9b; --good:#5bbf7c; --warn:#e5a443; --bad:#e2735f;
+  --b8:#f0a032; --b7:#d88a2a; --b6:#b5762e; --b5:#8a6638; --b4:#4c5866; --b3:#3d5268; --b2:#33495f; --b1:#2a3e53; --b0:#213244;
+  --s1:#6ea8e6; --s2:#f29b45; --s3:#5cc08f; --s4:#e277a4; --s5:#a68be8; --s6:#4cc3d1; --s7:#d1ac4a; --s8:#ef7158;
+  --roof:#1f2b37; --roofline:#6b7a8a;
+  color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.45;margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+h1,h2,h3{font-family:var(--f-disp);font-weight:600;letter-spacing:.01em;text-wrap:balance;margin:0}
+.num,td.n,th.n{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+header.top{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;padding-block:14px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));background:var(--panel);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:baseline;gap:12px;min-width:0;flex-wrap:wrap}
+.brand h1{font-size:28px;line-height:1}
+.brand .sub{color:var(--muted);font-size:12.5px}
+.mark{width:26px;height:26px;flex:none;align-self:center}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-left:auto;min-width:0;max-width:100%}
+.btn{border:1px solid var(--line);background:var(--panel2);border-radius:6px;padding:7px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--cell)}
+.btn.pri{background:var(--cell);border-color:var(--cell);color:var(--panel)}
+.btn.sm{padding:4px 9px;font-size:12px}
+.btn:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible,[role=tab]:focus-visible{outline:2px solid var(--sun);outline-offset:1px}
+.status{font-size:12px;color:var(--muted);font-family:var(--f-mono)}
+select.preset{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:7px 8px;max-width:100%;min-width:0}
+
+.app{display:grid;grid-template-columns:minmax(330px,390px) minmax(0,1fr);gap:16px;padding-block:16px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));align-items:start}
+@media (max-width:900px){.app{grid-template-columns:minmax(0,1fr)}}
+aside.inputs{display:flex;flex-direction:column;gap:8px;min-width:0}
+@media (min-width:901px){aside.inputs{position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto;padding-right:4px}}
+details.sec{background:var(--panel);border:1px solid var(--line);border-radius:8px}
+details.sec>summary{cursor:pointer;list-style:none;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;font-family:var(--f-disp);font-size:18px;font-weight:600}
+details.sec>summary::-webkit-details-marker{display:none}
+details.sec>summary::after{content:"+";font-family:var(--f-mono);color:var(--muted);font-size:16px}
+details.sec[open]>summary::after{content:"–"}
+details.sec>summary small{font-family:var(--f-body);font-size:11.5px;color:var(--muted);font-weight:400;margin-left:8px;margin-right:auto}
+.secbody{padding:4px 14px 14px;display:flex;flex-direction:column;gap:8px}
+.fld{display:grid;grid-template-columns:minmax(0,1fr) 150px;gap:4px 10px;align-items:center}
+.fld .lab{font-size:13px;min-width:0}
+.fld small{grid-column:1/-1;color:var(--muted);font-size:11.5px;margin-top:-2px}
+.ctl{display:flex;align-items:center;gap:6px;min-width:0}
+.ctl input[type=number],.ctl select{width:100%;min-width:0;border:1px solid var(--line);background:var(--panel2);border-radius:5px;padding:5px 7px;font-family:var(--f-mono);font-size:13px;text-align:right}
+.ctl select{text-align:left;font-family:var(--f-body)}
+.ctl .unit{font-size:11px;color:var(--muted);font-family:var(--f-mono);white-space:nowrap;min-width:46px}
+.fld.wide{grid-template-columns:minmax(0,1fr)}
+.fld.wide .ctl select{width:100%}
+textarea{width:100%;border:1px solid var(--line);background:var(--panel2);border-radius:5px;padding:6px;font-family:var(--f-mono);font-size:12px;resize:vertical}
+.hgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.hgrid label{display:flex;flex-direction:column;gap:2px;font-size:11px;color:var(--muted);font-family:var(--f-mono)}
+.hgrid input{border:1px solid var(--line);background:var(--panel2);border-radius:5px;padding:4px 6px;font-family:var(--f-mono);font-size:13px;text-align:right;width:100%}
+.dim{opacity:.45}
+.surf{border:1px solid var(--line);border-radius:6px;padding:10px;display:flex;flex-direction:column;gap:7px;background:var(--panel2)}
+.surf.tpl{background:var(--cell-soft);border-color:transparent}
+.surf.tpl .ttl{font-weight:600;font-size:13px}
+.surf .sh{display:flex;gap:8px;align-items:center}
+.surf .sh input{flex:1;min-width:0;border:1px solid var(--line);background:var(--panel);border-radius:5px;padding:5px 7px;font-weight:600}
+.surf .info{font-family:var(--f-mono);font-size:11.5px;color:var(--cell)}
+.xbtn{border:1px solid var(--line);background:var(--panel);border-radius:5px;padding:4px 8px;cursor:pointer;font-size:12px}
+
+section.results{min-width:0;display:flex;flex-direction:column;gap:12px}
+nav.tabs{display:flex;gap:2px;overflow-x:auto;border-bottom:2px solid var(--line);scrollbar-width:thin}
+nav.tabs button{border:0;background:none;padding:9px 14px;cursor:pointer;font-family:var(--f-disp);font-size:17px;font-weight:600;color:var(--muted);white-space:nowrap;border-bottom:3px solid transparent;margin-bottom:-2px}
+nav.tabs button[aria-selected=true]{color:var(--ink);border-bottom-color:var(--sun)}
+.panel{display:flex;flex-direction:column;gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px;min-width:0}
+.card h2{font-size:20px;margin-bottom:8px}
+.card h3{font-size:16px;margin-bottom:6px}
+.card p.note{color:var(--muted);font-size:12.5px;margin:6px 0 0;max-width:90ch}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+@media (max-width:1150px){.grid2{grid-template-columns:minmax(0,1fr)}}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+@media (max-width:1100px){.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:620px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kpi{background:var(--panel);padding:12px 14px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.kpi .k{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.kpi .v{font-family:var(--f-disp);font-size:30px;font-weight:600;line-height:1.05;font-variant-numeric:tabular-nums}
+.kpi .v small{font-size:15px;color:var(--muted);font-weight:500;margin-left:3px}
+.kpi .s{font-size:12px;color:var(--muted);font-family:var(--f-mono)}
+.kpi.pos .v{color:var(--good)} .kpi.neg .v{color:var(--bad)}
+.chartbox{position:relative;height:300px;width:100%}
+.chartbox.tall{height:380px}.chartbox.short{height:230px}
+.flowbar{display:flex;height:22px;border-radius:4px;overflow:hidden;background:var(--panel2)}
+.flowbar>div{height:100%;min-width:0}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:6px;font-size:12.5px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:11px;height:11px;border-radius:2px;display:inline-block}
+.flowrow{display:flex;flex-direction:column;gap:4px;margin-top:12px}
+.flowrow .t{display:flex;justify-content:space-between;font-size:13px}
+.tablewrap,.svgwrap{overflow-x:auto}
+.svgwrap svg{display:block;min-width:720px;width:100%;height:auto}
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+th,td{padding:5px 8px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+th{font-weight:600;color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:.04em}
+td.n,th.n{text-align:right}
+td.okc{color:var(--good)} td.warnc{color:var(--warn);font-weight:600} td.badc{color:var(--bad);font-weight:600}
+tr.sum td{font-weight:600;border-top:2px solid var(--ink)}
+tr.hl td{background:var(--sun-soft)}
+.warns{display:flex;flex-direction:column;gap:6px;margin:0;padding:0;list-style:none}
+.warns li{display:flex;gap:10px;align-items:flex-start;font-size:13px}
+.chip{flex:none;font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;padding:2px 7px;border-radius:10px;border:1px solid currentColor;margin-top:1px}
+.chip.bad{color:var(--bad)} .chip.warn{color:var(--warn)} .chip.ok{color:var(--good)} .chip.info{color:var(--cell)}
+.casc td.bar{width:42%}
+.casc .bb{height:12px;background:var(--cell);border-radius:2px}
+.casc .bb.loss{background:var(--rose)} .casc .bb.gain{background:var(--sun)}
+.casc tr.lvl td{font-weight:600;background:var(--panel2)}
+.rec{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:700px){.rec{grid-template-columns:minmax(0,1fr)}}
+.recbox{border:1px solid var(--line);border-radius:6px;padding:10px 12px;background:var(--panel2);display:flex;flex-direction:column;gap:5px;min-width:0}
+.recbox .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);display:flex;justify-content:space-between;gap:8px}
+.recbox .big{font-family:var(--f-disp);font-size:24px;font-weight:600;line-height:1.1}
+.recbox .det{font-size:12.5px;color:var(--muted)}
+.recbox .det b{color:var(--ink);font-weight:500}
+.planlist{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:14px}
+.roofsvg{width:100%;height:auto;max-height:540px;display:block}
+.strleg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;font-family:var(--f-mono);margin-top:8px}
+.strleg span{display:inline-flex;gap:6px;align-items:center}
+.strleg i{width:14px;height:10px;border-radius:2px;display:inline-block}
+.fanwrap{display:grid;grid-template-columns:minmax(0,560px) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:1150px){.fanwrap{grid-template-columns:minmax(0,1fr)}}
+.fan{position:relative;width:100%;max-width:560px;aspect-ratio:1/1}
+.fan canvas{width:100%;height:100%;cursor:crosshair;display:block}
+.fanleg{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+.fanleg span{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-family:var(--f-mono);padding-right:6px}
+.fanleg i{width:16px;height:12px;display:inline-block;border-radius:2px}
+.tip{position:absolute;pointer-events:none;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:6px 9px;font-size:12px;font-family:var(--f-mono);box-shadow:0 4px 14px rgba(0,0,0,.15);white-space:nowrap}
+.sel-info{font-family:var(--f-mono);font-size:13px;display:grid;grid-template-columns:auto auto;gap:3px 14px;justify-content:start}
+.rangebar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px}
+.rangebar input[type=range]{flex:1;min-width:160px;accent-color:var(--sun)}
+.statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.stat{border-left:3px solid var(--cell);padding:2px 10px}
+.stat .k{font-size:11.5px;color:var(--muted)} .stat .v{font-family:var(--f-mono);font-size:16px}
+.docs{font-size:13px;max-width:95ch}
+.docs h3{margin-top:14px}
+.docs ul{padding-left:18px;margin:6px 0}
+.docs li{margin:3px 0}
+.overlay{position:fixed;inset:0;background:rgba(10,16,22,.5);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}
+.dialog{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;width:min(640px,100%);display:flex;flex-direction:column;gap:10px}
+.dialog textarea{min-height:220px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--panel);padding:8px 14px;border-radius:6px;font-size:13px;z-index:60}
+
+.tipi{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;border:1px solid var(--muted);color:var(--muted);font:600 10px/1 var(--f-body);font-style:normal;margin-left:6px;cursor:help;vertical-align:1px;text-transform:none;letter-spacing:0;flex:none}
+.tipi:hover,.tipi:focus-visible{border-color:var(--cell);color:var(--cell);outline:none}
+#tipbox{position:fixed;z-index:70;max-width:min(330px,calc(100vw - 24px));background:var(--ink);color:var(--panel);font-size:12.5px;line-height:1.45;padding:8px 11px;border-radius:6px;pointer-events:none;box-shadow:0 6px 18px rgba(0,0,0,.22);text-transform:none;letter-spacing:0;font-weight:400}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+.ghead{font-family:var(--f-disp);font-size:15px;font-weight:600;margin-top:6px;padding-top:6px;border-top:1px solid var(--line)}
+.ghead:first-child{border-top:0;margin-top:0;padding-top:0}
+.gantt{display:block;width:100%;min-width:760px;height:auto}
+i.sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:0}
+#heat{width:100%;display:block}
+.rangebar output{font-family:var(--f-mono);font-size:12.5px;min-width:190px}
+.docs table td{white-space:normal}
+
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <svg class="mark" viewBox="0 0 26 26" aria-hidden="true"><rect x="4" y="2" width="12" height="22" rx="2" fill="var(--cell)"/><rect x="6.5" y="5" width="7" height="5" rx="1" fill="var(--panel)"/><path d="M11 12.5l-2.6 4h2.4l-1 4 3.4-5h-2.4z" fill="var(--sun)"/><path d="M16 9h3.5a2 2 0 0 1 2 2v7a1.6 1.6 0 0 0 3.2 0v-9" stroke="var(--cell)" stroke-width="1.8" fill="none" stroke-linecap="round"/></svg>
+    <h1>Ladesäulenplanung</h1>
+    <span class="sub">Ladevorgänge · Lastmanagement · PV &amp; Speicher · Wirtschaftlichkeit</span>
+  </div>
+  <div class="toolbar">
+    <select class="preset" id="scenario" aria-label="Beispielszenario laden"></select>
+    <button class="btn" id="btnCsv" type="button">Lastgang als CSV</button>
+    <button class="btn" id="btnReset" type="button">Zurücksetzen</button>
+    <span class="status" id="status">–</span>
+  </div>
+</header>
+
+<main class="app">
+  <aside class="inputs" id="inputs"></aside>
+  <section class="results">
+    <nav class="tabs" role="tablist" id="tabs">
+      <button role="tab" data-tab="ov" aria-selected="true">Übersicht</button>
+      <button role="tab" data-tab="last" aria-selected="false">Lastgang</button>
+      <button role="tab" data-tab="sess" aria-selected="false">Ladevorgänge</button>
+      <button role="tab" data-tab="lm" aria-selected="false">Lademanagement</button>
+      <button role="tab" data-tab="econ" aria-selected="false">Wirtschaftlichkeit</button>
+      <button role="tab" data-tab="tech" aria-selected="false">Herausforderungen &amp; Lösungen</button>
+      <button role="tab" data-tab="docs" aria-selected="false">Recht &amp; Annahmen</button>
+    </nav>
+
+    <div class="panel" data-panel="ov">
+      <div class="kpis" id="kpis"></div>
+      <div class="card"><h2>Empfehlung</h2><div class="rec" id="recBox"></div></div>
+      <div class="grid2">
+        <div class="card"><h2>Ladestrom</h2><div id="flows"></div></div>
+        <div class="card"><h2>Wichtigste Hinweise</h2><ul class="warns" id="warns"></ul></div>
+      </div>
+    </div>
+
+    <div class="panel" data-panel="last" hidden>
+      <div class="card"><h2>Mittlerer Tagesgang an Werktagen</h2><div class="chartbox tall"><canvas id="chDay"></canvas></div><p class="note">Viertelstundenmittel der gesteuerten Ladeleistung je Nutzergruppe; gestrichelt die Leistung ohne Lastmanagement und die Zahl angesteckter Fahrzeuge.</p></div>
+      <div class="card"><h2>Wochenansicht Netzanschluss</h2>
+        <div class="rangebar"><input type="range" id="weekRange" min="0" max="357" step="7" aria-label="Woche wählen"><output id="weekLbl"></output></div>
+        <div class="chartbox tall"><canvas id="chWeek"></canvas></div><p class="note">Voreingestellt ist die Woche mit der höchsten Lademenge. Gebäude als Stundenwerte, Laden und Netzbezug als Viertelstundenwerte.</p></div>
+      <div class="grid2">
+        <div class="card"><h2>Dauerlinien</h2><div class="chartbox"><canvas id="chDur"></canvas></div></div>
+        <div class="card"><h2>Gleichzeitig ladende Fahrzeuge</h2><div class="chartbox"><canvas id="chConc"></canvas></div></div>
+      </div>
+      <div class="card"><h2>Belegung über das Jahr</h2><canvas id="heat"></canvas><p class="note" id="heatLeg"></p></div>
+      <div class="card"><h2>Monatswerte</h2><div class="tablewrap"><table id="monthTable"></table></div></div>
+    </div>
+
+    <div class="panel" data-panel="sess" hidden>
+      <div class="card"><h2>Belegungsplan eines Tages</h2>
+        <div class="rangebar"><input type="range" id="dayRange" min="0" max="364" step="1" aria-label="Tag wählen"><output id="dayLbl"></output><button class="btn sm" id="dayBusy" type="button">Tag mit den meisten Ladevorgängen</button></div>
+        <div class="svgwrap" id="gantt"></div></div>
+      <div class="card"><h2>Ladevorgänge je Nutzergruppe</h2><div class="tablewrap"><table id="grpTable"></table></div></div>
+      <div class="grid2">
+        <div class="card"><h2>Ankunftszeiten</h2><div class="chartbox"><canvas id="chArr"></canvas></div></div>
+        <div class="card"><h2>Standzeiten</h2><div class="chartbox"><canvas id="chDwell"></canvas></div></div>
+      </div>
+      <div class="card"><h2>Lademengen</h2><div class="chartbox short"><canvas id="chKwh"></canvas></div></div>
+    </div>
+
+    <div class="panel" data-panel="lm" hidden>
+      <div class="card"><h2>Strategien im Vergleich</h2><div class="chartbox"><canvas id="chVar"></canvas></div><div class="tablewrap" style="margin-top:10px"><table id="varTable"></table></div>
+        <p class="note">Jede Strategie ist eine vollständige Jahressimulation mit denselben Fahrzeugen. „Nicht geladen“: Energie, die bis zur Abfahrt fehlt oder wegen belegter Ladepunkte nicht geladen werden kann.</p></div>
+      <div class="card"><h2>Wie viel Leistung brauchen die Ladepunkte?</h2><div class="chartbox"><canvas id="chSweep"></canvas></div><p class="note">Statisches Lastmanagement mit unterschiedlichen Leistungsgrenzen: Schon ein Bruchteil der installierten Leistung reicht meist, weil die Fahrzeuge lange stehen. Die Empfehlung in der Übersicht ist die kleinste Grenze, bei der höchstens 1 % zusätzlich ungeladen bleibt.</p></div>
+      <div class="card docs"><h3>So funktionieren die Strategien</h3><ul>
+        <li><b>Ohne Lastmanagement:</b> Jedes Fahrzeug lädt sofort mit der kleineren Leistung aus Ladepunkt und Bordlader. Die Spitzenlast wächst mit jedem Ladepunkt.</li>
+        <li><b>Statisch:</b> Eine feste Summenleistung wird nach dem Füllstandsprinzip auf alle ladenden Fahrzeuge verteilt; reicht sie nicht für den Mindestladestrom (6 A ≈ 4,1 kW), warten Fahrzeuge in der gewählten Priorität.</li>
+        <li><b>Dynamisch:</b> Die Ladeleistung folgt der freien Leistung am Netzanschluss (Grenze − Gebäudelast + PV + verfügbare Speicherleistung). So lassen sich viele Ladepunkte ohne Anschlussverstärkung betreiben.</li>
+        <li><b>Dynamisch + PV-Überschuss:</b> Jedes Fahrzeug erhält nur die Leistung, die es bis zur Abfahrt mindestens braucht (mit 25 % Reserve); PV-Überschuss wird zusätzlich verteilt. Voraussetzung ist, dass die Abfahrtszeit bekannt ist (App, Fahrtenbuch, feste Schichten).</li></ul></div>
+    </div>
+
+    <div class="panel" data-panel="econ" hidden>
+      <div class="grid2">
+        <div class="card"><h2>Investition</h2><div class="tablewrap"><table id="invTable"></table></div></div>
+        <div class="card"><h2>Ergebnis im ersten Jahr</h2><div class="tablewrap"><table id="y1Table"></table></div><p class="note" id="econNote"></p></div>
+      </div>
+      <div class="card"><h2>Kapitalrückfluss</h2><div class="chartbox tall"><canvas id="chCash"></canvas></div></div>
+      <div class="card"><h2>Einfluss auf den Kapitalwert</h2><div class="chartbox short"><canvas id="chSens"></canvas></div></div>
+      <div class="card"><h2>Jahrestabelle</h2><div class="tablewrap"><table id="yearTable"></table></div><p class="note">Erlöse und Stromkosten steigen mit der Preissteigerung, Wartung mit 2 %/a. Verkaufspreise werden brutto eingegeben und netto (÷ 1,19) gerechnet.</p></div>
+    </div>
+
+    <div class="panel" data-panel="tech" hidden>
+      <div class="card"><h2>Technische Herausforderungen und Lösungen</h2><ul class="warns" id="techList"></ul></div>
+    </div>
+
+    <div class="panel" data-panel="docs" hidden>
+      <div class="card docs">
+        <h2>Rechenmodell</h2>
+        <ul>
+          <li><b>Zeitauflösung:</b> 35.040 Viertelstunden eines Jahres. Gebäudelast und PV als Stundenwerte, Laden, Speicher und Netzbezug je Viertelstunde.</li>
+          <li><b>Fahrzeuge:</b> Regelmäßige Nutzer laden an Betriebstagen mit der Wahrscheinlichkeit „Ladevorgänge je Woche ÷ Betriebstage“; Ankunft und Standzeit normalverteilt, Lademenge logarithmisch normalverteilt (±30 %). Besucher kommen Poisson-verteilt während der Öffnungszeit, Standzeit logarithmisch normalverteilt; bei unter 2,5 h Standzeit bevorzugen sie DC-Ladepunkte. Findet ein Stammnutzer keinen freien Ladepunkt, holt er die Energie beim nächsten Mal nach (bis 60 kWh); Besucher fahren weiter.</li>
+          <li><b>Fahrzeugtechnik:</b> Bordlader 3,7/7,4/11/22 kW (10/15/65/10 %), DC 50/100/150/250 kW (12/33/40/15 %). DC-Ladekurve: ab 60 % der Lademenge lineare Abnahme auf 40 % der Leistung. Fahrzeuge bleiben bis zur Abfahrt angesteckt.</li>
+          <li><b>Netz und Speicher:</b> Der Speicher (Wirkungsgrad 95 % je Richtung) deckt in jedem Fall Leistung oberhalb der Anschlussgrenze; zusätzlich je nach Betriebsweise Eigenverbrauch oder Spitzenkappung mit Nachladen in lastarmen Zeiten.</li>
+          <li><b>Wirtschaftlichkeit:</b> Vergleich mit dem Gebäude ohne Laden (und ohne PV/Speicher, wenn diese Teil der Investition sind): Mehrbezug × Arbeitspreis, Erhöhung der Jahreshöchstlast × Leistungspreis, entgangene Einspeisung. Kapitalwert, interner Zinsfuß und dynamische Amortisation über den Betrachtungszeitraum; Vollkosten je kWh mit Annuität der Investition.</li>
+          <li><b>Zufall:</b> Feste Startzahl – gleiche Eingaben ergeben gleiche Ergebnisse. Feiertage und Urlaubszeiten sind nicht berücksichtigt.</li>
+        </ul>
+        <h2>Rechtlicher Rahmen (Stand 11/2026)</h2>
+        <ul>
+          <li><b>GEIG in der Fassung des GModG:</b> Ausstattungspflichten für Stellplätze bei Neubau, größerer Renovierung und im Bestand (Nichtwohngebäude mit mehr als 20 Stellplätzen ab 01.01.2027: ein Ladepunkt je 10 Stellplätze oder Leitungsinfrastruktur für 50 %). Die gebäudebezogene Prüfung enthält der Energiebedarfsrechner (Reiter E-Mobilität).</li>
+          <li><b>AFIR (EU 2023/1804):</b> öffentlich zugängliche Ladepunkte – Ad-hoc-Laden, Preisangabe je kWh, ab 50 kW Kartenzahlung, digitale Vernetzung, ISO 15118.</li>
+          <li><b>Ladesäulenverordnung und Mess- und Eichrecht:</b> Meldung öffentlicher Ladepunkte an die Bundesnetzagentur; kWh-genaue Abrechnung nur mit eichrechtskonformen Ladestationen.</li>
+          <li><b>§ 14a EnWG:</b> nicht öffentliche Ladepunkte über 4,2 kW sind steuerbare Verbrauchseinrichtungen (Netzentgeltreduzierung Modul 1–3, Mindestleistung 4,2 kW bei Dimmung).</li>
+          <li><b>Netzanschluss:</b> Anmeldung beim Netzbetreiber (NAV § 19), Zustimmung ab 12 kVA Summenleistung; technische Anschlussregeln VDE-AR-N 4100 bzw. 4110 (Mittelspannung).</li>
+          <li><b>Elektrotechnik:</b> DIN VDE 0100-722 (Stromversorgung von Elektrofahrzeugen), DIN EN IEC 61851, wiederkehrende Prüfung nach DGUV Vorschrift 3.</li>
+          <li><b>THG-Quote:</b> Erlöse für öffentlich zugänglich geladenen Strom über Quotenhändler; Höhe schwankt mit dem Quotenmarkt.</li>
+          <li><b>Abrechnungsdienste:</b> z. B. MENNEKES ativo (Ad-hoc-Bezahlung per QR-Code, Tarife je Nutzergruppe, Rückvergütung für Dienstwagen). Gebühren und Konditionen beim Anbieter erfragen; die Eingaben sind Platzhalter.</li>
+        </ul>
+        <p class="note">Planungshilfe für die Vorplanung – ersetzt keine Elektroplanung, keine Netzanfrage und keine Rechts- oder Steuerberatung.</p>
+      </div>
+    </div>
+  </section>
+</main>
+<script>
+"use strict";
+/* ===================== Grundlagen ===================== */
+const DAYS_M=[31,28,31,30,31,30,31,31,30,31,30,31],MNAMES=['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+const WD=['Mo','Di','Mi','Do','Fr','Sa','So'];
+const S=35040;                                   // Viertelstunden im Jahr
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const sum=a=>{let s=0;for(const v of a)s+=v;return s};
+const PV_M=[0.025,0.045,0.08,0.11,0.13,0.135,0.135,0.12,0.09,0.06,0.03,0.02];
+const CAR_AC=[[3.7,0.10],[7.4,0.15],[11,0.65],[22,0.10]];
+const CAR_DC=[[50,0.12],[100,0.33],[150,0.40],[250,0.15]];
+const GROUPS=[
+  {id:'ma',name:'Beschäftigte / Pendler',color:'--s1'},
+  {id:'fl',name:'Dienstwagen / Flotte',color:'--s3'},
+  {id:'bs',name:'Besucher / Kunden',color:'--s2'},
+  {id:'bw',name:'Bewohner / Übernachtung',color:'--s5'}];
+const dayOfYear=(d)=>{let m=0,r=d;while(m<11&&r>=DAYS_M[m]){r-=DAYS_M[m];m++}return {m,dd:r+1}};
+const dayName=(d)=>{const {m,dd}=dayOfYear(d);return `${WD[d%7]} ${String(dd).padStart(2,'0')}.${String(m+1).padStart(2,'0')}.`};
+function mulberry(seed){let a=seed>>>0;return()=>{a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)/4294967296}}
+
+/* Gebäudelast (Stundenwerte) aus Jahresverbrauch und Profil; Wochentag 0 = Montag */
+const BLD_SHAPE={
+  buero:{wd:[.32,.3,.3,.3,.32,.4,.7,1,1.15,1.2,1.2,1.2,1.1,1.15,1.15,1.1,1,.85,.6,.45,.4,.36,.34,.33],we:.32,sat:.34},
+  handel:{wd:[.35,.33,.33,.33,.35,.45,.7,.95,1.1,1.15,1.2,1.2,1.2,1.2,1.2,1.2,1.2,1.15,1.1,1.0,.75,.5,.4,.37],we:.35,sat:1},
+  gewerbe:{wd:[.4,.38,.38,.38,.45,.7,1,1.15,1.2,1.2,1.2,1.1,1.1,1.15,1.15,1.05,.9,.7,.55,.5,.45,.43,.42,.4],we:.38,sat:.5},
+  wohnen:{wd:[.4,.3,.28,.27,.28,.35,.6,.9,1,.95,.9,.95,1.1,1.05,.9,.85,.9,1.15,1.45,1.6,1.45,1.15,.85,.6],we:1,sat:1}};
+function buildingLoad(kwh,prof,openDays,seed){
+  const out=new Float64Array(8760);if(!(kwh>0)||!BLD_SHAPE[prof])return out;
+  const sh=BLD_SHAPE[prof],rnd=mulberry(seed);let tot=0;
+  for(let d=0;d<365;d++){const wd=d%7,season=1+0.12*Math.cos(2*Math.PI*(d-15)/365);
+    for(let h=0;h<24;h++){let f=sh.wd[h];if(prof!=='wohnen'){if(wd>=openDays)f=wd===5&&openDays>=6?f:(wd===5?sh.wd[h]*sh.sat+(1-sh.sat)*sh.we:sh.we)}
+      const v=f*season*(0.9+0.2*rnd());out[d*24+h]=v;tot+=v}}
+  for(let i=0;i<8760;i++)out[i]*=kwh/tot;
+  return out;
+}
+/* PV-Erzeugung (Stundenwerte): Sonnenbahn 51° N, Monatsverteilung, Wetterlagen als AR(1)-Prozess */
+function pvProfile(kwp,yieldKWp,seed){
+  const out=new Float64Array(8760);if(!(kwp>0))return out;
+  const rnd=mulberry(seed+99),lat=51*Math.PI/180;let wx=0,h0=0,day=0;
+  const g=()=>{let u=0;while(u===0)u=rnd();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*rnd())};
+  for(let m=0;m<12;m++){const nd=DAYS_M[m],arr=new Float64Array(nd*24);let s=0;
+    for(let d=0;d<nd;d++,day++){const decl=23.45*Math.PI/180*Math.sin(2*Math.PI*(284+day+1)/365),half=Math.acos(-Math.tan(lat)*Math.tan(decl))*12/Math.PI;
+      wx=0.7*wx+0.71*g()*0.55;const clear=clamp(1+wx,0.08,1.9);
+      for(let h=0;h<24;h++){const x=(h+0.5-12.7)/half;const v=Math.abs(x)<1?clear*Math.pow(Math.cos(x*Math.PI/2),1.3):0;arr[d*24+h]=v;s+=v}}
+    const E=kwp*yieldKWp*PV_M[m]/sum(PV_M);for(let i=0;i<arr.length;i++)out[h0+i]=s>0?arr[i]/s*E:0;h0+=nd*24}
+  // Wechselrichter-Begrenzung (Stundenmittel ≤ 0,85 kWp) – Überschuss proportional zurückverteilen vermeiden: einfach kappen
+  for(let i=0;i<8760;i++)out[i]=Math.min(out[i],kwp*0.85);
+  return out;
+}
+
+/* ===================== Ladesimulation (Viertelstunden, ein Jahr) =====================
+   o: {lp:[{dc,kw}], groups:[...], openDays, open:[von,bis], lm:'none'|'static'|'dyn'|'pv', lmKw, pmax, prio, bld(8760), pv(8760),
+       bat:{cap,pow,mode,pcap}, seed, log:true}
+   Alle Leistungen in kW, Energien in kWh. Ergebnis: Leistungsreihen, Statistik je Gruppe, Netzbilanz. */
+function simulate(o){
+  const rnd=mulberry(o.seed||4711);
+  const gauss=()=>{let u=0;while(u===0)u=rnd();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*rnd())};
+  const pick=mix=>{let r=rnd(),a=0;for(const [v,w] of mix){a+=w;if(r<=a)return v}return mix[mix.length-1][0]};
+  const poisson=l=>{if(l<=0)return 0;if(l>30)return Math.max(0,Math.round(l+Math.sqrt(l)*gauss()));const L=Math.exp(-l);let k=0,p=1;do{k++;p*=rnd()}while(p>L);return k-1};
+  const LP=o.lp,nLP=LP.length,free=LP.map(()=>true);
+  const nAC=LP.filter(l=>!l.dc).length,nDC=nLP-nAC;
+  const [w0,w1]=o.open;
+  const PU=new Float32Array(S),PL=new Float32Array(S),OCC=new Uint16Array(S),CHG=new Uint16Array(S);
+  const byG=o.groups.map(()=>new Float32Array(S));
+  const st=o.groups.map(()=>({sess:0,rej:0,req:0,del:0,lost:0,dwell:0,chg:0,dist:{arr:new Float64Array(24),dwell:new Float64Array(25),kwh:new Float64Array(21)}}));
+  const plugged=[],log=[];
+  const need=o.groups.map(g=>new Float64Array(Math.max(1,g.type==='fz'?g.n:0)));
+  const busy=o.groups.map(g=>new Int8Array(Math.max(1,g.type==='fz'?g.n:0)));
+  const del_m=new Float64Array(12),sess_m=new Float64Array(12);
+  // Netz / Speicher
+  const bat=o.bat||{cap:0,pow:0};let soc=bat.cap*0.5;const eta=0.95;
+  let imp=0,exp=0,impPk=0,pvSelf=0,batIn=0,batOut=0,impB=0,expB=0,pkB=0,socB=bat.cap*0.5,pvSelfB=0,impN=0,pkN=0;
+  const IMP=new Float32Array(S),SOC=new Float32Array(S),BAT=new Float32Array(S);
+  const lmPrio=o.prio||'fifo',minP=(x)=>x.dc?Math.min(x.cap,5):Math.min(x.cap,x.cap<4?1.4:4.1);
+  let pending=[];
+  const dayAct=(g,d)=>{const wd=d%7;if(g.days==='all')return true;if(g.days==='open')return wd<o.openDays;return wd<Math.min(5,o.openDays)};
+  for(let d=0;d<365;d++){
+    const {m}=dayOfYear(d);
+    pending=pending.filter(x=>x.s>=d*96);
+    o.groups.forEach((g,gi)=>{
+      if(!g.on||!(g.n>0)||!dayAct(g,d))return;
+      const mk=(arr,dw,e,v)=>pending.push({s:d*96+clamp(Math.floor(arr*4),0,95),dur:Math.max(1,Math.round(dw*4)),e:Math.max(1,e),v,g:gi,dcPref:g.dcPref&&dw<2.5});
+      if(g.type==='fz'){
+        const nd=g.days==='all'?7:g.days==='open'?o.openDays:Math.min(5,o.openDays),p=Math.min(1,g.f/nd);
+        for(let v=0;v<g.n;v++){if(rnd()>p)continue;
+          const a=clamp(g.arr+g.arrSd*gauss(),0,23.75),dw=clamp(g.dwell+g.dwellSd*gauss(),0.5,23);
+          mk(a,dw,g.kwh*Math.exp(0.3*gauss()-0.045),v)}
+      }else{
+        const k=poisson(g.n*(0.8+0.4*rnd()));
+        const sg=Math.sqrt(Math.log(1+Math.pow(g.dwellSd/Math.max(0.1,g.dwell),2))),mu=Math.log(g.dwell)-sg*sg/2;
+        for(let j=0;j<k;j++){const dw=clamp(Math.exp(mu+sg*gauss()),0.25,10);const a=w0+rnd()*Math.max(0.25,(w1-w0)-Math.min(dw,1));
+          mk(a,dw,g.kwh*Math.exp(0.35*gauss()-0.06),-1)}
+      }
+    });
+    pending.sort((x,y)=>x.s-y.s);let pi=0;
+    for(let q=0;q<96;q++){
+      const s=d*96+q,h=s>>2;
+      for(let i=plugged.length-1;i>=0;i--){const x=plugged[i];if(x.dep>s)continue;
+        const G=st[x.g];G.lost+=x.remL;if(x.v>=0){busy[x.g][x.v]=0;need[x.g][x.v]=Math.min(60,need[x.g][x.v]+x.remL)}
+        free[x.lp]=true;if(o.log)log.push({g:x.g,lp:x.lp,a:x.arr,dep:x.dep,e:x.e,del:x.e-x.remL,c0:x.c0,c1:x.c1});plugged.splice(i,1)}
+      while(pi<pending.length&&pending[pi].s<=s){const x=pending[pi++],G=st[x.g];
+        if(x.v>=0&&busy[x.g][x.v])continue;
+        const e=x.e+(x.v>=0?need[x.g][x.v]:0);
+        G.sess++;sess_m[m]++;G.req+=x.e;
+        G.dist.arr[Math.floor((x.s%96)/4)]++;
+        let lp=-1;const want=x.dcPref?[true,false]:[false,true];
+        for(const dc of want){for(let k=0;k<nLP;k++)if(free[k]&&LP[k].dc===dc){lp=k;break}if(lp>=0)break}
+        if(lp<0){G.rej++;if(x.v>=0)need[x.g][x.v]=Math.min(60,e);else G.lost+=e;continue}
+        if(x.v>=0){need[x.g][x.v]=0;busy[x.g][x.v]=1}
+        free[lp]=false;const dc=LP[lp].dc;
+        const cap=dc?Math.min(LP[lp].kw,pick(CAR_DC)):Math.min(LP[lp].kw,pick(CAR_AC));
+        plugged.push({lp,dc,cap,e,remU:e,remL:e,dep:x.s+x.dur,arr:x.s,g:x.g,v:x.v,c0:-1,c1:-1,fleet:o.groups[x.g].id==='fl'});
+        G.dwell+=x.dur/4;G.dist.dwell[Math.min(24,Math.round(x.dur/4))]++;G.dist.kwh[Math.min(20,Math.floor(e/5))]++;
+      }
+      // DC-Ladekurve: oberhalb von 60 % der Lademenge fällt die Leistung linear bis auf 40 %
+      const capNow=x=>{let c=x.cap;if(x.dc){const f=1-x.remL/x.e;if(f>0.6)c*=1-0.6*(f-0.6)/0.4}return Math.min(c,x.remL*4)};
+      // ungesteuert
+      let pu=0;for(const x of plugged)if(x.remU>1e-6){let c=x.cap;if(x.dc){const f=1-x.remU/x.e;if(f>0.6)c*=1-0.6*(f-0.6)/0.4}const p=Math.min(c,x.remU*4);x.remU-=p/4;pu+=p}
+      // gesteuert
+      const b=o.bld[h],pv=o.pv[h];
+      let avail=Infinity;
+      const batAvail=bat.cap>0?Math.min(bat.pow,soc*eta*4):0;
+      if(o.lm==='static')avail=o.lmKw;
+      else if(o.lm==='dyn'||o.lm==='pv')avail=Math.max(0,o.pmax-b+pv+batAvail);
+      const act=plugged.filter(x=>x.remL>1e-6);
+      if(lmPrio==='edf')act.sort((a,c)=>(a.dep-a.remL/Math.max(1,a.cap)*4)-(c.dep-c.remL/Math.max(1,c.cap)*4));
+      else if(lmPrio==='fleet')act.sort((a,c)=>(c.fleet-a.fleet)||(a.arr-c.arr));
+      const caps=act.map(capNow);
+      let lo=caps;
+      if(o.lm==='pv'){ // nur das zeitlich Nötige sofort, Rest aus PV-Überschuss
+        lo=act.map((x,i)=>{const left=Math.max(1,x.dep-s);const r=x.remL*4/left*1.25;return r<=0?0:Math.min(caps[i],Math.max(r,minP(x)))});
+      }
+      const pw=fill(act,lo,avail,minP);
+      if(o.lm==='pv'){
+        let used=sum(pw),sur=Math.max(0,pv-b-used);sur=Math.min(sur,avail-used);
+        if(sur>0.5){const add=act.map((x,i)=>Math.max(0,caps[i]-pw[i]));
+          const ex=fill(act,add.map((v,i)=>pw[i]>0?v:(v>=minP(act[i])?v:0)),sur,(x)=>0);
+          ex.forEach((v,i)=>{if(pw[i]>0||v>=minP(act[i])-1e-9)pw[i]+=v})}
+      }
+      let pl=0,nl=0;
+      act.forEach((x,i)=>{const p=pw[i];if(p>1e-9){x.remL-=p/4;pl+=p;nl++;byG[x.g][s]+=p;st[x.g].del+=p/4;st[x.g].chg+=0.25;if(x.c0<0)x.c0=s;x.c1=s}});
+      PU[s]=pu;PL[s]=pl;OCC[s]=plugged.length;CHG[s]=nl;del_m[m]+=pl/4;
+      // Netz und Speicher (mit Laden)
+      const r=gridStep(b+pl,pv,soc,bat,o.pmax,s);soc=r.soc;imp+=r.imp/4;exp+=r.exp/4;pvSelf+=r.self/4;batIn+=r.ch/4;batOut+=r.dis/4;if(r.imp>impPk)impPk=r.imp;IMP[s]=r.imp;SOC[s]=soc;BAT[s]=r.dis-r.ch;
+      // Referenz ohne Laden
+      const r0=gridStep(b,pv,socB,bat,o.pmax,s);socB=r0.soc;impB+=r0.imp/4;expB+=r0.exp/4;pvSelfB+=r0.self/4;if(r0.imp>pkB)pkB=r0.imp;
+      impN+=b/4;if(b>pkN)pkN=b;   // Gebäude ohne Laden, ohne PV und Speicher
+    }
+  }
+  for(const x of plugged){st[x.g].lost+=x.remL;if(o.log)log.push({g:x.g,lp:x.lp,a:x.arr,dep:x.dep,e:x.e,del:x.e-x.remL,c0:x.c0,c1:x.c1})}
+  return post({o,PU,PL,OCC,CHG,byG,st,log,del_m,sess_m,imp,exp,impPk,pvSelf,batIn,batOut,impB,expB,pkB,pvSelfB,impN,pkN,IMP,SOC,BAT,nLP});
+  // Füllstandsverteilung mit Mindestleistung (Zulassung in Prioritätsreihenfolge)
+  function fill(act,want,A,minF){
+    const n=act.length,out=new Array(n).fill(0);let tot=0;for(const v of want)tot+=v;
+    if(tot<=A){for(let i=0;i<n;i++)out[i]=want[i];return out}
+    const idx=[];let sm=0;for(let i=0;i<n;i++){if(want[i]<=0)continue;const mp=Math.min(want[i],minF(act[i]));if(sm+mp<=A+1e-9){sm+=mp;idx.push(i)}}
+    idx.sort((a,b)=>want[a]-want[b]);let rem=A,left=idx.length;
+    for(let j=0;j<idx.length;j++){const lvl=rem/left,i=idx[j];if(want[i]<=lvl){out[i]=want[i];rem-=want[i];left--}else{for(let k=j;k<idx.length;k++)out[idx[k]]=lvl;break}}
+    return out;
+  }
+}
+/* Ein Zeitschritt Netz + Speicher. Modus „self“: Eigenverbrauch; „peak“: Spitzenkappung auf pcap (Nachladen aus dem Netz in lastarmen Zeiten).
+   In jedem Modus deckt der Speicher Leistung oberhalb der Netzanschlussgrenze. */
+const NOBAT={cap:0,pow:0};
+function gridStep(load,pv,soc,bat,pmax,s){
+  const eta=0.95,cap=bat.cap||0,P=bat.pow||0;let net=load-pv,ch=0,dis=0;
+  if(cap>0){
+    if(net<0){ch=Math.min(-net,P,(cap-soc)/eta*4);soc+=ch/4*eta;net+=ch}
+    else{
+      let want=bat.mode==='peak'?Math.max(0,net-bat.pcap):net;
+      want=Math.max(want,net-pmax);
+      dis=Math.min(want,P,soc*eta*4);soc-=dis/4/eta;net-=dis;
+      if(bat.mode==='peak'&&dis===0&&net<bat.pcap*0.6&&soc<cap*0.98){const g=Math.min(P,bat.pcap*0.6-net,(cap-soc)/eta*4);if(g>0){soc+=g/4*eta;net+=g;ch=g}}
+    }
+    soc*=0.99999;
+  }
+  return {imp:Math.max(0,net),exp:Math.max(0,-net),soc,ch,dis,self:Math.max(0,pv-Math.max(0,-net))};
+}
+function post(r){
+  const {PU,PL,OCC,CHG,st,nLP}=r,o=r.o;
+  let pkU=0,pkL=0,hL=0,maxOcc=0;for(let s=0;s<S;s++){if(PU[s]>pkU)pkU=PU[s];if(PL[s]>pkL)pkL=PL[s];if(PL[s]>0.05)hL++;if(OCC[s]>maxOcc)maxOcc=OCC[s]}
+  const prof={wd:[],we:[]};
+  for(const k of ['wd','we']){prof[k]={U:new Float64Array(96),L:new Float64Array(96),occ:new Float64Array(96),g:r.byG.map(()=>new Float64Array(96)),n:0}}
+  for(let d=0;d<365;d++){const P=prof[d%7<5?'wd':'we'];P.n++;for(let q=0;q<96;q++){const s=d*96+q;P.U[q]+=PU[s];P.L[q]+=PL[s];P.occ[q]+=OCC[s];r.byG.forEach((a,gi)=>P.g[gi][q]+=a[s])}}
+  for(const k of ['wd','we']){const P=prof[k];for(const a of [P.U,P.L,P.occ,...P.g])for(let q=0;q<96;q++)a[q]/=Math.max(1,P.n)}
+  const sorted=a=>{const x=Float32Array.from(a).sort().reverse();const out=[];for(let k=0;k<=400;k++)out.push(x[Math.min(S-1,Math.round(k/400*(S-1)))]);return out};
+  const occH=new Float32Array(8760);for(let s=0;s<S;s++)occH[s>>2]+=OCC[s]/4;
+  const tot={sess:0,rej:0,req:0,del:0,lost:0,dwell:0,chg:0};for(const g of st)for(const k in tot)tot[k]+=g[k];
+  const conc=new Float64Array(nLP+1);for(let s=0;s<S;s++)conc[Math.min(nLP,CHG[s])]++;
+  return Object.assign(r,{pkU,pkL,hL:hL/4,maxOcc,prof,dlU:sorted(PU),dlL:sorted(PL),dlI:sorted(r.IMP),occH,tot,conc:Array.from(conc,v=>v/S),
+    util:nLP?tot.chg/(8760*nLP):0,occ:nLP?sum(OCC)/4/(8760*nLP):0,
+    evPV:clamp((r.impB+sum(PL)/4)-r.imp,0,sum(PL)/4),  // Ladestrom, der nicht aus dem Netz kommt (PV/Speicher)
+  });
+}
+
+/* ===================== Eingaben ===================== */
+const GF=(g,extra)=>[
+  {id:g+'On',label:'Gruppe berücksichtigen',type:'chk',def:false},
+  ...extra];
+const SECTIONS=[
+ {id:'site',title:'Standort & Betrieb',hint:'Gebäude, Netzanschluss',open:true,fields:[
+  {id:'openDays',label:'Betriebstage',type:'sel',def:'5',opts:()=>[['5','Mo–Fr'],['6','Mo–Sa'],['7','Mo–So']],num:true},
+  {id:'openFrom',label:'Öffnungszeit von',unit:'Uhr',def:7,step:0.5},
+  {id:'openTo',label:'Öffnungszeit bis',unit:'Uhr',def:19,step:0.5},
+  {id:'bldKwh',label:'Stromverbrauch Gebäude (ohne Laden)',unit:'kWh/a',def:150000,step:1000},
+  {id:'bldProf',label:'Lastprofil Gebäude',type:'sel',def:'buero',opts:()=>[['buero','Büro / Verwaltung'],['handel','Handel / Publikumsverkehr'],['gewerbe','Gewerbe / Betriebshof'],['wohnen','Wohnen'],['keine','kein Gebäude (separater Anschluss)']]},
+  {id:"pmax",label:"Netzanschluss: max. Bezugsleistung",unit:"kW",def:65,step:5}]},
+ {id:'lp',title:'Ladepunkte',hint:'AC und DC',open:true,fields:[
+  {id:'nAC',label:'AC-Ladepunkte (Wallbox / Ladesäule)',unit:'Stk',def:10,step:1},
+  {id:'kwAC',label:'Leistung je AC-Ladepunkt',type:'sel',def:'11',num:true,opts:()=>[['3.7','3,7 kW (16 A, 1-phasig)'],['11','11 kW (16 A, 3-phasig)'],['22','22 kW (32 A, 3-phasig)']]},
+  {id:'nDC',label:'DC-Schnellladepunkte',unit:'Stk',def:0,step:1},
+  {id:'kwDC',label:'Leistung je DC-Ladepunkt',unit:'kW',def:50,step:10}]},
+ {id:'grp',title:'Nutzergruppen',hint:'wer lädt wann wie viel',open:true,fields:[
+  {id:'_h1',type:'head',label:'Beschäftigte / Pendler'},
+  {id:'maOn',label:'berücksichtigen',type:'chk',def:true},
+  {id:'maN',label:'E-Fahrzeuge',unit:'Stk',def:20,step:1,dep:'maOn'},
+  {id:'maF',label:'Ladevorgänge je Fahrzeug',unit:'/Woche',def:2,step:0.5,dep:'maOn'},
+  {id:'maKwh',label:'Ø Lademenge',unit:'kWh',def:15,step:1,dep:'maOn'},
+  {id:'maArr',label:'Ankunft Ø',unit:'Uhr',def:7.75,step:0.25,dep:'maOn'},
+  {id:'maDw',label:'Standzeit Ø',unit:'h',def:8.5,step:0.25,dep:'maOn'},
+  {id:'_h2',type:'head',label:'Dienstwagen / Flotte'},
+  {id:'flOn',label:'berücksichtigen',type:'chk',def:true},
+  {id:'flN',label:'E-Fahrzeuge',unit:'Stk',def:5,step:1,dep:'flOn'},
+  {id:'flF',label:'Ladevorgänge je Fahrzeug',unit:'/Woche',def:4,step:0.5,dep:'flOn'},
+  {id:'flKwh',label:'Ø Lademenge',unit:'kWh',def:18,step:1,dep:'flOn'},
+  {id:'flArr',label:'Ankunft Ø (Rückkehr)',unit:'Uhr',def:16.5,step:0.25,dep:'flOn'},
+  {id:'flDw',label:'Standzeit Ø (über Nacht)',unit:'h',def:15,step:0.25,dep:'flOn'},
+  {id:'_h3',type:'head',label:'Besucher / Kunden'},
+  {id:'bsOn',label:'berücksichtigen',type:'chk',def:false},
+  {id:'bsN',label:'Ladevorgänge je Öffnungstag',unit:'Stk/d',def:8,step:1,dep:'bsOn'},
+  {id:'bsKwh',label:'Ø Lademenge',unit:'kWh',def:12,step:1,dep:'bsOn'},
+  {id:'bsDw',label:'Standzeit Ø',unit:'h',def:1.5,step:0.25,dep:'bsOn'},
+  {id:'_h4',type:'head',label:'Bewohner / Übernachtungsgäste'},
+  {id:'bwOn',label:'berücksichtigen',type:'chk',def:false},
+  {id:'bwN',label:'E-Fahrzeuge',unit:'Stk',def:10,step:1,dep:'bwOn'},
+  {id:'bwF',label:'Ladevorgänge je Fahrzeug',unit:'/Woche',def:2.5,step:0.5,dep:'bwOn'},
+  {id:'bwKwh',label:'Ø Lademenge',unit:'kWh',def:15,step:1,dep:'bwOn'},
+  {id:'bwArr',label:'Ankunft Ø',unit:'Uhr',def:18,step:0.25,dep:'bwOn'},
+  {id:'bwDw',label:'Standzeit Ø',unit:'h',def:12.5,step:0.25,dep:'bwOn'}]},
+ {id:'lm',title:'Lademanagement',hint:'Leistungsverteilung',open:true,fields:[
+  {id:'lm',label:'Strategie',type:'sel',cls:'wide',def:'dyn',opts:()=>[['none','ohne Lastmanagement (jeder lädt sofort mit voller Leistung)'],['static','statisch – feste Leistungsgrenze für alle Ladepunkte'],['dyn','dynamisch – nutzt die freie Leistung am Netzanschluss'],['pv','dynamisch + PV-Überschuss (Laden nach Abfahrtszeit)']]},
+  {id:'lmKw',label:'Leistungsgrenze (statisch)',unit:'kW',def:44,step:1,when:'lm=static'},
+  {id:'prio',label:'Priorität bei Engpass',type:'sel',def:'fifo',opts:()=>[['fifo','Reihenfolge der Ankunft'],['edf','früheste Abfahrt zuerst'],['fleet','Flotte zuerst']]}]},
+ {id:'pv',title:'PV & Speicher',hint:'optional',fields:[
+  {id:'pvKwp',label:'PV-Leistung',unit:'kWp',def:0,step:1},
+  {id:'pvYield',label:'spezifischer Ertrag',unit:'kWh/kWp',def:950,step:10},
+  {id:'pvNew',label:'PV ist Teil der Investition',type:'chk',def:true},
+  {id:'batKwh',label:'Batteriespeicher Kapazität',unit:'kWh',def:0,step:5},
+  {id:'batKw',label:'Batteriespeicher Leistung',unit:'kW',def:50,step:5},
+  {id:'batMode',label:'Betriebsweise Speicher',type:'sel',def:'self',opts:()=>[['self','Eigenverbrauch erhöhen'],['peak','Spitzenkappung (Leistungspreis senken)']]},
+  {id:'batPcap',label:'Kappungsgrenze Netzbezug',unit:'kW',def:80,step:5,when:'batMode=peak'},
+  {id:'batNew',label:'Speicher ist Teil der Investition',type:'chk',def:true}]},
+ {id:'tarif',title:'Strompreise',hint:'Bezug und Einspeisung (netto)',fields:[
+  {id:'price',label:'Arbeitspreis Strombezug (netto)',unit:'ct/kWh',def:24,step:0.1},
+  {id:'lpPrice',label:'Leistungspreis (RLM)',unit:'€/kW·a',def:110,step:5},
+  {id:'feed',label:'Einspeisevergütung',unit:'ct/kWh',def:6.6,step:0.1},
+  {id:'vst',label:'Vorsteuerabzug',type:'sel',def:'ja',opts:()=>[['ja','ja – Netto-Rechnung (Unternehmen, BgA)'],['nein','nein – Kosten brutto (Kommune ohne BgA)']]}]},
+ {id:'sale',title:'Stromverkauf',hint:'z. B. MENNEKES ativo',open:true,fields:[
+  {id:'sale',label:'Ladestrom abrechnen / verkaufen',type:'chk',def:true},
+  {id:'tarMA',label:'Tarif Beschäftigte (brutto, 0 = kostenlos)',unit:'ct/kWh',def:39,step:1,dep:'sale'},
+  {id:'tarBS',label:'Ad-hoc-Preis AC Besucher (brutto)',unit:'ct/kWh',def:49,step:1,dep:'sale'},
+  {id:'tarDC',label:'Ad-hoc-Preis DC (brutto)',unit:'ct/kWh',def:59,step:1,dep:'sale'},
+  {id:'tarBW',label:'Tarif Bewohner / Gäste (brutto)',unit:'ct/kWh',def:39,step:1,dep:'sale'},
+  {id:'extFL',label:'Vergleich Flotte: Laden extern (brutto)',unit:'ct/kWh',def:55,step:1},
+  {id:'feeM',label:'Abrechnungsdienst Grundgebühr',unit:'€/LP·Mon.',def:12,step:1,dep:'sale'},
+  {id:'feePct',label:'Transaktions- / Zahlungsgebühren',unit:'% Umsatz',def:5,step:0.5,dep:'sale'},
+  {id:'feeSetup',label:'Einrichtung Abrechnung',unit:'€/LP',def:150,step:10,dep:'sale'},
+  {id:'public',label:'öffentlich zugänglich (AFIR, THG-Quote)',type:'chk',def:false},
+  {id:'thg',label:'THG-Quotenerlös',unit:'ct/kWh',def:9,step:0.5,dep:'public'}]},
+ {id:'inv',title:'Investition & Betrieb',hint:'Richtwerte netto',fields:[
+  {id:'hwAC',label:'AC-Ladestation je Ladepunkt',unit:'€',def:1500,step:50},
+  {id:'instAC',label:'Installation je AC-Ladepunkt',unit:'€',def:1200,step:50},
+  {id:'hwDC',label:'DC-Ladestation je Ladepunkt',unit:'€',def:28000,step:500},
+  {id:'instDC',label:'Installation je DC-Ladepunkt',unit:'€',def:9000,step:500},
+  {id:'netz',label:'Netzanschluss / Baukostenzuschuss',unit:'€',def:0,step:500},
+  {id:'tiefbau',label:'Tiefbau, Fundamente, Markierung',unit:'€',def:6000,step:500},
+  {id:'lmCost',label:'Lastmanagement (Hardware, Inbetriebnahme)',unit:'€',def:2500,step:100},
+  {id:'plan',label:'Planung, Anmeldung, Dokumentation',unit:'€',def:3000,step:100},
+  {id:'pvEur',label:'PV-Anlage',unit:'€/kWp',def:1050,step:10},
+  {id:'batEur',label:'Batteriespeicher',unit:'€/kWh',def:600,step:10},
+  {id:'foerd',label:'Förderung auf Ladeinfrastruktur',unit:'%',def:0,step:5},
+  {id:'mAC',label:'Wartung / Prüfung je AC-Ladepunkt',unit:'€/a',def:120,step:10},
+  {id:'mDC',label:'Wartung je DC-Ladepunkt',unit:'€/a',def:1500,step:50},
+  {id:'backend',label:'Backend, Mobilfunk, Software je LP',unit:'€/a',def:80,step:5},
+  {id:'years',label:'Betrachtungszeitraum',unit:'Jahre',def:12,step:1},
+  {id:'disc',label:'Kalkulationszins',unit:'%',def:4,step:0.1},
+  {id:'esc',label:'Preissteigerung Strom und Tarife',unit:'%/a',def:2,step:0.1}]}];
+const TIP={
+ pmax:'Höchste Leistung, die am Netzanschluss bezogen werden darf (Gebäude + Laden). Ergibt sich aus der Absicherung (z. B. 250 A ≈ 170 kW) bzw. der vereinbarten Anschlussleistung. Das dynamische Lastmanagement hält diese Grenze ein.',
+ bldKwh:'Für das dynamische Lastmanagement und die Spitzenlast: Der Gebäudelastgang wird aus Jahresverbrauch und Profil erzeugt (Stundenwerte).',
+ nAC:'Ein Ladepunkt = ein Fahrzeug kann gleichzeitig laden. Eine Doppel-Ladesäule hat zwei Ladepunkte.',
+ kwAC:'Die tatsächliche Ladeleistung begrenzt zusätzlich der Bordlader des Fahrzeugs (Mix in der Simulation: 10 % 3,7 kW, 15 % 7,4 kW, 65 % 11 kW, 10 % 22 kW).',
+ kwDC:'Fahrzeugseitig 50–250 kW; oberhalb von ca. 60 % Lademenge sinkt die Leistung (Ladekurve).',
+ maF:'Wie oft ein Fahrzeug im Schnitt pro Woche am Standort lädt. Pendler mit 40 km/Tag benötigen ca. 8 kWh je Arbeitstag, laden aber oft nur 2–3-mal pro Woche größere Mengen.',
+ bsN:'Ladevorgänge von Besuchern/Kunden je Öffnungstag; zufällig über die Öffnungszeit verteilt. Kurze Standzeiten bevorzugen DC-Ladepunkte.',
+ lm:'Statisch: Summe aller Ladepunkte ≤ Grenze. Dynamisch: Ladeleistung = Netzanschlussgrenze − aktuelle Gebäudelast (+ PV, + Speicher). PV-Überschuss: Jedes Fahrzeug erhält nur die Leistung, die es bis zur Abfahrt braucht; zusätzlicher PV-Überschuss wird verteilt.',
+ prio:'Wer zuerst Leistung bekommt, wenn nicht alle Fahrzeuge mit Mindestladestrom (6 A ≈ 4,1 kW) versorgt werden können.',
+ batMode:'Eigenverbrauch: Der Speicher lädt aus PV-Überschuss und entlädt bei Netzbezug. Spitzenkappung: Der Speicher entlädt nur, wenn der Netzbezug über der Kappungsgrenze liegt, und lädt in lastarmen Zeiten nach – typisch für DC-Schnelllader an schwachen Anschlüssen.',
+ sale:'Mit einem Abrechnungsdienst (z. B. MENNEKES ativo) wird der Ladestrom je Nutzergruppe abgerechnet: Ad-hoc per QR-Code, Tarife für Beschäftigte, Gutschrift/Rückvergütung für Dienstwagen im Homeoffice. Voraussetzung: eichrechtskonforme Ladestationen mit Backend-Anbindung (OCPP).',
+ extFL:'Ohne eigene Ladepunkte würden die Dienstwagen öffentlich oder bei Beschäftigten zu Hause laden. Die vermiedenen Kosten sind der Nutzen der Flotten-Ladepunkte.',
+ public:'Öffentlich zugängliche Ladepunkte müssen die AFIR erfüllen (Ad-hoc-Zahlung, Preisangabe, ab 50 kW Kartenterminal) und an die Bundesnetzagentur gemeldet werden. Dafür kann die geladene Strommenge im THG-Quotenhandel vermarktet werden.',
+ thg:'Erlös aus dem Handel mit Treibhausgasminderungsquoten für öffentlich zugänglichen Ladestrom (2026 ca. 8–15 ct/kWh, schwankend).',
+ vst:'Unternehmen und Betriebe gewerblicher Art rechnen netto. Ohne Vorsteuerabzug werden alle Kosten (Investition, Betrieb, Strom) mit 19 % Umsatzsteuer angesetzt.',
+ lpPrice:'Bei registrierender Leistungsmessung (über 100.000 kWh/a) wird die höchste Viertelstundenleistung des Jahres abgerechnet. Jedes zusätzliche kW Spitzenlast kostet diesen Betrag pro Jahr.',
+ foerd:'Bund und Länder fördern Ladeinfrastruktur in wechselnden Programmen (z. B. für kommunale Flotten oder öffentlich zugängliche Ladepunkte). Fördersatz vor der Beantragung prüfen.'};
+function defaults(){const P={};for(const s of SECTIONS)for(const f of s.fields)if(f.id&&!f.id.startsWith('_'))P[f.id]=f.def;return P}
+const SCENARIOS=[
+ {label:'Beispiel: Verwaltungsgebäude – Beschäftigte und Dienstwagen',over:{}},
+ {label:'Beispiel: Betriebshof – E-Flotte lädt über Nacht, PV',over:{nAC:14,kwAC:'22',maOn:false,flOn:true,flN:14,flF:5,flKwh:28,flArr:16,flDw:14.5,bldProf:'gewerbe',bldKwh:120000,pmax:120,lm:'pv',prio:'edf',pvKwp:120,sale:false,extFL:55}},
+ {label:'Beispiel: Supermarkt – Kunden, DC-Schnelllader, PV + Speicher',over:{openDays:'6',openFrom:7,openTo:21,nAC:6,kwAC:'22',nDC:2,kwDC:150,maOn:false,flOn:false,bsOn:true,bsN:28,bsKwh:15,bsDw:0.8,bldProf:'handel',bldKwh:450000,pmax:250,
+   pvKwp:150,batKwh:100,batKw:100,batMode:'peak',batPcap:170,public:true,sale:true,lm:'dyn',netz:15000,tiefbau:20000}},
+ {label:'Beispiel: Hotel – Gäste laden über Nacht',over:{openDays:'7',nAC:8,maOn:false,flOn:false,bwOn:true,bwN:8,bwF:4,bwKwh:20,bwArr:17.5,bwDw:14,bldProf:'handel',bldKwh:300000,pmax:200,lm:'pv',prio:'edf',sale:true,tarBW:49,tiefbau:4000}},
+ {label:'Beispiel: Wohnanlage – 20 Stellplätze mit Lastmanagement',over:{openDays:'7',nAC:20,maOn:false,flOn:false,bwOn:true,bwN:20,bwF:2.5,bwKwh:16,bldProf:'wohnen',bldKwh:60000,pmax:60,lm:'pv',prio:'edf',lpPrice:0,sale:true,tarBW:39,tiefbau:8000,feeM:8}}];
+
+/* ===================== Zustand ===================== */
+const LSKEY='ladeplanung.v1';
+let P=defaults();
+try{const s=localStorage.getItem(LSKEY);if(s)P=Object.assign(defaults(),JSON.parse(s))}catch(e){}
+let R=null,E=null,VAR=null,SWEEP=null,SENS=null,activeTab='ov',dirty={},BLD=null,PVH=null,ganttDay=null,weekStart=null;
+const CH={};
+const nf=(d)=>new Intl.NumberFormat('de-DE',{minimumFractionDigits:d,maximumFractionDigits:d});
+const NF=[0,1,2,3].map(nf);
+const fmt=(v,d=0)=>v==null||!isFinite(v)?'–':NF[d].format(v);
+const eur=(v)=>v==null||!isFinite(v)?'–':NF[0].format(Math.round(v))+' €';
+const pct=(v,d=0)=>v==null||!isFinite(v)?'–':NF[d].format(v*100)+' %';
+const esc=(s)=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const tok=(n)=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const ti=(t)=>`<span class="tipi" tabindex="0" role="button" aria-label="Info" data-tip="${esc(t)}">i</span>`;
+const NUMSEL=new Set(['openDays','kwAC']);
+
+function fieldHTML(f){
+  if(f.type==='head')return `<div class="ghead">${esc(f.label)}</div>`;
+  const v=P[f.id];let inp;
+  if(f.type==='sel')inp=`<select id="f_${f.id}" data-k="${f.id}">${f.opts().map(([val,lab])=>`<option value="${val}"${String(v)===val?' selected':''}>${esc(lab)}</option>`).join('')}</select>`;
+  else if(f.type==='chk')inp=`<input type="checkbox" id="f_${f.id}" data-k="${f.id}"${v?' checked':''}>`;
+  else inp=`<input type="number" id="f_${f.id}" data-k="${f.id}" value="${v}" step="${f.step||'any'}">`;
+  const tt=TIP[f.id]||'';
+  return `<div class="fld ${f.cls||''}"${f.when?` data-when="${f.when}"`:''}${f.dep?` data-dep="${f.dep}"`:''}><label class="lab" for="f_${f.id}">${esc(f.label)}${tt?ti(tt):''}</label><span class="ctl">${inp}${f.unit?`<span class="unit">${esc(f.unit)}</span>`:''}</span></div>`;
+}
+function renderInputs(){
+  document.getElementById('inputs').innerHTML=SECTIONS.map(s=>`<details class="sec" ${s.open?'open':''}><summary>${esc(s.title)}<small>${esc(s.hint||'')}</small></summary><div class="secbody">${s.fields.map(fieldHTML).join('')}</div></details>`).join('');
+  applyWhen();
+}
+function applyWhen(){
+  document.querySelectorAll('[data-when]').forEach(e=>{const [k,v]=e.dataset.when.split('=');e.hidden=String(P[k])!==v});
+  document.querySelectorAll('[data-dep]').forEach(e=>e.classList.toggle('dim',!P[e.dataset.dep]));
+}
+document.getElementById('inputs').addEventListener('input',onInput);
+document.getElementById('inputs').addEventListener('change',onInput);
+function onInput(ev){const t=ev.target,id=t.dataset.k;if(!id)return;let v;
+  if(t.type==='checkbox')v=t.checked;else if(t.type==='number'){v=parseFloat(t.value);if(!isFinite(v))return}else v=t.value;
+  P[id]=v;applyWhen();schedule()}
+let timer=null;function schedule(){clearTimeout(timer);timer=setTimeout(compute,350)}
+
+/* ===================== Modell aufbauen ===================== */
+function groupsOf(P,scale=1){
+  const od=+P.openDays;
+  return [
+   {id:'ma',on:P.maOn,type:'fz',n:Math.round(P.maN*scale),f:P.maF,kwh:P.maKwh,arr:P.maArr,arrSd:1.0,dwell:P.maDw,dwellSd:1.2,days:'work'},
+   {id:'fl',on:P.flOn,type:'fz',n:Math.round(P.flN*scale),f:P.flF,kwh:P.flKwh,arr:P.flArr,arrSd:1.3,dwell:P.flDw,dwellSd:1.4,days:'work'},
+   {id:'bs',on:P.bsOn,type:'lv',n:P.bsN*scale,kwh:P.bsKwh,dwell:P.bsDw,dwellSd:Math.max(0.2,P.bsDw*0.5),days:'open',dcPref:true},
+   {id:'bw',on:P.bwOn,type:'fz',n:Math.round(P.bwN*scale),f:P.bwF,kwh:P.bwKwh,arr:P.bwArr,arrSd:2.2,dwell:P.bwDw,dwellSd:2.5,days:'all'}].map(g=>({...g,on:!!g.on&&od>0}));
+}
+function lpList(P){const a=[];for(let i=0;i<Math.max(0,Math.round(P.nAC));i++)a.push({dc:false,kw:+P.kwAC});for(let i=0;i<Math.max(0,Math.round(P.nDC));i++)a.push({dc:true,kw:P.kwDC});return a}
+function run(P,over={}){
+  const lp=lpList(P);
+  return simulate(Object.assign({lp,groups:groupsOf(P,over.scale||1),openDays:+P.openDays,open:[P.openFrom,Math.max(P.openFrom+1,P.openTo)],lm:P.lm,lmKw:P.lmKw,pmax:P.pmax,prio:P.prio,
+    bld:BLD,pv:PVH,bat:P.batKwh>0?{cap:P.batKwh,pow:P.batKw,mode:P.batMode,pcap:P.batPcap}:{cap:0,pow:0},seed:4711,log:true},over));
+}
+
+/* ===================== Wirtschaftlichkeit ===================== */
+function econ(R,P,o={}){
+  const kf=P.vst==='ja'?1:1.19,lp=lpList(P),nAC=lp.filter(l=>!l.dc).length,nDC=lp.length-nAC,F=o.priceF||1,IF=o.investF||1,TF=o.tarF||1;
+  const delG=R.st.map(g=>g.del);   // ma, fl, bs, bw
+  // Ladestrom über DC (aus Protokoll)
+  let eDC=0;for(const x of R.log)if(lp[x.lp]&&lp[x.lp].dc)eDC+=x.del;
+  const eTot=sum(delG),dcShare=eTot>0?eDC/eTot:0;
+  const inv={
+    'Ladestationen AC':nAC*P.hwAC,'Installation AC':nAC*P.instAC,'Ladestationen DC':nDC*P.hwDC,'Installation DC':nDC*P.instDC,
+    'Netzanschluss / BKZ':P.netz,'Tiefbau, Fundamente, Markierung':lp.length?P.tiefbau:0,'Lastmanagement':P.lm!=='none'&&lp.length>1?P.lmCost:0,'Planung, Anmeldung':lp.length?P.plan:0,
+    'Einrichtung Abrechnung':P.sale?lp.length*P.feeSetup:0,'PV-Anlage':P.pvNew&&P.pvKwp>0?P.pvKwp*P.pvEur:0,'Batteriespeicher':P.batNew&&P.batKwh>0?P.batKwh*P.batEur:0};
+  const lis=sum(Object.entries(inv).filter(([k])=>!/PV|Batterie/.test(k)).map(([,v])=>v));
+  const foerd=lis*P.foerd/100;
+  const I=(sum(Object.values(inv))*kf-foerd*kf)*IF;
+  // Energie: Mehrbezug, Mehrleistung, entgangene Einspeisung gegenüber dem Referenzfall
+  const newPV=P.pvNew&&P.pvKwp>0||P.batNew&&P.batKwh>0;
+  const ref=newPV?{imp:R.impN,pk:R.pkN,exp:0}:{imp:R.impB,pk:R.pkB,exp:R.expB};
+  const dImp=R.imp-ref.imp,dPk=R.impPk-ref.pk,dExp=R.exp-ref.exp;
+  const cEnergy=(dImp*P.price/100-dExp*P.feed/100)*kf*F,cPeak=dPk*P.lpPrice*kf;
+  const rev={ma:P.sale?delG[0]*P.tarMA/100/1.19:0,
+    bs:P.sale?(delG[2]*(1-dcShare)*P.tarBS+delG[2]*dcShare*P.tarDC)/100/1.19:0,
+    bw:P.sale?delG[3]*P.tarBW/100/1.19:0};
+  const fleet=delG[1]*P.extFL/100/(P.vst==='ja'?1.19:1);
+  const revSum=(rev.ma+rev.bs+rev.bw)*TF;
+  const fees=P.sale?(lp.length*P.feeM*12*kf+revSum*P.feePct/100):0;
+  const thg=P.public?eTot*P.thg/100:0;
+  const opex=(nAC*P.mAC+nDC*P.mDC+lp.length*P.backend)*kf;
+  const y1={rev:revSum,fleet,thg,cEnergy,cPeak,fees,opex};
+  const rows=[];let cum=-I,cumD=-I,dyn=null,stat=null;const N=Math.round(P.years),i=P.disc/100,g=P.esc/100;
+  for(let t=1;t<=N;t++){const e=Math.pow(1+g,t-1),inf=Math.pow(1.02,t-1);
+    const inc=(revSum+fleet)*e+thg,cost=(cEnergy+cPeak)*e+fees*e+opex*inf,cf=inc-cost;
+    const pc=cum;cum+=cf;const pd=cumD;cumD+=cf/Math.pow(1+i,t);
+    if(stat===null&&cum>=0)stat=t-1+(-pc)/(cum-pc);if(dyn===null&&cumD>=0)dyn=t-1+(-pd)/(cumD-pd);
+    rows.push({t,inc,rev:revSum*e,fleet:fleet*e,thg,energy:(cEnergy+cPeak)*e,fees:fees*e,opex:opex*inf,cf,cum,cumD})}
+  const npv=cumD;
+  const irr=(()=>{const f=r=>{let v=-I;rows.forEach(x=>v+=x.cf/Math.pow(1+r,x.t));return v};let lo=-0.9,hi=1.5;if(f(lo)*f(hi)>0)return null;for(let k=0;k<80;k++){const m=(lo+hi)/2;if(f(lo)*f(m)<=0)hi=m;else lo=m}return (lo+hi)/2})();
+  const af=i>0?i/(1-Math.pow(1+i,-N)):1/N;
+  const lcoc=eTot>0?(I*af+cEnergy+cPeak+fees+opex)/eTot:null;
+  return {inv,I,foerd:foerd*kf,lis,dImp,dPk,dExp,cEnergy,cPeak,rev,revSum,fleet,fees,thg,opex,y1,rows,npv,irr,dyn,stat,lcoc,eTot,eDC,dcShare,kf,newPV};
+}
+
+/* ===================== Berechnung ===================== */
+function compute(){
+  const t0=performance.now();
+  try{localStorage.setItem(LSKEY,JSON.stringify(P))}catch(e){}
+  BLD=P.bldProf==='keine'?new Float64Array(8760):buildingLoad(P.bldKwh,P.bldProf,+P.openDays,17);
+  PVH=pvProfile(P.pvKwp,P.pvYield,3);
+  R=run(P);E=econ(R,P);VAR=null;SWEEP=null;SENS=null;
+  dirty={ov:1,last:1,sess:1,lm:1,econ:1,tech:1,docs:1};
+  document.getElementById('status').textContent=`Simulation 35.040 Viertelstunden · ${fmt(performance.now()-t0)} ms`;
+  renderTab(activeTab);
+  setTimeout(()=>{runStudies();['ov','lm','econ','tech'].forEach(k=>dirty[k]=1);renderTab(activeTab)},40);
+}
+function runStudies(){
+  const lp=lpList(P),nLP=lp.length;if(!nLP){VAR=[];SWEEP=[];SENS=[];return}
+  const Pinst=lp.reduce((s,l)=>s+l.kw,0);
+  const one=(Q,l)=>{const r=run(Q,{log:true});const e=econ(r,Q);return {lm:Q.lm,l,pk:r.impPk,pkL:r.pkL,lost:r.tot.lost,req:r.tot.req,del:r.tot.del,pvShare:r.tot.del>0?r.evPV/r.tot.del:0,cost:e.cEnergy+e.cPeak,npv:e.npv,kw:Q.lmKw}};
+  const vNone=one({...P,lm:'none'},'ohne Lastmanagement');
+  const shU=vNone.req>0?vNone.lost/vNone.req:0;
+  SWEEP=[0.05,0.1,0.15,0.2,0.3,0.4,0.5,0.65,0.8,1].map(f=>{const kw=Math.max(4,Math.round(Pinst*f));const r=run({...P,lm:'static',lmKw:kw},{log:false});
+    return {kw,lost:r.tot.lost,req:r.tot.req,pk:r.impPk,share:r.tot.req>0?r.tot.lost/r.tot.req:0}});
+  // Empfohlene statische Grenze: kleinste Leistung, bei der höchstens 1 % mehr Energie ungeladen bleibt als ohne Begrenzung (linear interpoliert)
+  let rec=Pinst;for(let k=0;k<SWEEP.length;k++){if(SWEEP[k].share-shU<=0.01){if(k===0)rec=SWEEP[0].kw;else{const a=SWEEP[k-1],b=SWEEP[k],ya=a.share-shU-0.01,yb=b.share-shU-0.01;rec=a.kw+(b.kw-a.kw)*ya/(ya-yb)}break}}
+  REC=Math.ceil(rec/5)*5;
+  VAR=[vNone,one({...P,lm:'static',lmKw:P.lm==='static'?P.lmKw:REC},'statisch'),one({...P,lm:'dyn'},'dynamisch'),one({...P,lm:'pv'},'dynamisch + PV-Überschuss')];
+  const sc=f=>{const r=run(P,{scale:f,log:true});return econ(r,P).npv};
+  SENS=[['Auslastung (Fahrzeuge/Ladevorgänge) ±30 %',sc(0.7),sc(1.3)],['Investition ±20 %',econ(R,P,{investF:1.2}).npv,econ(R,P,{investF:0.8}).npv],
+    ['Strombezugspreis ±20 %',econ(R,P,{priceF:1.2}).npv,econ(R,P,{priceF:0.8}).npv],['Verkaufspreise ±20 %',econ(R,P,{tarF:0.8}).npv,econ(R,P,{tarF:1.2}).npv]];
+}
+let REC=null;
+/* ===================== Diagramm-Helfer ===================== */
+function baseOpts(extra){
+  const ink=tok('--ink'),mut=tok('--muted'),line=tok('--line');
+  if(typeof Chart!=='undefined'){Chart.defaults.font.family=getComputedStyle(document.body).fontFamily;Chart.defaults.font.size=12;Chart.defaults.color=mut}
+  const o={responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:'index',intersect:false},
+    plugins:{legend:{labels:{color:ink,boxWidth:12,boxHeight:12}},tooltip:{backgroundColor:tok('--panel'),titleColor:ink,bodyColor:ink,borderColor:line,borderWidth:1}},
+    scales:{x:{grid:{color:line},ticks:{color:mut}},y:{grid:{color:line},ticks:{color:mut}}}};
+  return deepMerge(o,extra||{});
+}
+function deepMerge(a,b){for(const k in b){if(b[k]&&typeof b[k]==='object'&&!Array.isArray(b[k])&&a[k]&&typeof a[k]==='object')deepMerge(a[k],b[k]);else a[k]=b[k]}return a}
+function chart(id,cfg){if(typeof Chart==='undefined')return;if(CH[id])CH[id].destroy();const c=document.getElementById(id);if(!c)return;CH[id]=new Chart(c,cfg)}
+const gcol=i=>tok(GROUPS[i].color);
+const qLabels=Array.from({length:96},(_,q)=>`${String(Math.floor(q/4)).padStart(2,'0')}:${String(q%4*15).padStart(2,'0')}`);
+
+/* ===================== Reiter ===================== */
+document.getElementById('tabs').addEventListener('click',e=>{const b=e.target.closest('[role=tab]');if(b)selectTab(b.dataset.tab)});
+function selectTab(name){activeTab=name;document.querySelectorAll('[role=tab]').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===name?'true':'false'));
+  document.querySelectorAll('[data-panel]').forEach(p=>p.hidden=p.dataset.panel!==name);try{localStorage.setItem(LSKEY+'.tab',name)}catch(e){}renderTab(name)}
+function renderTab(name){if(!R||!dirty[name])return;dirty[name]=0;({ov:renderOverview,last:renderLast,sess:renderSess,lm:renderLM,econ:renderEcon,tech:renderTech,docs:renderDocs})[name]()}
+const kpi=(l,v,u,s,cls='')=>`<div class="kpi ${cls}"><span class="k">${l}</span><span class="v">${v}${u?`<small>${u}</small>`:''}</span><span class="s">${s||'&nbsp;'}</span></div>`;
+const tbl=(id,head,rows,opts={})=>{const el=document.getElementById(id);if(!el)return;el.innerHTML=`<thead><tr>${head.map(h=>`<th class="${h[1]||''}">${esc(h[0])}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr class="${r.cls||''}">${r.c.map((c,j)=>`<td class="${head[j][1]||''}">${c}</td>`).join('')}</tr>`).join('')}</tbody>`};
+
+/* ---------- Übersicht ---------- */
+function renderOverview(){
+  const T=R.tot,lp=lpList(P),Pinst=lp.reduce((s,l)=>s+l.kw,0),noLP=!lp.length;
+  const ok=E.dyn!==null&&E.dyn<=P.years;
+  document.getElementById('kpis').innerHTML=noLP?kpi('Ladepunkte','0','','Ladepunkte eingeben'):[
+    kpi('Ladevorgänge',fmt(T.sess-T.rej),'/a',`${fmt((T.sess-T.rej)/365,1)} je Tag · ${fmt(T.rej)} abgewiesen`),
+    kpi('Geladene Energie',fmt(T.del/1000,1),'MWh/a',`Ø ${fmt(T.del/Math.max(1,T.sess-T.rej),1)} kWh je Vorgang`),
+    kpi('Auslastung',fmt(R.util*100,1),'%',`Ladezeit · Belegung ${fmt(R.occ*100,1)} %`),
+    kpi('Ladespitze',fmt(R.pkL,0),'kW',`ungesteuert ${fmt(R.pkU,0)} kW · installiert ${fmt(Pinst)} kW`),
+    kpi('Netz-Spitzenlast',fmt(R.impPk,0),'kW',`ohne Laden ${fmt(E.newPV?R.pkN:R.pkB,0)} kW · Grenze ${fmt(P.pmax)} kW`,R.impPk>P.pmax*1.001?'neg':''),
+    kpi('PV-Anteil Ladestrom',fmt(T.del>0?R.evPV/T.del*100:0,0),'%',P.pvKwp>0?`${fmt(R.evPV)} kWh aus PV/Speicher`:'keine PV'),
+    kpi('Kapitalwert',eur(E.npv),'',`${fmt(P.years)} Jahre, ${fmt(P.disc,1)} % · IRR ${E.irr!=null?fmt(E.irr*100,1)+' %':'–'}`,E.npv>=0?'pos':'neg'),
+    kpi('Amortisation',E.dyn!==null?fmt(E.dyn,1):'–',E.dyn!==null?'Jahre':'',ok?`statisch ${fmt(E.stat,1)} J. · Vollkosten ${fmt(E.lcoc*100,1)} ct/kWh`:`nicht in ${fmt(P.years)} Jahren · ${fmt((E.lcoc||0)*100,1)} ct/kWh`,ok?'pos':'neg')].join('');
+  // Empfehlung
+  const rec=[],RU=VAR&&VAR.find(v=>v.lm==='none'),RS=VAR&&VAR.find(v=>v.lm==='static'),RD=VAR&&VAR.find(v=>v.lm==='dyn');
+  const lost=T.req>0?T.lost/T.req:0;
+  rec.push(['Ladepunkte',`${lp.length} Ladepunkte, ${fmt(Pinst)} kW`,T.rej>0.03*T.sess?`<b>${pct(T.rej/T.sess)}</b> der Ankünfte finden keinen freien Ladepunkt – ${Math.ceil(lp.length*0.15)+1} weitere Ladepunkte oder Umparkregeln (Blockiergebühr) prüfen.`:`Freie Ladepunkte in ${pct(1-T.rej/Math.max(1,T.sess))} der Fälle; maximal ${R.maxOcc} gleichzeitig belegt.`]);
+  rec.push(['Lastmanagement',REC?`≥ ${fmt(REC)} kW`:'…',RU&&RD?`Ungesteuert bis ${fmt(RU.pkL)} kW Ladeleistung; mit dynamischem Lastmanagement bleibt die Netzspitze bei ${fmt(RD.pk)} kW (Grenze ${fmt(P.pmax)} kW). Eine statische Grenze von ${fmt(REC)} kW reicht, damit höchstens 1 % der Energie zusätzlich ungeladen bleibt.`:'wird berechnet …']);
+  rec.push(['Netzanschluss',R.impPk>P.pmax*1.001?`<span class="badc">überschritten</span>`:`ausreichend`,R.impPk>P.pmax*1.001?`Netzbezug bis ${fmt(R.impPk)} kW über der Grenze von ${fmt(P.pmax)} kW – dynamisches Lastmanagement, Speicher oder Anschlussverstärkung nötig.`:`Höchster Netzbezug ${fmt(R.impPk)} kW (${pct(R.impPk/P.pmax)} der Anschlussgrenze)`+(P.lm==='dyn'||P.lm==='pv'?' – das dynamische Lastmanagement hält die Grenze ein.':'.')]);
+  rec.push(['Ladeenergie',lost>0.02?`<span class="warnc">${pct(lost)} nicht geladen</span>`:'vollständig',lost>0.02?`${fmt(T.lost)} kWh/a werden nicht geladen (Abfahrt vor Ladeende oder kein freier Ladepunkt).`:`Alle Fahrzeuge erhalten die gewünschte Energie bis zur Abfahrt.`]);
+  document.getElementById('recBox').innerHTML=rec.map(([l,b,d])=>`<div class="recbox"><span class="lbl">${l}</span><span class="big">${b}</span><span class="det">${d}</span></div>`).join('');
+  // Energieherkunft
+  const fromPV=R.evPV,fromGrid=Math.max(0,T.del-fromPV);
+  document.getElementById('flows').innerHTML=T.del>0?`<div class="flowrow"><div class="t"><span>Herkunft Ladestrom</span><span>${fmt(T.del)} kWh</span></div><div class="flowbar"><div style="width:${fromPV/T.del*100}%;background:var(--sun)" title="PV/Speicher"></div><div style="width:${fromGrid/T.del*100}%;background:var(--grey)" title="Netz"></div></div>
+    <div class="legend"><span><i style="background:var(--sun)"></i>PV / Speicher ${pct(fromPV/T.del)}</span><span><i style="background:var(--grey)"></i>Netz ${pct(fromGrid/T.del)}</span></div></div>
+    <div class="flowrow"><div class="t"><span>Energie je Nutzergruppe</span></div><div class="flowbar">${R.st.map((g,i)=>g.del>0?`<div style="width:${g.del/T.del*100}%;background:var(${GROUPS[i].color})"></div>`:'').join('')}</div>
+    <div class="legend">${R.st.map((g,i)=>g.del>0?`<span><i style="background:var(${GROUPS[i].color})"></i>${GROUPS[i].name} ${fmt(g.del)} kWh</span>`:'').join('')}</div></div>`:'<p class="note">Keine Ladevorgänge.</p>';
+  document.getElementById('warns').innerHTML=challenges().slice(0,6).map(([c,t,x])=>`<li><span class="chip ${c}">${t}</span><span>${x}</span></li>`).join('');
+}
+
+/* ---------- Lastgang ---------- */
+function renderLast(){
+  const c=C(),wd=R.prof.wd,we=R.prof.we;
+  const ds=GROUPS.map((g,i)=>({label:g.name,data:Array.from(wd.g[i]),backgroundColor:gcol(i),borderWidth:0,fill:true,pointRadius:0,stack:'a'})).filter((d,i)=>R.st[i].del>0);
+  ds.push({label:'ungesteuert',data:Array.from(wd.U),type:'line',borderColor:c.bad,borderDash:[5,3],borderWidth:1.5,pointRadius:0,fill:false,stack:'u'});
+  ds.push({label:'angesteckte Fahrzeuge',data:Array.from(wd.occ),type:'line',borderColor:c.muted,borderDash:[2,2],borderWidth:1.5,pointRadius:0,fill:false,yAxisID:'y2',stack:'o'});
+  chart('chDay',{type:'line',data:{labels:qLabels,datasets:ds},options:baseOpts({scales:{x:{ticks:{autoSkip:false,maxRotation:0,callback:(v,i)=>i%12===0?qLabels[i]:null}},y:{stacked:true,beginAtZero:true,title:{display:true,text:'kW (gesteuert)',color:c.muted}},y2:{position:'right',beginAtZero:true,grid:{drawOnChartArea:false},title:{display:true,text:'Fahrzeuge',color:c.muted}}},plugins:{tooltip:{callbacks:{label:t=>`${t.dataset.label}: ${fmt(t.raw,1)} ${t.dataset.yAxisID==='y2'?'':'kW'}`}}}})});
+  if(weekStart===null){let best=0,be=-1;for(let w=0;w+7<=365;w+=7){let e=0;for(let s=w*96;s<(w+7)*96;s++)e+=R.PL[s];if(e>be){be=e;best=w}}weekStart=best}
+  drawWeek();
+  // Dauerlinien
+  const xs=Array.from({length:401},(_,k)=>k/400*8760);
+  chart('chDur',{type:'line',data:{datasets:[
+    {label:'Ladeleistung ungesteuert',data:R.dlU.map((y,k)=>({x:xs[k],y})),borderColor:c.bad,borderDash:[5,3],borderWidth:1.6,pointRadius:0},
+    {label:'Ladeleistung gesteuert',data:R.dlL.map((y,k)=>({x:xs[k],y})),borderColor:c.ev,backgroundColor:c.ev+'55',fill:true,borderWidth:1.6,pointRadius:0},
+    {label:'Netzbezug gesamt',data:R.dlI.map((y,k)=>({x:xs[k],y})),borderColor:c.ink,borderWidth:1.6,pointRadius:0}]},
+    options:baseOpts({interaction:{mode:'nearest',intersect:false},scales:{x:{type:'linear',min:0,max:8760,title:{display:true,text:'Stunden im Jahr (sortierte Viertelstundenwerte)',color:c.muted}},y:{beginAtZero:true,title:{display:true,text:'kW',color:c.muted}}},plugins:{tooltip:{callbacks:{label:t=>`${t.dataset.label}: ${fmt(t.parsed.y,1)} kW bei ${fmt(t.parsed.x)} h`}}}})});
+  // Gleichzeitigkeit
+  const n=R.nLP,km=Math.max(1,R.conc.reduce((m,v,k)=>v>0.0005?k:m,1));
+  chart('chConc',{type:'bar',data:{labels:Array.from({length:km},(_,k)=>String(k+1)),datasets:[{label:'Anteil der Zeit',data:Array.from({length:km},(_,k)=>R.conc[k+1]*100),backgroundColor:c.ev}]},
+    options:baseOpts({plugins:{legend:{display:false},tooltip:{callbacks:{label:t=>`${t.label} gleichzeitig: ${fmt(t.raw,2)} % der Zeit = ${fmt(t.raw/100*8760)} h/a`}}},scales:{x:{title:{display:true,text:'gleichzeitig ladende Fahrzeuge',color:c.muted}},y:{title:{display:true,text:'% der Jahresstunden',color:c.muted}}}})});
+  heatmap();
+  tbl('monthTable',[['Monat'],['Ladevorgänge','n'],['Energie kWh','n'],['je Tag kWh','n']],MNAMES.map((m,i)=>({c:[m,fmt(R.sess_m[i]),fmt(R.del_m[i]),fmt(R.del_m[i]/DAYS_M[i],1)]})).concat([{cls:'sum',c:['Jahr',fmt(sum(R.sess_m)),fmt(sum(R.del_m)),fmt(sum(R.del_m)/365,1)]}]));
+}
+function drawWeek(){
+  const c=C(),w=weekStart,lab=[],b=[],ev=[],pv=[],imp=[],soc=[];
+  for(let s=w*96;s<(w+7)*96;s+=1){const h=s>>2;lab.push(dayName(Math.floor(s/96))+' '+qLabels[s%96]);b.push(BLD[h]);ev.push(R.PL[s]);pv.push(PVH[h]);imp.push(R.IMP[s]);soc.push(P.batKwh>0?R.SOC[s]/P.batKwh*100:null)}
+  const ds=[{label:'Gebäude',data:b,backgroundColor:c.grid+'aa',borderWidth:0,fill:'origin',pointRadius:0,stack:'l'},
+    {label:'Laden (gesteuert)',data:ev,backgroundColor:c.ev+'cc',borderWidth:0,fill:'-1',pointRadius:0,stack:'l'},
+    {label:'Netzbezug',data:imp,borderColor:c.ink,borderWidth:1.2,pointRadius:0,fill:false,stack:'i'},
+    {label:'Anschlussgrenze',data:b.map(()=>P.pmax),borderColor:c.bad,borderDash:[6,4],borderWidth:1.2,pointRadius:0,fill:false,stack:'g'}];
+  if(P.pvKwp>0)ds.push({label:'PV',data:pv,borderColor:c.sun,borderWidth:1.6,pointRadius:0,fill:false,stack:'p'});
+  if(P.batKwh>0)ds.push({label:'Speicher-Ladestand %',data:soc,borderColor:c.bat,borderWidth:1.2,borderDash:[2,2],pointRadius:0,fill:false,yAxisID:'y2',stack:'s'});
+  chart('chWeek',{type:'line',data:{labels:lab,datasets:ds},options:baseOpts({scales:{x:{ticks:{autoSkip:false,maxRotation:0,callback:(v,i)=>i%96===48?lab[i].slice(0,9):null}},y:{stacked:true,beginAtZero:true,title:{display:true,text:'kW',color:c.muted}},y2:{display:P.batKwh>0,position:'right',min:0,max:100,grid:{drawOnChartArea:false}}},plugins:{tooltip:{callbacks:{label:t=>`${t.dataset.label}: ${fmt(t.raw,1)} ${t.dataset.yAxisID==='y2'?'%':'kW'}`}}}})});
+  document.getElementById('weekLbl').textContent=`${dayName(w)} – ${dayName(Math.min(364,w+6))}`;
+  const r=document.getElementById('weekRange');r.value=w;
+}
+function heatmap(){
+  const cv=document.getElementById('heat');if(!cv)return;const W=cv.clientWidth||900,H=200,dpr=devicePixelRatio||1;cv.width=W*dpr;cv.height=H*dpr;cv.style.height=H+'px';
+  const g=cv.getContext('2d');g.scale(dpr,dpr);g.clearRect(0,0,W,H);const L=34,T=4,cw=(W-L-4)/365,ch=(H-T-18)/24,mx=Math.max(1,R.nLP);
+  const lo=[230,236,242],hi=tok('--sun')||'#c7780a';const hx=hi.replace('#','');const hr=[parseInt(hx.slice(0,2),16),parseInt(hx.slice(2,4),16),parseInt(hx.slice(4,6),16)];
+  for(let d=0;d<365;d++)for(let h=0;h<24;h++){const v=Math.min(1,R.occH[d*24+h]/mx);const col=lo.map((a,k)=>Math.round(a+(hr[k]-a)*v));g.fillStyle=`rgb(${col})`;g.fillRect(L+d*cw,T+h*ch,Math.ceil(cw),Math.ceil(ch))}
+  g.fillStyle=tok('--muted');g.font='11px '+getComputedStyle(document.body).fontFamily;g.textAlign='right';g.textBaseline='middle';
+  for(const h of [0,6,12,18])g.fillText(String(h).padStart(2,'0')+':00',L-4,T+(h+0.5)*ch);
+  g.textAlign='center';g.textBaseline='top';let d0=0;MNAMES.forEach((m,i)=>{g.fillText(m,L+(d0+DAYS_M[i]/2)*cw,H-14);d0+=DAYS_M[i]});
+  document.getElementById('heatLeg').innerHTML=`Farbe = Anteil belegter Ladepunkte (0 … ${R.nLP}); dunkle Bereiche zeigen, wann die Ladepunkte knapp werden.`;
+}
+
+/* ---------- Ladevorgänge ---------- */
+function renderSess(){
+  if(ganttDay===null){let best=0,bn=-1;const cnt=new Array(365).fill(0);for(const x of R.log)cnt[Math.floor(x.a/96)]++;cnt.forEach((v,d)=>{if(v>bn){bn=v;best=d}});ganttDay=best}
+  drawGantt();
+  const c=C(),hist=(k,n)=>GROUPS.map((g,i)=>({label:g.name,data:Array.from(R.st[i].dist[k]).slice(0,n),backgroundColor:gcol(i),stack:'a'})).filter((d,i)=>R.st[i].sess>0);
+  chart('chArr',{type:'bar',data:{labels:Array.from({length:24},(_,h)=>h+' Uhr'),datasets:hist('arr',24)},options:baseOpts({scales:{x:{stacked:true},y:{stacked:true,title:{display:true,text:'Ankünfte je Jahr',color:c.muted}}}})});
+  chart('chDwell',{type:'bar',data:{labels:Array.from({length:25},(_,h)=>h===24?'≥24':String(h)),datasets:hist('dwell',25)},options:baseOpts({scales:{x:{stacked:true,title:{display:true,text:'Standzeit h',color:c.muted}},y:{stacked:true}}})});
+  chart('chKwh',{type:'bar',data:{labels:Array.from({length:21},(_,k)=>k===20?'≥100':`${k*5}–${k*5+5}`),datasets:hist('kwh',21)},options:baseOpts({scales:{x:{stacked:true,title:{display:true,text:'Lademenge kWh',color:c.muted}},y:{stacked:true}}})});
+  tbl('grpTable',[['Nutzergruppe'],['Ladevorgänge','n'],['abgewiesen','n'],['Energie kWh','n'],['Ø kWh','n'],['Ø Standzeit h','n'],['Ø Ladedauer h','n'],['nicht geladen','n']],
+    R.st.map((g,i)=>({g,i})).filter(x=>x.g.sess>0).map(({g,i})=>{const ok=g.sess-g.rej;return {c:[`<i class="sw" style="background:var(${GROUPS[i].color})"></i>${GROUPS[i].name}`,fmt(ok),fmt(g.rej),fmt(g.del),fmt(g.del/Math.max(1,ok),1),fmt(g.dwell/Math.max(1,ok),1),fmt(g.chg/Math.max(1,ok),1),pct(g.lost/Math.max(1,g.req),1)]}})
+    .concat([{cls:'sum',c:['Summe',fmt(R.tot.sess-R.tot.rej),fmt(R.tot.rej),fmt(R.tot.del),fmt(R.tot.del/Math.max(1,R.tot.sess-R.tot.rej),1),fmt(R.tot.dwell/Math.max(1,R.tot.sess-R.tot.rej),1),fmt(R.tot.chg/Math.max(1,R.tot.sess-R.tot.rej),1),pct(R.tot.lost/Math.max(1,R.tot.req),1)]}]));
+}
+function drawGantt(){
+  const lp=lpList(P),n=lp.length,d=ganttDay,s0=d*96,s1=s0+96,W=1000,rowH=n>30?12:n>16?16:22,top=26,L=78,H=top+n*rowH+30,x=s=>L+(clamp(s,s0,s1)-s0)/96*(W-L-10);
+  let svg=`<svg viewBox="0 0 ${W} ${H}" class="gantt" xmlns="http://www.w3.org/2000/svg" font-family="inherit">`;
+  for(let h=0;h<=24;h+=2){const X=L+h/24*(W-L-10);svg+=`<line x1="${X}" y1="${top-4}" x2="${X}" y2="${top+n*rowH}" stroke="var(--line)"/><text x="${X}" y="${top-8}" font-size="10.5" fill="var(--muted)" text-anchor="middle">${h}:00</text>`}
+  if(P.openDays>d%7)svg+=`<rect x="${L+P.openFrom/24*(W-L-10)}" y="${top}" width="${(P.openTo-P.openFrom)/24*(W-L-10)}" height="${n*rowH}" fill="var(--sun-soft)" opacity=".45"/>`;
+  lp.forEach((l,i)=>{svg+=`<text x="${L-6}" y="${top+i*rowH+rowH/2+3.5}" font-size="10.5" fill="var(--muted)" text-anchor="end">${l.dc?'DC':'AC'} ${i+1}</text><line x1="${L}" x2="${W-10}" y1="${top+(i+1)*rowH}" y2="${top+(i+1)*rowH}" stroke="var(--line)" stroke-opacity=".5"/>`});
+  for(const v of R.log){if(v.dep<=s0||v.a>=s1)continue;const y=top+v.lp*rowH+2,h=rowH-4,col=`var(${GROUPS[v.g].color})`;
+    svg+=`<rect x="${x(v.a)}" y="${y}" width="${Math.max(1,x(v.dep)-x(v.a))}" height="${h}" rx="2" fill="${col}" fill-opacity=".28" stroke="${col}"><title>${GROUPS[v.g].name}: ${qLabels[v.a%96]} – ${qLabels[v.dep%96]}, ${fmt(v.del,1)} von ${fmt(v.e,1)} kWh</title></rect>`;
+    if(v.c0>=0)svg+=`<rect x="${x(v.c0)}" y="${y+h*0.25}" width="${Math.max(1.5,x(v.c1+1)-x(v.c0))}" height="${h*0.5}" fill="${col}"><title>lädt ${qLabels[v.c0%96]} – ${qLabels[(v.c1+1)%96]}</title></rect>`}
+  svg+=`<text x="${L}" y="${H-8}" font-size="11" fill="var(--muted)">Helle Balken: Fahrzeug angesteckt · kräftiger Balken: Fahrzeug lädt · hinterlegt: Öffnungszeit</text></svg>`;
+  document.getElementById('gantt').innerHTML=svg;document.getElementById('dayLbl').textContent=dayName(d);document.getElementById('dayRange').value=d;
+}
+
+/* ---------- Lademanagement ---------- */
+function renderLM(){
+  const c=C();
+  if(!VAR){document.getElementById('varTable').innerHTML='<tbody><tr><td>Varianten werden berechnet …</td></tr></tbody>';return}
+  tbl('varTable',[['Strategie'],['Ladespitze kW','n'],['Netzspitze kW','n'],['nicht geladen','n'],['PV-Anteil','n'],['Strom + Leistung €/a','n'],['Kapitalwert','n']],
+    VAR.map(v=>({cls:v.lm===P.lm?'hl':'',c:[v.l+(v.lm==='static'?` (${fmt(v.kw)} kW)`:''),fmt(v.pkL),fmt(v.pk)+(v.pk>P.pmax*1.001?' ⚠':''),pct(v.req>0?v.lost/v.req:0,1),pct(v.pvShare),eur(v.cost),eur(v.npv)]})));
+  chart('chVar',{type:'bar',data:{labels:VAR.map(v=>v.l),datasets:[{label:'Ladespitze kW',data:VAR.map(v=>v.pkL),backgroundColor:c.ev},{label:'Netzspitze kW',data:VAR.map(v=>v.pk),backgroundColor:c.grid},{label:'nicht geladen %',data:VAR.map(v=>v.req>0?v.lost/v.req*100:0),type:'line',yAxisID:'y2',borderColor:c.bad,backgroundColor:c.bad,pointRadius:4}]},
+    options:baseOpts({scales:{y:{title:{display:true,text:'kW',color:c.muted}},y2:{position:'right',beginAtZero:true,grid:{drawOnChartArea:false},title:{display:true,text:'% nicht geladen',color:c.muted}}}})});
+  chart('chSweep',{type:'line',data:{labels:SWEEP.map(s=>fmt(s.kw)+' kW'),datasets:[{label:'nicht geladene Energie %',data:SWEEP.map(s=>s.share*100),borderColor:c.bad,backgroundColor:c.bad,yAxisID:'y',pointRadius:3},{label:'Netzspitze kW',data:SWEEP.map(s=>s.pk),borderColor:c.ink,backgroundColor:c.ink,yAxisID:'y2',pointRadius:3}]},
+    options:baseOpts({scales:{x:{title:{display:true,text:'statische Leistungsgrenze',color:c.muted}},y:{beginAtZero:true,title:{display:true,text:'% nicht geladen',color:c.muted}},y2:{position:'right',beginAtZero:true,grid:{drawOnChartArea:false},title:{display:true,text:'Netzspitze kW',color:c.muted}}}})});
+}
+
+/* ---------- Wirtschaftlichkeit ---------- */
+function renderEcon(){
+  const c=C(),e=E,k=e.kf>1?' (brutto)':'';
+  tbl('invTable',[['Position'],['€'+k,'n']],Object.entries(e.inv).filter(([,v])=>v>0).map(([n,v])=>({c:[n,eur(v*e.kf)]})).concat(e.foerd>0?[{c:['Förderung',eur(-e.foerd)]}]:[]).concat([{cls:'sum',c:['Investition',eur(e.I)]}]));
+  const y=e.y1,rows=[];
+  if(P.sale){if(e.rev.ma)rows.push(['Ladestrom Beschäftigte (netto)',e.rev.ma]);if(e.rev.bs)rows.push(['Ladestrom Besucher/Kunden (netto)',e.rev.bs]);if(e.rev.bw)rows.push(['Ladestrom Bewohner/Gäste (netto)',e.rev.bw])}
+  if(e.fleet)rows.push(['vermiedene Kosten Flotte (Laden extern)',e.fleet]);
+  if(e.thg)rows.push(['THG-Quotenerlös',e.thg]);
+  rows.push(['Strom-Mehrbezug '+`(${fmt(e.dImp)} kWh × ${fmt(P.price,1)} ct)`+(e.dExp<0?' abzgl. Einspeisung':''),-e.cEnergy]);
+  if(e.cPeak)rows.push([`Leistungspreis (${fmt(e.dPk,1)} kW × ${fmt(P.lpPrice)} €)`,-e.cPeak]);
+  if(e.fees)rows.push(['Abrechnungsdienst und Zahlungsgebühren',-e.fees]);
+  rows.push(['Wartung, Prüfung, Backend',-e.opex]);
+  tbl('y1Table',[['Jahr 1'],['€/a','n']],rows.map(([a,b])=>({c:[a,eur(b)]})).concat([{cls:'sum',c:['Überschuss Jahr 1',eur(e.rows[0]?e.rows[0].cf:0)]}]));
+  document.getElementById('econNote').innerHTML=`Kosten je geladener kWh (Vollkosten inkl. Annuität): <b>${fmt((e.lcoc||0)*100,1)} ct/kWh</b>${P.sale?` · Verkaufspreise netto: Beschäftigte ${fmt(P.tarMA/1.19,1)} ct, Besucher AC ${fmt(P.tarBS/1.19,1)} ct, DC ${fmt(P.tarDC/1.19,1)} ct`:''}. ${e.newPV?'Die PV-Anlage bzw. der Speicher sind Teil der Investition; ihr Nutzen für das Gebäude ist im Strom-Mehrbezug enthalten (Referenz: Gebäude ohne PV/Speicher).':''}`;
+  chart('chCash',{type:'bar',data:{labels:['0',...e.rows.map(r=>String(r.t))],datasets:[{label:'Überschuss je Jahr',data:[-e.I,...e.rows.map(r=>r.cf)],backgroundColor:[-e.I,...e.rows.map(r=>r.cf)].map(v=>v>=0?c.good:c.bad)},
+    {label:'kumuliert',data:[-e.I,...e.rows.map(r=>r.cum)],type:'line',borderColor:c.ink,backgroundColor:c.ink,pointRadius:2},{label:'kumuliert abgezinst',data:[-e.I,...e.rows.map(r=>r.cumD)],type:'line',borderColor:c.ev,backgroundColor:c.ev,borderDash:[4,3],pointRadius:2}]},
+    options:baseOpts({scales:{x:{title:{display:true,text:'Betriebsjahr',color:c.muted}},y:{title:{display:true,text:'€',color:c.muted}}},plugins:{tooltip:{callbacks:{label:t=>`${t.dataset.label}: ${eur(t.raw)}`}}}})});
+  tbl('yearTable',[['Jahr','n'],['Erlöse/Nutzen','n'],['Strom + Leistung','n'],['Gebühren','n'],['Betrieb','n'],['Überschuss','n'],['kumuliert','n'],['abgezinst kum.','n']],
+    e.rows.map(r=>({c:[r.t,eur(r.inc),eur(-r.energy),eur(-r.fees),eur(-r.opex),eur(r.cf),eur(r.cum),eur(r.cumD)]})));
+  if(SENS){chart('chSens',{type:'bar',data:{labels:SENS.map(s=>s[0]),datasets:[{label:'ungünstig',data:SENS.map(s=>s[1]-e.npv),backgroundColor:c.bad},{label:'günstig',data:SENS.map(s=>s[2]-e.npv),backgroundColor:c.good}]},
+    options:baseOpts({indexAxis:'y',scales:{x:{stacked:true,title:{display:true,text:`Änderung Kapitalwert gegenüber ${eur(e.npv)}`,color:c.muted}},y:{stacked:true}},plugins:{tooltip:{callbacks:{label:t=>`${t.dataset.label}: ${eur(t.raw)} → ${eur(e.npv+t.raw)}`}}}})})}
+}
+
+/* ---------- Technik & Herausforderungen ---------- */
+function challenges(){
+  const T=R.tot,lp=lpList(P),out=[],Pinst=lp.reduce((s,l)=>s+l.kw,0),RU=VAR&&VAR.find(v=>v.lm==='none');
+  if(!lp.length)return [['info','Hinweis','Keine Ladepunkte angegeben.']];
+  if(R.impPk>P.pmax*1.001)out.push(['bad','Netzanschluss',`Der Netzbezug erreicht ${fmt(R.impPk)} kW und überschreitet die Anschlussgrenze von ${fmt(P.pmax)} kW. Lösungen: dynamisches Lastmanagement, Batteriespeicher zur Spitzenkappung, Verstärkung des Anschlusses (Netzanfrage beim Netzbetreiber, ggf. Baukostenzuschuss).`]);
+  if(P.lm==='none'&&lp.length>2)out.push(['warn','Lastmanagement',`Ohne Lastmanagement treten bis zu ${fmt(R.pkU)} kW Ladeleistung auf (Gleichzeitigkeit ${fmt(R.pkU/Pinst,2)}). Ein Lastmanagement verteilt die verfügbare Leistung und vermeidet ${RU?'Leistungsspitzen':'Spitzen'} und Netzausbau.`]);
+  if(T.rej>0.03*T.sess)out.push(['warn','Ladepunkte belegt',`${pct(T.rej/T.sess)} der Fahrzeuge finden keinen freien Ladepunkt. Mehr Ladepunkte bei gleicher Anschlussleistung (Lastmanagement) oder Umparkregeln/Blockiergebühr nach Ladeende.`]);
+  if(T.req>0&&T.lost/T.req>0.02)out.push(['warn','Lademenge',`${pct(T.lost/T.req)} der gewünschten Energie wird nicht geladen. Ursachen: kurze Standzeiten, niedrige Fahrzeugladeleistung oder zu knappe Leistungsgrenze. Lösung: höhere Leistung für Kurzparker (22 kW/DC), Priorisierung nach Abfahrtszeit.`]);
+  if(R.util<0.05&&P.sale)out.push(['warn','Auslastung',`Die Ladepunkte laden nur ${pct(R.util,1)} der Zeit. Für einen wirtschaftlichen Ladestromverkauf sind meist über 10 % nötig – Sichtbarkeit (Apps, Ladesäulenregister), Preisgestaltung, Zugänglichkeit.`]);
+  if(P.lpPrice>0&&E.dPk>10)out.push(['info','Leistungspreis',`Das Laden erhöht die Jahreshöchstlast um ${fmt(E.dPk)} kW (${eur(E.cPeak)}/a). ${P.lm==='static'?'Grenze senken oder ':''}dynamisches Lastmanagement mit Spitzenlastbegrenzung bzw. ein Speicher senken diese Kosten.`]);
+  if(P.nDC>0)out.push(['info','DC-Schnellladen',`${fmt(P.nDC)} × ${fmt(P.kwDC)} kW erfordern meist eigene Unterverteilung, Leitungen großer Querschnitte und ggf. einen Trafo oder Mittelspannungsanschluss. Ab 50 kW ist für öffentliche Ladepunkte ein Kartenterminal Pflicht (AFIR). Ein Pufferspeicher kann schwache Anschlüsse entlasten.`]);
+  if(P.pvKwp>0)out.push(['ok','PV-Nutzung',`${pct(T.del>0?R.evPV/T.del:0)} des Ladestroms stammen aus PV/Speicher. ${P.lm!=='pv'?'Mit der Strategie „PV-Überschuss“ lässt sich der Anteil bei langen Standzeiten steigern.':'Das PV-geführte Laden verschiebt Ladeleistung in die Mittagsstunden.'}`]);
+  else if(P.maOn||P.flOn)out.push(['info','PV-Potenzial','Fahrzeuge stehen tagsüber lange – eine PV-Anlage mit PV-geführtem Lastmanagement kann einen großen Teil des Ladestroms decken (PV-Leistung eintragen).']);
+  if(P.sale)out.push(['info','Abrechnung',`Für den Verkauf nach kWh sind eichrechtskonforme Ladestationen und ein Backend (OCPP) nötig. Abrechnungsdienste wie MENNEKES ativo übernehmen Ad-hoc-Bezahlung per QR-Code, Tarife je Nutzergruppe und Gutschriften für Dienstwagen.`]);
+  if(!P.public&&lp.some(l=>l.kw>4.2||l.dc))out.push(['info','§ 14a EnWG','Nicht öffentliche Ladepunkte über 4,2 kW sind steuerbare Verbrauchseinrichtungen: Anmeldung beim Netzbetreiber, Dimmung bei Netzengpass auf mind. 4,2 kW je Einrichtung, dafür reduzierte Netzentgelte. Über ein Energiemanagementsystem lässt sich die Steuerung gebündelt umsetzen.']);
+  if(P.public)out.push(['info','AFIR und Meldung','Öffentlich zugänglich: Ad-hoc-Laden ohne Vertrag, Preis je kWh vorab anzeigen, digitale Vernetzung, ISO 15118 für neue Ladepunkte, Meldung an die Bundesnetzagentur. Die THG-Quote setzt geeichte Messung voraus.']);
+  out.push(['info','Elektroinstallation','Je Ladepunkt eigener Stromkreis mit RCD Typ A EV + 6-mA-DC-Fehlerstromerkennung (oder Typ B) nach DIN VDE 0100-722, Querschnitt für Dauerlast und Spannungsfall, Reserven für den weiteren Ausbau (GEIG: Vorverkabelung). Anmeldung beim Netzbetreiber, über 12 kVA zustimmungspflichtig.']);
+  return out;
+}
+function renderTech(){
+  document.getElementById('techList').innerHTML=challenges().map(([c,t,x])=>`<li><span class="chip ${c}">${t}</span><span>${x}</span></li>`).join('');
+}
+function renderDocs(){}
+const C=()=>({ev:tok('--cell'),bat:tok('--teal'),sun:tok('--sun'),grid:tok('--grey'),ink:tok('--ink'),good:tok('--good'),bad:tok('--bad'),muted:tok('--muted')});
+
+/* ===================== Bedienung ===================== */
+document.getElementById('weekRange').addEventListener('input',e=>{weekStart=+e.target.value;drawWeek()});
+document.getElementById('dayRange').addEventListener('input',e=>{ganttDay=+e.target.value;drawGantt()});
+document.getElementById('dayBusy').addEventListener('click',()=>{ganttDay=null;dirty.sess=1;renderTab('sess')});
+function toast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2200)}
+document.getElementById('btnReset').onclick=()=>{P=defaults();document.getElementById('scenario').value='0';weekStart=null;ganttDay=null;renderInputs();compute();toast('Standardwerte geladen')};
+document.getElementById('btnCsv').onclick=async()=>{if(!R)return;const f=(v,d=1)=>(v==null||!isFinite(v))?'':Number(v).toFixed(d).replace('.',',');
+  let s='Zeit;Gebäude kW;PV kW;Laden ungesteuert kW;Laden gesteuert kW;Netzbezug kW;angesteckt\n';
+  for(let t=0;t<S;t++){const d=Math.floor(t/96),{m,dd}=dayOfYear(d);s+=`${String(dd).padStart(2,'0')}.${String(m+1).padStart(2,'0')}. ${qLabels[t%96]};${f(BLD[t>>2])};${f(PVH[t>>2])};${f(R.PU[t])};${f(R.PL[t])};${f(R.IMP[t])};${R.OCC[t]}\n`}
+  const blob=new Blob(['﻿'+s],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='ladeplanung_lastgang.csv';a.click();toast('Lastgang als CSV gespeichert')};
+const scSel=document.getElementById('scenario');
+scSel.innerHTML=SCENARIOS.map((s,i)=>`<option value="${i}">${esc(s.label)}</option>`).join('');
+scSel.onchange=()=>{const s=SCENARIOS[+scSel.value];P=Object.assign(defaults(),JSON.parse(JSON.stringify(s.over)));weekStart=null;ganttDay=null;renderInputs();compute();toast('Szenario geladen')};
+const tipbox=document.createElement('div');tipbox.id='tipbox';tipbox.hidden=true;document.body.appendChild(tipbox);let tipEl=null;
+function showTip(el){tipEl=el;tipbox.textContent=el.dataset.tip;tipbox.hidden=false;const r=el.getBoundingClientRect(),b=tipbox.getBoundingClientRect();
+  tipbox.style.left=clamp(r.left+r.width/2-b.width/2,8,Math.max(8,innerWidth-b.width-8))+'px';let y=r.bottom+6;if(y+b.height>innerHeight-8)y=Math.max(8,r.top-b.height-6);tipbox.style.top=y+'px'}
+document.addEventListener('mouseover',e=>{const t=e.target.closest&&e.target.closest('[data-tip]');if(t)showTip(t);else if(tipEl){tipbox.hidden=true;tipEl=null}});
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-tip]');if(t){e.preventDefault();showTip(t)}},true);
+const rerender=()=>{dirty={ov:1,last:1,sess:1,lm:1,econ:1,tech:1,docs:1};renderTab(activeTab)};
+try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',rerender)}catch(e){}
+new MutationObserver(rerender).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+addEventListener('resize',()=>{if(activeTab==='last')heatmap()});
+renderInputs();
+try{const t=localStorage.getItem(LSKEY+'.tab');if(t&&document.querySelector(`[data-tab="${t}"]`))activeTab=t}catch(e){}
+document.querySelectorAll('[role=tab]').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===activeTab?'true':'false'));
+document.querySelectorAll('[data-panel]').forEach(p=>p.hidden=p.dataset.panel!==activeTab);
+window.__LP={get R(){return R},get E(){return E},get VAR(){return VAR},get P(){return P},set P(v){P=v},compute,run,econ};
+compute();
+
+</script>
+<script src="../../assets/js/toolbar.js" defer></script>
+</body>
+</html>

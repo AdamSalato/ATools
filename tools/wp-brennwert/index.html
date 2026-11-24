@@ -1,0 +1,1048 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WP vs. Brennwert · ATools</title>
+<link rel="icon" href="../../assets/img/favicon.svg" type="image/svg+xml">
+<meta name="description" content="Wärmepumpe vs. Gas-Brennwertkessel – Betriebs- und Wirtschaftlichkeitssimulation (Stundenmodell, 8760 h)">
+<!-- Chart.js: lokal aus vendor/, Fallback auf CDN -->
+<script src="../../vendor/chart.umd.min.js"></script>
+<script>window.Chart||document.write('<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"><\/script>')</script>
+<style>
+:root {
+  color-scheme: light;
+  --bg: #f4f5f7; --panel: #ffffff; --ink: #1d232b; --muted: #66707c; --line: #dde1e6;
+  --wp: #1f6fb4; --boiler: #d1495b; --accent: #1f6fb4; --warn: #b9770e; --ok: #2e9e5b;
+  --side: 430px;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { font: 14px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--ink); background: var(--bg); }
+.app { display: grid; grid-template-columns: var(--side) 6px 1fr; height: 100vh; }
+aside { background: var(--panel); overflow: auto; border-right: 1px solid var(--line); }
+.splitter { cursor: col-resize; background: var(--line); }
+.splitter:hover, .splitter.drag { background: var(--accent); }
+main { display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
+header.top { padding: 10px 16px 6px; background: var(--panel); border-bottom: 1px solid var(--line); }
+header.top h1 { font-size: 16px; margin: 0 0 6px; }
+.kpis { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; }
+.kpi b { font-variant-numeric: tabular-nums; }
+.tabs { display: flex; gap: 2px; padding: 6px 12px 0; background: var(--panel); border-bottom: 1px solid var(--line); overflow-x: auto; }
+.tabs button { border: 1px solid transparent; border-bottom: none; background: none; padding: 8px 14px; cursor: pointer; font: inherit; color: var(--muted); border-radius: 6px 6px 0 0; white-space: nowrap; }
+.tabs button.active { background: var(--bg); border-color: var(--line); color: var(--ink); font-weight: 600; }
+.content { flex: 1; overflow: auto; padding: 12px; }
+.tab { display: none; }
+.tab.active { display: block; }
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.grid > .card.wide { grid-column: 1 / -1; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; min-width: 0; }
+.card h3 { margin: 0 0 6px; font-size: 14px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.card h3 button { font-size: 11px; padding: 2px 8px; }
+.chartbox { position: relative; height: 340px; }
+.card.wide .chartbox { height: 460px; }
+.note { font-size: 12px; color: var(--muted); margin-top: 6px; font-variant-numeric: tabular-nums; }
+.note b { color: var(--ink); }
+pre#report { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 14px; overflow: auto; font: 12.5px/1.45 ui-monospace, Consolas, monospace; margin: 0; }
+.diag { margin: 0 0 12px; padding: 0; list-style: none; }
+.diag li { padding: 6px 10px; border-left: 4px solid var(--warn); background: #fff8e6; margin-bottom: 6px; border-radius: 4px; }
+.diag li.ok { border-color: var(--ok); background: #eaf7ef; }
+.diag li.info { border-color: var(--accent); background: #eaf2fb; }
+.btns { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 10px; position: sticky; top: 0; background: var(--panel); z-index: 2; border-bottom: 1px solid var(--line); }
+button { font: inherit; font-size: 12.5px; padding: 6px 8px; border: 1px solid var(--line); background: #f7f8fa; border-radius: 6px; cursor: pointer; color: var(--ink); }
+button:hover { border-color: var(--accent); }
+button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+fieldset { border: 1px solid var(--line); border-radius: 8px; margin: 10px; padding: 6px 10px 8px; }
+legend { font-weight: 600; font-size: 13px; padding: 0 4px; }
+.row { display: grid; grid-template-columns: 1fr 88px 64px; gap: 6px; align-items: center; padding: 2px 0; }
+.row label { font-size: 13px; }
+.row input { width: 100%; text-align: right; font: inherit; font-size: 13px; padding: 3px 6px; border: 1px solid var(--line); border-radius: 4px; font-variant-numeric: tabular-nums; }
+.row input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+.row input.bad { border-color: var(--boiler); background: #fdecee; }
+.row .unit { font-size: 12px; color: var(--muted); }
+.hint { font-size: 11px; color: var(--muted); grid-column: 1 / -1; margin: -2px 0 2px; }
+.status { padding: 4px 12px; font-size: 12px; color: var(--muted); background: var(--panel); border-top: 1px solid var(--line); }
+.foot { font-size: 11.5px; color: var(--muted); padding: 4px 14px 16px; }
+@media (max-width: 1100px) { .grid { grid-template-columns: 1fr; } }
+@media (max-width: 800px) {
+  .app { display: block; height: auto; }
+  .splitter { display: none; }
+  aside { max-height: none; border-right: none; border-bottom: 1px solid var(--line); }
+  main { overflow: visible; }
+  .content { overflow: visible; padding: 8px; }
+  .chartbox { height: 300px; }
+  .card.wide .chartbox { height: 340px; }
+}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <aside id="side">
+    <div class="btns">
+      <button class="primary" id="bCalc">↻ Berechnen</button>
+      <button id="bRec">✓ Empfehlung übernehmen</button>
+      <button id="bWeather">☁ Wetterdaten laden</button>
+      <button id="bSynth">☁ Synthetisches Wetter</button>
+      <button id="bSave">💾 Parameter speichern</button>
+      <button id="bLoad">📂 Parameter laden</button>
+      <button id="bPng">🖼 Alle Diagramme (PNG)</button>
+      <button id="bReport">📄 Bericht (TXT)</button>
+      <button id="bLink">🔗 Link mit Parametern</button>
+      <button id="bReset">⟲ Standardwerte</button>
+    </div>
+    <div id="params"></div>
+    <div class="foot">Modellrechnung – ersetzt keine Heizlastberechnung, Hersteller-Auslegung oder Energieberatung. Alle Preise brutto, Standardwerte Stand Herbst 2026.</div>
+    <input type="file" id="fWeather" accept=".csv,.txt,.dat" hidden>
+    <input type="file" id="fParams" accept=".json" hidden>
+  </aside>
+  <div class="splitter" id="splitter" title="Breite verschieben"></div>
+  <main>
+    <header class="top">
+      <h1>Wärmepumpe vs. Gas-Brennwertkessel – Betrieb &amp; Wirtschaftlichkeit</h1>
+      <div class="kpis" id="kpis"></div>
+    </header>
+    <nav class="tabs" id="tabs">
+      <button data-tab="betrieb" class="active">Betrieb Wärmepumpe</button>
+      <button data-tab="wirtschaft">Wirtschaftlichkeit</button>
+      <button data-tab="woche">Kälteste Woche</button>
+      <button data-tab="ergebnis">Ergebnisse &amp; Diagnose</button>
+    </nav>
+    <div class="content">
+      <section class="tab active" id="tab-betrieb"><div class="grid">
+        <div class="card"><h3>1 · Heizkurve: eingestellt vs. erforderlich <button data-png="c1">PNG</button></h3><div class="chartbox"><canvas id="c1"></canvas></div><div class="note" id="n1"></div></div>
+        <div class="card"><h3>2 · COP und Wärmeverteilung <button data-png="c2">PNG</button></h3><div class="chartbox"><canvas id="c2"></canvas></div><div class="note" id="n2"></div></div>
+        <div class="card"><h3>3 · Leistungsbilanz / Bivalenz <button data-png="c3">PNG</button></h3><div class="chartbox"><canvas id="c3"></canvas></div><div class="note" id="n3"></div></div>
+        <div class="card"><h3>Monatliche Wärmeerzeugung und Arbeitszahl <button data-png="c7">PNG</button></h3><div class="chartbox"><canvas id="c7"></canvas></div><div class="note" id="n7"></div></div>
+        <div class="card wide"><h3>Jahresdauerlinie der Heizleistung <button data-png="c10">PNG</button></h3><div class="chartbox"><canvas id="c10"></canvas></div><div class="note" id="n10"></div></div>
+      </div></section>
+      <section class="tab" id="tab-wirtschaft"><div class="grid">
+        <div class="card"><h3>5 · Wärmekosten je kWh nach Außentemperatur <button data-png="c5">PNG</button></h3><div class="chartbox"><canvas id="c5"></canvas></div><div class="note" id="n5"></div></div>
+        <div class="card"><h3>4 · Kumulierte Kosten (Invest + Betrieb) <button data-png="c4">PNG</button></h3><div class="chartbox"><canvas id="c4"></canvas></div><div class="note" id="n4"></div></div>
+        <div class="card"><h3>6 · Jahreskosten nach Kostenart (Annuität) <button data-png="c6">PNG</button></h3><div class="chartbox"><canvas id="c6"></canvas></div><div class="note" id="n6"></div></div>
+        <div class="card"><h3>7 · Monatliche Energiekosten im 1. Jahr <button data-png="c8">PNG</button></h3><div class="chartbox"><canvas id="c8"></canvas></div><div class="note" id="n8"></div></div>
+      </div></section>
+      <section class="tab" id="tab-woche">
+        <div class="card wide"><h3>Kälteste Woche des Jahres – Stundenbetrieb <button data-png="c9">PNG</button></h3><div class="chartbox"><canvas id="c9"></canvas></div><div class="note" id="n9"></div></div>
+      </section>
+      <section class="tab" id="tab-ergebnis">
+        <ul class="diag" id="diag"></ul>
+        <pre id="report"></pre>
+      </section>
+    </div>
+    <div class="status" id="status">Bereit</div>
+  </main>
+</div>
+
+<script>
+// ===CORE-START===
+"use strict";
+/*
+ Rechenmodell (Stundensimulation 8760 h) – identisch zur Python-Version wp_brennwert_gui.py:
+ Wetter (synthetisch oder CSV/DWD-TRY), Heizlast linear, Heizflächen nach Heizkörpergleichung,
+ Heizkurve (Viessmann-Formel), COP über Carnot-Gütegrad aus EN-14511-Kennfeld,
+ Leistung/Bivalenz/Heizstab/Taktverluste (EN 14825), Warmwasser, PV-Eigenverbrauch,
+ Kessel-Nutzungsgrad (Hs) nach Rücklauftemperatur, CO2-Preispfad,
+ Jahr-für-Jahr-Zahlungsreihe (Barwert, Annuität, Amortisation).
+*/
+const KELVIN = 273.15, HOURS = 8760, VAT = 1.19, COP_CAP = 8.0, ROD_EFF = 0.99, PLR_FLOOR = 0.2;
+const DAYS_PER_MONTH = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+const MONTHS = ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"];
+
+const PARAM_SPEC = [
+  ["Standort / Wetter (synthetisches Jahr)", [
+    ["t_mean", "Jahresmitteltemperatur", "°C", 10.0, "NRW/Wuppertal ca. 10 °C"],
+    ["t_amp", "Jahresamplitude Monatsmittel", "K", 8.5, "Jan ≈ Mittel − Amplitude"],
+    ["t_sd", "Streuung Tagesmittel", "K", 3.5, "Kälte-/Wärmeperioden"],
+    ["t_dayamp", "Tagesgang-Amplitude", "K", 3.0, ""],
+    ["tau", "Gebäudeträgheit (Dämpfung)", "h", 12.0, "leicht 6 · mittel 12 · schwer 24"]]],
+  ["Gebäude", [
+    ["design_load", "Norm-Heizlast", "kW", 10.0, "DIN EN 12831"],
+    ["t_design", "Norm-Außentemperatur", "°C", -10.0, ""],
+    ["t_hg", "Heizgrenze", "°C", 15.0, "Altbau 15–16 · Neubau 10–12"],
+    ["room", "Raumsolltemperatur", "°C", 20.0, ""],
+    ["dhw", "Warmwasser (Nutzwärme)", "kWh/a", 2500.0, "ca. 500–700 kWh je Person"],
+    ["loss", "Verteil-/Speicherverluste", "%", 5.0, ""]]],
+  ["Heizflächen (Auslegung bei Norm-AT)", [
+    ["vl_n", "Auslegungs-Vorlauf", "°C", 45.0, "FBH 35 · NT-HK 45 · HK 55"],
+    ["rl_n", "Auslegungs-Rücklauf", "°C", 37.0, ""],
+    ["n_exp", "Heizkörperexponent n", "–", 1.3, "Heizkörper 1,3 · FBH 1,1"]]],
+  ["Wärmepumpe – Regelung", [
+    ["slope", "Heizkurve Neigung", "–", 0.9, "Viessmann-Formel; Hersteller abweichend"],
+    ["level", "Heizkurve Niveau", "K", 2.0, "Parallelverschiebung"],
+    ["vl_min", "Min. Vorlauf (Fußpunkt)", "°C", 25.0, ""],
+    ["vl_max_reg", "Max. Vorlauf (Begrenzung)", "°C", 55.0, ""],
+    ["dhw_temp", "Warmwasser-Speichertemperatur", "°C", 50.0, "WP-Vorlauf ≈ +5 K"]]],
+  ["Wärmepumpe – Leistung", [
+    ["wp_max_vl", "Max. Vorlauf (Einsatzgrenze)", "°C", 60.0, "R290 oft 70 °C"],
+    ["p_max_m7", "Max. Heizleistung A-7/W35", "kW", 9.0, "Datenblatt"],
+    ["p_max_a7", "Max. Heizleistung A7/W35", "kW", 12.0, ""],
+    ["p_min_a7", "Min. Heizleistung A7/W35", "kW", 3.0, "Mindestmodulation"],
+    ["cap_red", "Leistungsminderung je K > W35", "%/K", 1.0, ""],
+    ["rod_kw", "Heizstab-Leistung", "kW", 6.0, ""]]],
+  ["Wärmepumpe – COP-Kennfeld (EN 14511)", [
+    ["cop_m7_w35", "COP A-7 / W35", "", 3.1, ""],
+    ["cop_2_w35", "COP A2 / W35", "", 4.0, "inkl. Abtauung"],
+    ["cop_7_w35", "COP A7 / W35", "", 4.9, ""],
+    ["cop_m7_w45", "COP A-7 / W45", "", 2.5, ""],
+    ["cop_2_w45", "COP A2 / W45", "", 3.2, ""],
+    ["cop_7_w45", "COP A7 / W45", "", 3.8, ""],
+    ["cop_m7_w55", "COP A-7 / W55", "", 2.1, ""],
+    ["cop_2_w55", "COP A2 / W55", "", 2.6, ""],
+    ["cop_7_w55", "COP A7 / W55", "", 3.0, ""],
+    ["praxis", "Praxisabschlag Kennfeld", "%", 5.0, "Regelung, Abtau-Mehrbedarf"],
+    ["aux", "Hilfsenergie (Pumpen, Regelung)", "kWh/kWh", 0.015, ""],
+    ["cd", "Taktverlust-Koeffizient Cd", "–", 0.9, "DIN EN 14825: 0,9"]]],
+  ["PV / Eigenverbrauch (optional)", [
+    ["pv_kwp", "PV-Leistung", "kWp", 0.0, "0 = keine PV"],
+    ["pv_yield", "Spezifischer Ertrag", "kWh/kWp", 900.0, ""],
+    ["house_kwh", "Haushaltsstrom ohne WP", "kWh/a", 3500.0, "hat PV-Vorrang"],
+    ["feed_in", "Einspeisevergütung (entgangen)", "€/kWh", 0.078, ""]]],
+  ["Wirtschaftlichkeit – allgemein", [
+    ["horizon", "Betrachtungszeitraum", "a", 20.0, ""],
+    ["discount", "Kalkulationszins", "%", 3.0, ""],
+    ["infl", "Teuerung Wartung/Grundpreise", "%/a", 2.0, ""],
+    ["el_price", "Strompreis (WP-Tarif)", "€/kWh", 0.28, "brutto"],
+    ["el_growth", "Strompreissteigerung", "%/a", 2.0, ""],
+    ["co2_el", "CO2-Faktor Strom", "kg/kWh", 0.36, "nur Emissionsbilanz"]]],
+  ["Wärmepumpe – Kosten", [
+    ["wp_invest", "Investition inkl. Einbau", "€", 30000.0, ""],
+    ["fund_rate", "Fördersatz", "%", 30.0, "BEG: 30 % + Boni, prüfen"],
+    ["fund_max", "Förderfähige Kosten max.", "€", 28000.0, "1. Wohneinheit"],
+    ["wp_life", "Nutzungsdauer", "a", 20.0, ""],
+    ["wp_maint", "Wartung", "€/a", 200.0, ""],
+    ["wp_meter", "Grundpreis WP-Zähler", "€/a", 100.0, "0 bei Haushaltszähler"]]],
+  ["Gas-Brennwertkessel", [
+    ["boiler_invest", "Investition inkl. Einbau", "€", 10000.0, ""],
+    ["boiler_life", "Nutzungsdauer", "a", 20.0, ""],
+    ["boiler_maint", "Wartung", "€/a", 180.0, ""],
+    ["chimney", "Schornsteinfeger", "€/a", 100.0, ""],
+    ["gas_price", "Gas-Arbeitspreis ohne CO2 (Hs)", "€/kWh", 0.100, "brutto"],
+    ["gas_growth", "Gaspreissteigerung", "%/a", 2.0, "ohne CO2-Anteil"],
+    ["gas_base", "Gas-Grundpreis", "€/a", 180.0, ""],
+    ["eta_cond", "Nutzungsgrad (Hs) Rücklauf ≤30°C", "–", 0.92, "≈ 102 % bez. Hi"],
+    ["eta_nocond", "Nutzungsgrad (Hs) Rücklauf ≥55°C", "–", 0.85, "keine Kondensation"],
+    ["boiler_aux", "Hilfsstrom", "kWh/kWh", 0.01, ""],
+    ["co2_start", "CO2-Preis Startjahr", "€/t", 65.0, "BEHG 2026: 55–65"],
+    ["co2_growth", "CO2-Preisanstieg", "€/t je a", 5.0, "ETS2 ab 2028 unsicher"],
+    ["co2_gas", "CO2-Faktor Gas (Hs)", "kg/kWh", 0.181, "BEHG ≈ 0,201 bez. Hi"]]],
+];
+const DEFAULTS = {}, LABELS = {};
+for (const [, items] of PARAM_SPEC) for (const [k, lab, unit, d] of items) { DEFAULTS[k] = d; LABELS[k] = [lab, unit]; }
+
+function de(x, nd = 0) {
+  if (x === null || x === undefined || !isFinite(x)) return "–";
+  return Number(x).toLocaleString("de-DE", { minimumFractionDigits: nd, maximumFractionDigits: nd });
+}
+const clip = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
+const sum = a => { let s = 0; for (const v of a) s += v; return s; };
+
+// ---------- Zufallszahlen (reproduzierbar) ----------
+function rngFactory(seed) {
+  let a = seed >>> 0, spare = null;
+  const u = () => { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  const uniform = () => { let v; do { v = u(); } while (v <= 1e-12); return v; };
+  const normal = (m = 0, s = 1) => {
+    if (spare !== null) { const z = spare; spare = null; return m + s * z; }
+    const r = Math.sqrt(-2 * Math.log(uniform())), th = 2 * Math.PI * u();
+    spare = r * Math.sin(th); return m + s * r * Math.cos(th);
+  };
+  const beta22 = () => { const g = () => -Math.log(uniform()) - Math.log(uniform()); const x = g(), y = g(); return x / (x + y); };
+  return { uniform, normal, beta22 };
+}
+
+function monthIndex() {
+  const mi = new Int8Array(HOURS); let h = 0;
+  DAYS_PER_MONTH.forEach((d, m) => { for (let i = 0; i < d * 24; i++) mi[h++] = m; });
+  return mi;
+}
+const MI = monthIndex();
+const MD = (() => { const a = new Int8Array(365); let d = 0; DAYS_PER_MONTH.forEach((n, m) => { for (let i = 0; i < n; i++) a[d++] = m; }); return a; })();
+
+// ---------- Wetter ----------
+function syntheticWeather(p, seed = 2) {
+  const rng = rngFactory(seed), phi = 0.8;
+  const season = d => -Math.cos(2 * Math.PI * (d - 15) / 365);
+  const anom = new Float64Array(365);
+  anom[0] = rng.normal(0, p.t_sd);
+  for (let i = 1; i < 365; i++) anom[i] = phi * anom[i - 1] + rng.normal(0, p.t_sd * Math.sqrt(1 - phi * phi));
+  for (let i = 0; i < 365; i++) anom[i] *= 1 - 0.45 * season(i);
+  const ms = new Float64Array(12), mc = new Float64Array(12);
+  for (let i = 0; i < 365; i++) { ms[MD[i]] += anom[i]; mc[MD[i]]++; }
+  for (let i = 0; i < 365; i++) anom[i] -= ms[MD[i]] / mc[MD[i]];
+  const t = new Float64Array(HOURS);
+  for (let d = 0; d < 365; d++) {
+    const base = p.t_mean + p.t_amp * season(d) + anom[d];
+    const amp = p.t_dayamp * (1 + 0.4 * season(d));
+    for (let h = 0; h < 24; h++) t[d * 24 + h] = base + amp * Math.sin(2 * Math.PI * (h - 9) / 24);
+  }
+  return t;
+}
+
+function parseWeather(text, column) {
+  let lines = text.split(/\r?\n/);
+  const star = lines.findIndex(l => l.trim().startsWith("***"));
+  if (star >= 0) { lines = lines.slice(star + 1); if (column == null) column = 5; }
+  const vals = [];
+  for (const line of lines) {
+    let tokens;
+    if (line.includes(",") && !line.includes(";")) tokens = line.split(",");
+    else tokens = line.replace(/[;\t]/g, " ").trim().split(/\s+/);
+    const nums = [];
+    for (const tok of tokens) { const s = tok.trim().replace(",", "."); if (s !== "" && isFinite(Number(s))) nums.push(Number(s)); }
+    if (!nums.length) continue;
+    if (column == null) vals.push(nums[nums.length - 1]);
+    else if (column < nums.length) vals.push(nums[column]);
+  }
+  if (vals.length < HOURS) throw new Error(`Nur ${vals.length} Stundenwerte gefunden, benötigt: ${HOURS}.`);
+  return Float64Array.from(vals.slice(0, HOURS));
+}
+
+function damped(t, tau) {
+  const out = new Float64Array(t.length);
+  if (tau <= 1) { out.set(t); return out; }
+  let s = 0; for (let i = 0; i < 48; i++) s += t[i];
+  out[0] = s / 48; const a = 1 / tau;
+  for (let i = 1; i < t.length; i++) out[i] = out[i - 1] + a * (t[i] - out[i - 1]);
+  return out;
+}
+
+function pvProfile(p, seed = 11) {
+  const gen = new Float64Array(HOURS);
+  if (p.pv_kwp <= 0) return gen;
+  const rng = rngFactory(seed), lat = 51.3 * Math.PI / 180;
+  const cloud = new Float64Array(365);
+  for (let d = 0; d < 365; d++) {
+    const season = -Math.cos(2 * Math.PI * (d - 15) / 365);
+    cloud[d] = clip(rng.beta22() * 2 * (0.42 + 0.13 * season), 0.05, 1);
+  }
+  let tot = 0;
+  for (let i = 0; i < HOURS; i++) {
+    const doy = Math.floor(i / 24) + 0.5, hour = (i % 24) + 0.5;
+    const decl = 23.45 * Math.PI / 180 * Math.sin(2 * Math.PI * (284 + doy) / 365);
+    const ha = 15 * (hour - 13) * Math.PI / 180;
+    const sinEl = Math.sin(lat) * Math.sin(decl) + Math.cos(lat) * Math.cos(decl) * Math.cos(ha);
+    gen[i] = Math.pow(Math.max(sinEl, 0), 1.15) * cloud[Math.floor(i / 24)];
+    tot += gen[i];
+  }
+  const f = p.pv_kwp * p.pv_yield / tot;
+  for (let i = 0; i < HOURS; i++) gen[i] *= f;
+  return gen;
+}
+
+function householdProfile(p) {
+  const shape = [];
+  for (let h = 0; h < 24; h++) shape.push(0.6 + 0.5 * Math.exp(-(((h - 7.5) / 1.5) ** 2)) + 0.6 * Math.exp(-(((h - 12.5) / 1.5) ** 2)) + 1.1 * Math.exp(-(((h - 19) / 2.2) ** 2)));
+  const prof = new Float64Array(HOURS); let tot = 0;
+  for (let i = 0; i < HOURS; i++) { const d = Math.floor(i / 24); prof[i] = shape[i % 24] * (1 + 0.15 * Math.cos(2 * Math.PI * (d - 15) / 365)); tot += prof[i]; }
+  for (let i = 0; i < HOURS; i++) prof[i] *= p.house_kwh / tot;
+  return prof;
+}
+
+// ---------- Gebäude, Heizflächen, Heizkurve ----------
+const loadFraction = (t, p) => Math.max((p.t_hg - t) / (p.t_hg - p.t_design), 0);
+function requiredTemps(q, p) {
+  const dtmN = (p.vl_n + p.rl_n) / 2 - p.room, spreadN = p.vl_n - p.rl_n;
+  const mean = p.room + dtmN * Math.pow(q, 1 / p.n_exp);
+  return [mean + spreadN * q / 2, mean - spreadN * q / 2];
+}
+function heizkurve(t, slope, level, room) {
+  const dar = t - room;
+  return room + level - slope * dar * (1.4347 + 0.021 * dar + 247.9e-6 * dar * dar);
+}
+const setCurve = (t, p, slope = p.slope, level = p.level) => clip(heizkurve(t, slope, level, p.room), p.vl_min, p.vl_max_reg);
+
+function recommendCurve(p) {
+  const ts = [], req = [], w = [];
+  for (let i = 0; i < 60; i++) { const t = p.t_design + (p.t_hg - 0.5 - p.t_design) * i / 59; ts.push(t); const q = loadFraction(t, p); req.push(requiredTemps(q, p)[0]); w.push(q); }
+  const ws = sum(w); let best = null;
+  for (let k = 1; k <= 35; k++) {
+    const slope = Math.round(k) / 10;
+    let mx = -Infinity;
+    ts.forEach((t, i) => { mx = Math.max(mx, req[i] - Math.min(heizkurve(t, slope, 0, p.room), p.vl_max_reg)); });
+    const level = clip(Math.ceil(mx - 0.25), -10, 15);
+    let mn = Infinity, ex = 0;
+    ts.forEach((t, i) => { const c = clip(heizkurve(t, slope, level, p.room), p.vl_min, p.vl_max_reg); mn = Math.min(mn, c - req[i]); ex += w[i] / ws * (c - req[i]); });
+    if (mn < -0.3) continue;
+    if (!best || ex < best[2] - 1e-9) best = [slope, level, ex];
+  }
+  return best;
+}
+
+// ---------- Wärmepumpe ----------
+const A_PTS = [-7, 2, 7], W_PTS = [35, 45, 55];
+const copTable = p => [[p.cop_m7_w35, p.cop_2_w35, p.cop_7_w35], [p.cop_m7_w45, p.cop_2_w45, p.cop_7_w45], [p.cop_m7_w55, p.cop_2_w55, p.cop_7_w55]];
+function etaTable(p) {
+  const c = copTable(p);
+  return c.map((row, i) => row.map((v, j) => v / ((W_PTS[i] + KELVIN) / (W_PTS[i] - A_PTS[j]))));
+}
+function interp3(x, xs, ys) {
+  if (x <= xs[0]) return ys[0];
+  if (x >= xs[2]) return ys[2];
+  const j = x <= xs[1] ? 0 : 1;
+  return ys[j] + (ys[j + 1] - ys[j]) * (x - xs[j]) / (xs[j + 1] - xs[j]);
+}
+function copModel(ta, tw, eta) {
+  const tac = clip(ta, -7, 7), twc = clip(tw, 35, 55);
+  const e0 = interp3(tac, A_PTS, eta[0]), e1 = interp3(tac, A_PTS, eta[1]), e2 = interp3(tac, A_PTS, eta[2]);
+  const e = twc <= 45 ? e0 + (e1 - e0) * (twc - 35) / 10 : e1 + (e2 - e1) * (twc - 45) / 10;
+  return clip(e * (tw + KELVIN) / Math.max(tw - ta, 10), 1, COP_CAP);
+}
+function pMax(ta, tw, p) {
+  const base = p.p_max_m7 + (p.p_max_a7 - p.p_max_m7) / 14 * (ta + 7);
+  const red = clip(1 - p.cap_red / 100 * Math.max(tw - 35, 0), 0.4, 1);
+  return Math.max(base * red, 0.1);
+}
+const pMin = (ta, p) => Math.max(p.p_min_a7 * pMax(ta, 35, p) / Math.max(p.p_max_a7, 0.1), 0.05);
+
+function runHeatPump(p, t, q, qSpace, qDhw, vlTarget) {
+  const eta = etaTable(p), k = 1 - p.praxis / 100, spreadN = p.vl_n - p.rl_n, cd = p.cd;
+  const n = t.length;
+  // Warmwasser: liegt die nötige Vorlauftemperatur über der Einsatzgrenze der WP, heizt der Heizstab den Rest nach
+  const fDhwRod = clip((p.dhw_temp + 5 - p.wp_max_vl) / Math.max(p.dhw_temp + 5 - 10, 1), 0, 1);
+  const twDhw = Math.min(p.dhw_temp + 5, p.wp_max_vl);
+  const o = { vl: new Float64Array(n), q_hp: new Float64Array(n), q_dhw: fDhwRod > 0 ? new Float64Array(n) : qDhw, q_rod: new Float64Array(n), f_dhw_rod: fDhwRod,
+    q_unmet: new Float64Array(n), e_total: new Float64Array(n), heat: new Float64Array(n), cycling: new Uint8Array(n) };
+  let eSpace = 0, eDhw = 0, eRod = 0, eAux = 0;
+  for (let i = 0; i < n; i++) {
+    const vt = vlTarget[i], vl = Math.min(vt, p.wp_max_vl);
+    const rl = vt - spreadN * q[i];
+    const rodFracT = clip((vt - p.wp_max_vl) / Math.max(vt - rl, 1), 0, 1);
+    const avail = Math.max(pMax(t[i], vl, p) - qDhw[i], 0);
+    const qhp = Math.min(qSpace[i] * (1 - rodFracT), avail);
+    const dhwRod = qDhw[i] * fDhwRod, dhwWp = qDhw[i] - dhwRod;
+    const need = qSpace[i] - qhp, qrodSpace = Math.min(need, Math.max(p.rod_kw - dhwRod, 0)), unmet = need - qrodSpace, qrod = qrodSpace + dhwRod;
+    const cop = copModel(t[i], vl, eta) * k;
+    let plr = qhp > 0 ? qhp / pMin(t[i], p) : 1;
+    const cyc = qhp > 0 && plr < 1; plr = Math.max(plr, PLR_FLOOR);
+    const copEff = cop * (cyc ? plr / (cd * plr + 1 - cd) : 1);
+    const es = qhp > 0 ? qhp / copEff : 0;
+    const ed = dhwWp / (copModel(t[i], twDhw, eta) * k);
+    const er = qrod / ROD_EFF, ea = p.aux * (qSpace[i] + qDhw[i] - unmet);
+    o.vl[i] = vl; o.q_hp[i] = qhp; o.q_rod[i] = qrod; o.q_unmet[i] = unmet; if (fDhwRod > 0) o.q_dhw[i] = dhwWp;
+    o.e_total[i] = es + ed + er + ea; o.heat[i] = qhp + dhwWp + qrod; o.cycling[i] = cyc && qSpace[i] > 0 ? 1 : 0;
+    eSpace += es; eDhw += ed; eRod += er; eAux += ea;
+  }
+  o.sum = { e_space: eSpace, e_dhw: eDhw, e_rod: eRod, e_aux: eAux, e_total: sum(o.e_total), heat: sum(o.heat),
+    q_rod: sum(o.q_rod), q_unmet: sum(o.q_unmet), cycling: sum(o.cycling) };
+  o.jaz = o.sum.heat / Math.max(o.sum.e_total, 1e-9);
+  return o;
+}
+
+// ---------- Kessel ----------
+const boilerEta = (tr, p) => p.eta_cond + (p.eta_nocond - p.eta_cond) * clip((tr - 30) / 25, 0, 1);
+
+// ---------- Wirtschaftlichkeit ----------
+function annuityFactor(i, n) { if (n <= 0) return 0; if (Math.abs(i) < 1e-12) return 1 / n; return i * (1 + i) ** n / ((1 + i) ** n - 1); }
+function cashFlows(n, invest0, life, infl, yearly, reinvestBase) {
+  const f = new Float64Array(n + 1); f[0] = invest0;
+  for (let y = 1; y <= n; y++) f[y] = yearly[y - 1];
+  life = Math.max(Math.round(life), 1); let last = 0;
+  for (let y = life; y < n; y += life) { f[y] += reinvestBase * (1 + infl) ** y; last = y; }
+  const used = n - last;
+  if (used < life) { const base = last === 0 ? invest0 : reinvestBase * (1 + infl) ** last; f[n] -= base * (life - used) / life; }
+  return f;
+}
+function breakeven(a, b) {
+  const d = a.map((v, i) => v - b[i]);
+  if (d[0] <= 0) return 0;
+  for (let y = 1; y < d.length; y++) if (d[y] <= 0) return y - 1 + d[y - 1] / (d[y - 1] - d[y]);
+  return null;
+}
+function cumsum(a) { const o = new Float64Array(a.length); let s = 0; a.forEach((v, i) => { s += v; o[i] = s; }); return o; }
+
+function economics(p, wp, gasKwh, boilerAuxKwh, pvToHp) {
+  const n = Math.max(Math.round(p.horizon), 1), i = p.discount / 100, infl = p.infl / 100;
+  const Y = Array.from({ length: n }, (_, k) => k);  // Jahr-1
+  const fEl = Y.map(y => (1 + p.el_growth / 100) ** y), fGas = Y.map(y => (1 + p.gas_growth / 100) ** y);
+  const fInf = Y.map(y => (1 + infl) ** y), co2 = Y.map(y => p.co2_start + p.co2_growth * y);
+  const grid = wp.sum.e_total - pvToHp;
+  const wpEnergy = fEl.map(f => grid * p.el_price * f + pvToHp * p.feed_in);
+  const wpFixed = fInf.map(f => (p.wp_maint + p.wp_meter) * f);
+  const funding = p.fund_rate / 100 * Math.min(p.wp_invest, p.fund_max);
+  const wpFlows = cashFlows(n, p.wp_invest - funding, p.wp_life, infl, wpEnergy.map((v, k) => v + wpFixed[k]), p.wp_invest);
+  const gasCost = fGas.map(f => gasKwh * p.gas_price * f);
+  const co2Cost = co2.map(c => gasKwh * p.co2_gas / 1000 * c * VAT);
+  const auxCost = fEl.map(f => boilerAuxKwh * p.el_price * f);
+  const bFixed = fInf.map(f => (p.boiler_maint + p.chimney + p.gas_base) * f);
+  const bFlows = cashFlows(n, p.boiler_invest, p.boiler_life, infl, gasCost.map((v, k) => v + co2Cost[k] + auxCost[k] + bFixed[k]), p.boiler_invest);
+  const disc = Array.from({ length: n + 1 }, (_, k) => (1 + i) ** -k);
+  const af = annuityFactor(i, n);
+  const r = { n, funding, years: Array.from({ length: n + 1 }, (_, k) => k), wp_flows: wpFlows, b_flows: bFlows,
+    wp_cum: cumsum(wpFlows), b_cum: cumsum(bFlows),
+    wp_cum_d: cumsum(Array.from(wpFlows, (v, k) => v * disc[k])), b_cum_d: cumsum(Array.from(bFlows, (v, k) => v * disc[k])),
+    wp_year1: { energy: wpEnergy[0], fixed: wpFixed[0] },
+    b_year1: { gas: gasCost[0], co2: co2Cost[0], aux: auxCost[0], fixed: bFixed[0] }, co2_price_end: co2[n - 1] };
+  r.wp_pv = r.wp_cum_d[n]; r.b_pv = r.b_cum_d[n];
+  r.wp_annuity = r.wp_pv * af; r.b_annuity = r.b_pv * af;
+  r.breakeven = breakeven(r.wp_cum, r.b_cum); r.breakeven_d = breakeven(r.wp_cum_d, r.b_cum_d);
+  const ann = s => s.reduce((a, v, k) => a + v * disc[k + 1], 0) * af;
+  const capAnn = (inv, life, base) => { const f = cashFlows(n, inv, life, infl, new Float64Array(n), base); return f.reduce((a, v, k) => a + v * disc[k], 0) * af; };
+  r.wp_parts = { "Kapital (netto)": capAnn(p.wp_invest - funding, p.wp_life, p.wp_invest), "Wartung/Grundpreise": ann(wpFixed), "Energie": ann(wpEnergy), "CO2-Kosten": 0 };
+  r.b_parts = { "Kapital (netto)": capAnn(p.boiler_invest, p.boiler_life, p.boiler_invest), "Wartung/Grundpreise": ann(bFixed), "Energie": ann(gasCost.map((v, k) => v + auxCost[k])), "CO2-Kosten": ann(co2Cost) };
+  r.lev = { el: ann(fEl.map(f => p.el_price * f)), gas: ann(fGas.map(f => p.gas_price * f)), co2: ann(co2) };
+  return r;
+}
+
+// ---------- Gesamtsimulation ----------
+function validate(p) {
+  const e = [];
+  for (const k in DEFAULTS) if (!isFinite(p[k])) e.push(`Ungültiger Wert bei „${LABELS[k][0]}“.`);
+  if (e.length) throw new Error(e.join("\n"));
+  if (p.t_design >= p.t_hg) e.push("Norm-Außentemperatur muss unter der Heizgrenze liegen.");
+  if (p.t_hg > p.room) e.push("Heizgrenze sollte nicht über der Raumtemperatur liegen.");
+  if (p.vl_n <= p.rl_n || p.rl_n <= p.room) e.push("Auslegung: Vorlauf > Rücklauf > Raumtemperatur erforderlich.");
+  if (p.vl_min >= p.vl_max_reg) e.push("Min. Vorlauf muss kleiner als die Vorlaufbegrenzung sein.");
+  if (p.p_min_a7 >= p.p_max_a7) e.push("Mindestleistung muss kleiner als die Maximalleistung sein.");
+  if (p.wp_life <= 0 || p.boiler_life <= 0 || p.horizon <= 0) e.push("Nutzungsdauern und Betrachtungszeitraum müssen > 0 sein.");
+  if (Math.min(...copTable(p).flat()) <= 1) e.push("Alle COP-Werte müssen > 1 sein.");
+  if (!(0.5 < p.eta_nocond && p.eta_nocond <= p.eta_cond && p.eta_cond <= 1)) e.push("Nutzungsgrade (Hs): 0,5 < ohne Kondensation ≤ mit Kondensation ≤ 1,0.");
+  if (p.n_exp <= 0) e.push("Heizkörperexponent muss > 0 sein.");
+  if (e.length) throw new Error(e.join("\n"));
+}
+
+function bincount(idx, w, n) { const o = new Float64Array(n); for (let i = 0; i < idx.length; i++) o[idx[i]] += w[i]; return o; }
+
+function simulate(p, weather) {
+  validate(p);
+  const t = weather ? weather : syntheticWeather(p);
+  const td = damped(t, p.tau);
+  const loss = 1 + p.loss / 100;
+  const q = new Float64Array(HOURS), qSpace = new Float64Array(HOURS), qDhw = new Float64Array(HOURS).fill(p.dhw / HOURS * loss);
+  const vlReq = new Float64Array(HOURS), rlReq = new Float64Array(HOURS), vlSet = new Float64Array(HOURS), vlOpt = new Float64Array(HOURS);
+  const heating = new Uint8Array(HOURS);
+  let qSpaceUse = 0;
+  for (let i = 0; i < HOURS; i++) {
+    q[i] = loadFraction(td[i], p); heating[i] = q[i] > 0 ? 1 : 0;
+    qSpaceUse += p.design_load * q[i]; qSpace[i] = p.design_load * q[i] * loss;
+    [vlReq[i], rlReq[i]] = requiredTemps(q[i], p);
+    vlSet[i] = heating[i] ? setCurve(td[i], p) : 0;
+    vlOpt[i] = heating[i] ? Math.max(vlReq[i], 20) : 0;
+  }
+  const useful = qSpaceUse + p.dhw;
+  const wp = runHeatPump(p, t, q, qSpace, qDhw, vlSet);
+  const wpOpt = runHeatPump(p, t, q, qSpace, qDhw, vlOpt);
+
+  const etaDhw = boilerEta(p.dhw_temp - 5, p);
+  const gas = new Float64Array(HOURS);
+  for (let i = 0; i < HOURS; i++) gas[i] = qSpace[i] / boilerEta(rlReq[i], p) + qDhw[i] / etaDhw;
+  const gasKwh = sum(gas), qTot = sum(qSpace) + sum(qDhw);
+  const boilerAuxKwh = p.boiler_aux * qTot;
+
+  const pv = pvProfile(p), house = householdProfile(p);
+  const pvToHpH = new Float64Array(HOURS);
+  for (let i = 0; i < HOURS; i++) pvToHpH[i] = Math.min(Math.max(pv[i] - house[i], 0), wp.e_total[i]);
+  const pvToHp = sum(pvToHpH);
+  const eco = economics(p, wp, gasKwh, boilerAuxKwh, pvToHp);
+
+  let wsum = 0, ex = 0, underH = 0;
+  for (let i = 0; i < HOURS; i++) if (heating[i]) { wsum += qSpace[i]; ex += qSpace[i] * (vlSet[i] - vlReq[i]); if (vlSet[i] < vlReq[i] - 1) underH++; }
+  const excess = ex / Math.max(wsum, 1e-9);
+
+  // Kennlinien über Außentemperatur
+  const x = Array.from({ length: 401 }, (_, k) => -20 + k * 0.1);
+  const hx = x.map(v => loadFraction(v, p) > 0);
+  const vlReqX = x.map(v => requiredTemps(loadFraction(v, p), p)[0]);
+  const vlSetX = x.map(v => setCurve(v, p));
+  const loadX = x.map(v => p.design_load * loadFraction(v, p) * loss + qDhw[0]);
+  const pmaxX = x.map((v, k) => pMax(v, Math.min(vlSetX[k], p.wp_max_vl), p));
+  const pminX = x.map(v => pMin(v, p));
+  let biv = null;
+  x.forEach((v, k) => { if (hx[k] && loadX[k] > pmaxX[k]) biv = v; });
+
+  const months = { q_hp: bincount(MI, wp.q_hp, 12), q_dhw: bincount(MI, wp.q_dhw, 12), q_rod: bincount(MI, wp.q_rod, 12),
+    e_total: bincount(MI, wp.e_total, 12), pv: bincount(MI, pvToHpH, 12), gas: bincount(MI, gas, 12) };
+  months.az = months.e_total.map((e, m) => e > 0 ? (months.q_hp[m] + months.q_dhw[m] + months.q_rod[m]) / e : 0);
+
+  const dm = new Float64Array(365);
+  for (let d = 0; d < 365; d++) { let s = 0; for (let h = 0; h < 24; h++) s += t[d * 24 + h]; dm[d] = s / 24; }
+  let d0 = 0, best = Infinity;
+  for (let d = 0; d <= 358; d++) { let s = 0; for (let k = 0; k < 7; k++) s += dm[d + k]; if (s < best) { best = s; d0 = d; } }
+  let hdd = 0; dm.forEach(v => { if (v < 15) hdd += 20 - v; });
+
+  const r = { p: { ...p }, t, td, q, heating, q_space: qSpace, q_dhw: qDhw, useful, vl_req: vlReq, rl_req: rlReq, vl_set: vlSet,
+    wp, wp_opt: wpOpt, gas, gas_kwh: gasKwh, boiler_aux_kwh: boilerAuxKwh, q_tot: qTot, eta_mean: qTot / gasKwh,
+    pv_to_hp: pvToHp, eco, excess, under_h: underH, rec: recommendCurve(p),
+    x, hx, vl_req_x: vlReqX, vl_set_x: vlSetX, load_x: loadX, pmax_x: pmaxX, pmin_x: pminX, biv, months,
+    week: [d0 * 24, d0 * 24 + 168], hdd, t_min: Math.min(...t), heating_h: sum(heating) };
+  r.jaz_gap = wpOpt.jaz - wp.jaz;
+  r.opt_saving = (wp.sum.e_total - wpOpt.sum.e_total) * p.el_price;
+  r.warnings = diagnose(r);
+  return r;
+}
+
+function diagnose(r) {
+  const p = r.p, wp = r.wp, m = [];
+  const rodShare = wp.sum.q_rod / wp.sum.heat * 100, vlDes = requiredTemps(1, p)[0];
+  if (r.under_h > 0) m.push(["warn", `Heizkurve zu niedrig: ${r.under_h} h Unterversorgung (Räume werden nicht warm) – Neigung/Niveau erhöhen.`]);
+  if (r.excess > 3) m.push(["warn", `Heizkurve im Mittel ${de(r.excess, 1)} K zu hoch – senkt die JAZ unnötig.`]);
+  else if (r.excess < 1.5 && r.under_h === 0) m.push(["ok", "Heizkurve gut eingestellt (geringe Übertemperatur)."]);
+  if (vlDes > p.wp_max_vl) m.push(["warn", `Heizflächen benötigen ${de(vlDes, 0)} °C > Einsatzgrenze der WP – Heizkörper vergrößern/tauschen.`]);
+  else if (vlDes > 55) m.push(["warn", `Auslegungs-Vorlauf ${de(vlDes, 0)} °C: WP möglich, aber ineffizient – einzelne Heizkörper tauschen.`]);
+  if (r.biv !== null && r.biv > p.t_design + 4) m.push(["warn", `Bivalenzpunkt ${de(r.biv, 1)} °C hoch – WP eher zu klein.`]);
+  if (wp.f_dhw_rod > 0) m.push(["warn", `Warmwasser ${de(p.dhw_temp, 0)} °C liegt über der Einsatzgrenze der WP: ${de(wp.f_dhw_rod * 100, 0)} % der Warmwasserwärme kommen aus dem Heizstab.`]);
+  if (rodShare > 5) m.push(["warn", `Heizstab-Anteil ${de(rodShare, 1)} % – Strombedarf steigt stark.`]);
+  if (r.heating_h && wp.sum.cycling / r.heating_h > 0.4)
+    m.push(["warn", `${wp.sum.cycling} h (≈${de(wp.sum.cycling / r.heating_h * 100, 0)} % der Heizstunden) unter Mindestleistung → Taktbetrieb in der Übergangszeit. Modulationsbereich, Pufferspeicher/Hysterese prüfen.`]);
+  if (wp.sum.q_unmet > 1) m.push(["warn", `${de(wp.sum.q_unmet, 0)} kWh/a nicht gedeckt (WP + Heizstab reichen nicht).`]);
+  if (r.jaz_gap > 0.15) m.push(["info", `Optimierte Heizkurve: JAZ ${de(wp.jaz, 2)} → ${de(r.wp_opt.jaz, 2)} (≈ ${de(r.opt_saving, 0)} €/a Strom).`]);
+  return m;
+}
+
+function waermekostenKurven(r) {
+  const p = r.p, e = r.eco, lev = e.lev, eta = etaTable(p), k = 1 - p.praxis / 100, loss = 1 + p.loss / 100;
+  const spreadN = p.vl_n - p.rl_n, cd = p.cd;
+  const pvShare = r.pv_to_hp / Math.max(r.wp.sum.e_total, 1e-9);
+  const elPrice = (1 - pvShare) * lev.el + pvShare * p.feed_in;
+  const wpFix = (e.wp_parts["Kapital (netto)"] + e.wp_parts["Wartung/Grundpreise"]) / Math.max(r.wp.sum.heat, 1e-9);
+  const bFix = (e.b_parts["Kapital (netto)"] + e.b_parts["Wartung/Grundpreise"]) / Math.max(r.q_tot, 1e-9);
+  const out = { wp_energy: [], wp_total: [], b_energy: [], b_total: [], wp_fix: wpFix, b_fix: bFix };
+  r.x.forEach((x, j) => {
+    if (!r.hx[j] || x > p.t_hg - 1) { ["wp_energy", "wp_total", "b_energy", "b_total"].forEach(s => out[s].push(null)); return; }
+    const q = loadFraction(x, p), loadSpace = p.design_load * q * loss, vlSet = r.vl_set_x[j], vlWp = Math.min(vlSet, p.wp_max_vl);
+    const rodCap = clip((r.load_x[j] - r.pmax_x[j]) / Math.max(r.load_x[j], 1e-9), 0, 1);
+    const rodT = clip((vlSet - p.wp_max_vl) / Math.max(spreadN * q, 1), 0, 1);
+    const rod = 1 - (1 - rodCap) * (1 - rodT);
+    const cop = copModel(x, vlWp, eta) * k;
+    const plr = Math.max(loadSpace > 0 ? loadSpace * (1 - rod) / r.pmin_x[j] : 1, PLR_FLOOR);
+    const fc = plr < 1 ? plr / (cd * plr + 1 - cd) : 1;
+    const el = (1 - rod) / (cop * fc) + rod / ROD_EFF + p.aux;
+    const wpE = el * elPrice;
+    const gpk = 1 / boilerEta(requiredTemps(q, p)[1], p);
+    const bE = gpk * (lev.gas + p.co2_gas / 1000 * lev.co2 * VAT) + p.boiler_aux * lev.el;
+    out.wp_energy.push(wpE); out.wp_total.push(wpE + wpFix); out.b_energy.push(bE); out.b_total.push(bE + bFix);
+  });
+  return out;
+}
+
+function buildReport(r, weatherLabel) {
+  const p = r.p, wp = r.wp, e = r.eco, u = r.useful;
+  const grid = wp.sum.e_total - r.pv_to_hp;
+  let wsum = 0, vlm = 0, vlmax = 0;
+  for (let i = 0; i < HOURS; i++) { if (r.heating[i]) { wsum += r.q_space[i]; vlm += r.q_space[i] * wp.vl[i]; } vlmax = Math.max(vlmax, wp.vl[i]); }
+  const row = (l, a, b) => "  " + l.padEnd(32) + a.padStart(20) + b.padStart(22);
+  const [vlD, rlD] = requiredTemps(1, p);
+  const be = v => v !== null ? de(v, 1) : "nicht im Zeitraum";
+  const L = [
+    "WÄRMEPUMPE vs. GAS-BRENNWERTKESSEL – ERGEBNISSE", "=".repeat(76),
+    `Wetter: ${weatherLabel} · Tmin ${de(r.t_min, 1)} °C · Gradtagzahl G20/15 ${de(r.hdd, 0)} Kd`,
+    `Nutzwärme Heizung + WW: ${de(u, 0)} kWh/a  (Erzeugung inkl. Verluste ${de(wp.sum.heat, 0)} kWh/a)`, "",
+    row("", "Wärmepumpe", "Gas-Brennwert"), "  " + "-".repeat(74),
+    row("Endenergie", `${de(wp.sum.e_total, 0)} kWh Strom`, `${de(r.gas_kwh, 0)} kWh Gas`),
+    row("  davon Heizstab / Hilfsstrom", `${de(wp.sum.e_rod, 0)} kWh`, `${de(r.boiler_aux_kwh, 0)} kWh Strom`),
+    row("  davon aus PV", `${de(r.pv_to_hp, 0)} kWh`, "–"),
+    row("JAZ / Jahresnutzungsgrad (Hs)", de(wp.jaz, 2), de(r.eta_mean, 3)),
+    row("CO2 direkt/Strommix", `${de(grid * p.co2_el / 1000, 2)} t/a`, `${de(r.gas_kwh * p.co2_gas / 1000, 2)} t/a`),
+    row("Energiekosten Jahr 1", `${de(e.wp_year1.energy, 0)} €`, `${de(e.b_year1.gas + e.b_year1.co2 + e.b_year1.aux, 0)} €`),
+    row("  davon CO2-Kosten", "–", `${de(e.b_year1.co2, 0)} €`),
+    row("Fixkosten Jahr 1 (Wartung, GP)", `${de(e.wp_year1.fixed, 0)} €`, `${de(e.b_year1.fixed, 0)} €`),
+    row("Investition netto", `${de(p.wp_invest - e.funding, 0)} €`, `${de(p.boiler_invest, 0)} €`),
+    row("  Förderung", `${de(e.funding, 0)} €`, "–"),
+    row(`Barwert Gesamtkosten (${e.n} a)`, `${de(e.wp_pv, 0)} €`, `${de(e.b_pv, 0)} €`),
+    row("Jahreskosten (Annuität)", `${de(e.wp_annuity, 0)} €/a`, `${de(e.b_annuity, 0)} €/a`),
+    row("Wärmegestehungskosten", `${de(e.wp_annuity / u * 100, 1)} ct/kWh`, `${de(e.b_annuity / u * 100, 1)} ct/kWh`), "",
+    `  Amortisation WP ggü. Kessel: nominal ${be(e.breakeven)} a, abgezinst ${be(e.breakeven_d)} a`,
+    `  Vorteil WP (Barwert): ${de(e.b_pv - e.wp_pv, 0)} €   ·   CO2-Preis im letzten Jahr: ${de(e.co2_price_end, 0)} €/t`, "",
+    "BETRIEB DER WÄRMEPUMPE", "-".repeat(76),
+    `  Bivalenzpunkt: ${r.biv !== null ? de(r.biv, 1) + " °C" : "unter −20 °C"}   ·   Heizstab-Anteil: ${de(wp.sum.q_rod / wp.sum.heat * 100, 1)} % der Wärme`,
+    `  Taktstunden (< Mindestleistung): ${wp.sum.cycling} h von ${r.heating_h} Heizstunden`,
+    `  Mittlere Vorlauftemperatur (wärmegewichtet): ${de(vlm / Math.max(wsum, 1e-9), 1)} °C · max. ${de(vlmax, 1)} °C`,
+    `  Erforderlicher Vorlauf bei Norm-AT: ${de(vlD, 1)} °C (Rücklauf ${de(rlD, 1)} °C)`,
+    `  Heizkurve eingestellt: Neigung ${de(p.slope, 2)}, Niveau ${de(p.level, 1)} K  →  Ø Übertemperatur ${de(r.excess, 1)} K`];
+  if (r.rec) L.push(`  Empfehlung: Neigung ${de(r.rec[0], 1)}, Niveau ${de(r.rec[1], 0)} K (Ø Übertemperatur ${de(r.rec[2], 1)} K)`);
+  L.push(`  JAZ mit exakt erforderlicher Kurve: ${de(r.wp_opt.jaz, 2)} (Einsparpotenzial ≈ ${de(r.opt_saving, 0)} €/a)`);
+  L.push("", "DIAGNOSE", "-".repeat(76), ...r.warnings.map(([t, s]) => "  " + (t === "warn" ? "⚠ " : t === "ok" ? "✓ " : "→ ") + s));
+  L.push("", "HINWEISE", "  CO2 Gas: direkte Emissionen (ohne Vorkette). Alle Preise brutto.",
+    "  Modellrechnung – ersetzt keine Heizlastberechnung oder Energieberatung.", "", "PARAMETER", "-".repeat(76));
+  for (const k in p) L.push("  " + (LABELS[k] ? LABELS[k][0] : k).padEnd(38) + `${de(p[k], 3).replace(/,?0+$/, "")} ${LABELS[k] ? LABELS[k][1] : ""}`);
+  return L.join("\n");
+}
+// ===CORE-END===
+</script>
+
+<script>
+"use strict";
+// ============================================================================
+// OBERFLÄCHE
+// ============================================================================
+const C = { wp: "#1f6fb4", boiler: "#d1495b", req: "#c0392b", rec: "#2e9e5b", rod: "#e67e22", cyc: "#f1c40f",
+  grey: "#8a8f98", pv: "#f2b705", dhw: "#7fb3e6", kap: "#5b6f8a", fix: "#9aa7b8", co2: "#7f8c8d" };
+const alpha = (hex, a) => { const n = parseInt(hex.slice(1), 16); return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`; };
+const $ = id => document.getElementById(id);
+const store = { get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} } };
+
+let weather = null, weatherLabel = "synthetisches Testjahr", result = null;
+const charts = {};
+const fmtIn = v => String(Math.round(v * 1e6) / 1e6).replace(".", ",");
+
+// ---------- Parameter-Formular ----------
+function buildForm() {
+  const root = $("params");
+  for (const [title, items] of PARAM_SPEC) {
+    const fs = document.createElement("fieldset");
+    fs.innerHTML = `<legend>${title}</legend>`;
+    for (const [k, lab, unit, d, hint] of items) {
+      const row = document.createElement("div");
+      row.className = "row";
+      row.innerHTML = `<label for="p_${k}" title="${hint}">${lab}</label>
+        <input id="p_${k}" inputmode="decimal" autocomplete="off" value="${fmtIn(d)}" title="${hint}">
+        <span class="unit">${unit}</span>${hint ? `<div class="hint">${hint}</div>` : ""}`;
+      fs.appendChild(row);
+    }
+    root.appendChild(fs);
+  }
+  root.addEventListener("input", () => { clearTimeout(buildForm.t); buildForm.t = setTimeout(update, 500); });
+  root.addEventListener("keydown", e => { if (e.key === "Enter") { clearTimeout(buildForm.t); update(); } });
+}
+function parseNum(s) {
+  s = String(s).trim().replace(/\s/g, "");
+  if ((s.match(/,/g) || []).length === 1) s = s.replace(/\./g, "").replace(",", ".");
+  return s === "" ? NaN : Number(s);
+}
+function readParams() {
+  const p = {}, bad = [];
+  for (const k in DEFAULTS) {
+    const el = $("p_" + k), v = parseNum(el.value);
+    el.classList.toggle("bad", !isFinite(v));
+    if (!isFinite(v)) bad.push(LABELS[k][0]);
+    p[k] = v;
+  }
+  if (bad.length) throw new Error("Ungültige Eingabe: " + bad.join(", "));
+  return p;
+}
+function setParams(obj) { for (const k in obj) if (k in DEFAULTS && $("p_" + k)) $("p_" + k).value = fmtIn(Number(obj[k])); }
+
+// ---------- Diagramm-Grundlagen ----------
+const whiteBg = { id: "whiteBg", beforeDraw(c) { const x = c.ctx; x.save(); x.globalCompositeOperation = "destination-over"; x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height); x.restore(); } };
+Chart.defaults.font.size = 11;
+Chart.defaults.locale = "de-DE";
+Chart.defaults.animation = false;
+Chart.defaults.maintainAspectRatio = false;
+Chart.defaults.plugins.legend.labels.boxWidth = 18;
+Chart.defaults.plugins.legend.labels.font = { size: 10.5 };
+Chart.register(whiteBg);
+
+const pts = (xs, ys) => xs.map((x, i) => ({ x, y: ys[i] === null || !isFinite(ys[i]) ? null : ys[i] }));
+const line = (label, data, color, o = {}) => ({ type: "line", label, data, borderColor: color, backgroundColor: color, borderWidth: 2, pointRadius: 0, spanGaps: false, ...o });
+const axis = (title, o = {}) => ({ type: "linear", title: { display: true, text: title }, grid: { color: "#eceef1" }, ...o });
+const hide = { filter: it => !it.text.startsWith("_") };
+function histogram(vals, weights, lo = -20, hi = 21) {
+  const n = hi - lo, h = new Float64Array(n);
+  for (let i = 0; i < vals.length; i++) { const b = Math.floor(vals[i] - lo); if (b >= 0 && b < n) h[b] += weights ? weights[i] : 1; }
+  return h;
+}
+const centers = Array.from({ length: 41 }, (_, k) => -20 + k + 0.5);
+function heatShareBars(vals, weights, label = "Anteil an Jahreswärme [%]") {
+  const h = histogram(vals, weights), s = sum(h) || 1;
+  return { type: "bar", label, data: centers.map((x, i) => ({ x, y: h[i] / s * 100 })), yAxisID: "y2",
+    backgroundColor: "rgba(138,143,152,0.22)", barPercentage: 1, categoryPercentage: 0.95, order: 10 };
+}
+function draw(id, config) {
+  if (charts[id]) charts[id].destroy();
+  charts[id] = new Chart($(id), config);
+}
+const tip = { mode: "nearest", intersect: false, callbacks: { label: c => `${c.dataset.label.replace(/^_/, "")}: ${de(c.parsed.y, 2)}` } };
+
+// ---------- Diagramme ----------
+function chartHeizkurve(r) {
+  const p = r.p, x = r.x, req = r.x.map((v, i) => r.hx[i] ? r.vl_req_x[i] : null);
+  const ds = [];
+  for (const s of [0.2, 0.4, 0.6, 1.0, 1.5])
+    ds.push(line(`_N ${de(s, 1)}`, pts(x, x.map(v => setCurve(v, p, s, 0))), "rgba(138,143,152,0.45)", { borderWidth: 1 }));
+  ds.push(line("erforderlich (Heizflächen)", pts(x, req), C.req, { borderWidth: 2.4 }));
+  ds.push(line(`eingestellt (N ${de(p.slope, 2)} / Niv ${de(p.level, 1)})`, pts(x, r.vl_set_x.map((v, i) => r.hx[i] ? v : v)), C.wp,
+    { borderWidth: 3, fill: { target: ds.length - 1, above: alpha(C.rod, 0.18), below: alpha(C.req, 0.35) } }));
+  if (r.rec) ds.push(line(`Empfehlung (N ${de(r.rec[0], 1)} / Niv ${de(r.rec[1], 0)})`, pts(x, x.map(v => setCurve(v, p, r.rec[0], r.rec[1]))), C.rec, { borderDash: [6, 4] }));
+  ds.push(line("Einsatzgrenze WP", [{ x: -20, y: p.wp_max_vl }, { x: 20, y: p.wp_max_vl }], "#000", { borderWidth: 1, borderDash: [2, 3] }));
+  ds.push(line("_Norm-AT", [{ x: p.t_design, y: 15 }, { x: p.t_design, y: 80 }], "#bbb", { borderWidth: 1, borderDash: [4, 4] }));
+  const ymax = Math.max(...req.filter(v => v !== null), ...r.vl_set_x, p.wp_max_vl) + 6;
+  draw("c1", { data: { datasets: ds }, options: { scales: { x: axis("gedämpfte Außentemperatur [°C]", { min: -20, max: 20 }), y: axis("Vorlauftemperatur [°C]", { min: 15, max: ymax }) },
+    plugins: { legend: { labels: hide }, tooltip: tip } } });
+  $("n1").innerHTML = `Ø Übertemperatur (wärmegewichtet): <b>${de(r.excess, 1)} K</b> · Stunden mit Unterversorgung: <b>${r.under_h}</b> · Fläche orange = zu warm, rot = zu kalt · graue Linien: Neigungen 0,2 / 0,4 / 0,6 / 1,0 / 1,5`;
+}
+
+function chartCop(r) {
+  const p = r.p, x = r.x, eta = etaTable(p), k = 1 - p.praxis / 100, cop = copTable(p);
+  const vlSet = x.map((v, i) => r.hx[i] ? Math.min(r.vl_set_x[i], p.wp_max_vl) : null);
+  const vlOpt = x.map((v, i) => r.hx[i] ? Math.max(r.vl_req_x[i], 20) : null);
+  const ds = [
+    heatShareBars(r.t, r.wp.heat),
+    line("W35 (Kennfeld)", pts(x, x.map(v => copModel(v, 35, eta) * k)), C.grey, { borderWidth: 1, borderDash: [2, 3] }),
+    line("W55 (Kennfeld)", pts(x, x.map(v => copModel(v, 55, eta) * k)), C.grey, { borderWidth: 1, borderDash: [8, 3, 2, 3] }),
+    line("mit erforderl. Kurve", pts(x, vlOpt.map((w, i) => w === null ? null : copModel(x[i], w, eta) * k)), C.rec, { borderDash: [6, 4] }),
+    line("mit eingestellter Kurve", pts(x, vlSet.map((w, i) => w === null ? null : copModel(x[i], w, eta) * k)), C.wp, { borderWidth: 3 }),
+    { type: "scatter", label: "Datenblatt", data: [0, 1, 2].flatMap(i => A_PTS.map((a, j) => ({ x: a, y: cop[i][j] }))),
+      backgroundColor: "#000", pointStyle: [0, 1, 2].flatMap(i => A_PTS.map(() => ["circle", "rect", "triangle"][i])), pointRadius: 4 }];
+  const h = histogram(r.t, r.wp.heat), hm = Math.max(...h) / (sum(h) || 1) * 100;
+  draw("c2", { data: { datasets: ds }, options: { scales: { x: axis("Außentemperatur [°C]", { min: -20, max: 20 }),
+    y: axis("COP [–] (inkl. Praxisabschlag)", { min: 1, max: Math.min(COP_CAP, copModel(20, 25, eta) * k) + 0.5 }),
+    y2: axis("Anteil an Jahreswärme [%]", { position: "right", min: 0, max: hm * 3, grid: { display: false } }) },
+    plugins: { tooltip: tip } } });
+  $("n2").innerHTML = `JAZ eingestellt: <b>${de(r.wp.jaz, 2)}</b> · JAZ optimiert: <b>${de(r.wp_opt.jaz, 2)}</b> · Datenblattpunkte: ● W35, ■ W45, ▲ W55 (ohne Praxisabschlag) · graue Balken: wo die Jahreswärme anfällt`;
+}
+
+function chartLeistung(r) {
+  const p = r.p, x = r.x;
+  const load = x.map((v, i) => r.hx[i] ? r.load_x[i] : null);
+  const cyc = x.map((v, i) => r.hx[i] && r.load_x[i] < r.pmin_x[i] ? r.load_x[i] : null);
+  const h = histogram(r.td, null);
+  const ds = [
+    { ...heatShareBars(r.td, null, "Stunden je K"), data: centers.map((c, i) => ({ x: c, y: h[i] })) },
+    line("WP max. (bei Ist-Vorlauf)", pts(x, r.pmax_x), C.wp, { borderWidth: 2.4 }),
+    line("Gebäudelast inkl. WW", pts(x, load), "#000", { borderWidth: 2.4, fill: { target: 1, above: alpha(C.rod, 0.45), below: "rgba(0,0,0,0)" } }),
+    line("WP min. Modulation", pts(x, r.pmin_x), C.wp, { borderWidth: 1.5, borderDash: [6, 4] }),
+    line("Taktbetrieb (< Pmin)", pts(x, cyc), alpha(C.cyc, 0.9), { borderWidth: 0, fill: { target: "origin", above: alpha(C.cyc, 0.45) } })];
+  if (r.biv !== null) ds.push({ type: "scatter", label: `Bivalenzpunkt ${de(r.biv, 1)} °C`, data: [{ x: r.biv, y: r.load_x[Math.round((r.biv + 20) * 10)] }], backgroundColor: C.req, pointRadius: 6 });
+  const ymax = Math.max(...load.filter(v => v !== null), ...r.pmax_x) * 1.1;
+  draw("c3", { data: { datasets: ds }, options: { scales: { x: axis("gedämpfte Außentemperatur [°C]", { min: -20, max: 20 }),
+    y: axis("Leistung [kW]", { min: 0, max: ymax }), y2: axis("Stunden je K", { position: "right", min: 0, max: Math.max(...h) * 3 || 1, grid: { display: false } }) },
+    plugins: { tooltip: tip } } });
+  $("n3").innerHTML = `Bivalenzpunkt: <b>${r.biv !== null ? de(r.biv, 1) + " °C" : "unter −20 °C"}</b> · Heizstab: <b>${de(r.wp.sum.q_rod / r.wp.sum.heat * 100, 1)} %</b> der Wärme · Taktstunden: <b>${r.wp.sum.cycling} h</b> · orange = Heizstab, gelb = Taktbetrieb`;
+}
+
+/* Jahresdauerlinie: alle 8.760 Stunden nach Wärmebedarf absteigend sortiert (= kälteste Stunden zuerst).
+   Flächen zeigen, wer die Wärme liefert (WP, Heizstab, ungedeckt); dazu Außentemperatur, WP-Maximalleistung
+   und elektrische Leistungsaufnahme in derselben Sortierung. Werte je 24 h gemittelt (glatter Verlauf). */
+function chartDauerlinie(r) {
+  const wp = r.wp, p = r.p, n = HOURS, idx = Array.from({ length: n }, (_, i) => i);
+  const bedarf = i => r.q_space[i] + r.q_dhw[i];
+  idx.sort((a, b) => bedarf(b) - bedarf(a) || r.td[a] - r.td[b]);
+  const B = 24, xs = [], sWp = [], sRod = [], sTot = [], sT = [], sCap = [], sEl = [];
+  let hRod = 0, hUnmet = 0, hCyc = 0;
+  for (let k = 0; k < n; k += B) {
+    let a = 0, b = 0, c = 0, t = 0, cap = 0, el = 0, m = 0;
+    for (let j = k; j < Math.min(k + B, n); j++) {
+      const i = idx[j]; m++;
+      a += wp.q_hp[i] + wp.q_dhw[i]; b += wp.q_rod[i]; c += wp.q_unmet[i]; t += r.td[i]; el += wp.e_total[i];
+      cap += pMax(r.t[i], Math.min(r.vl_set[i] || p.vl_min, p.wp_max_vl), p);
+    }
+    xs.push(k + m / 2); sWp.push(a / m); sRod.push((a + b) / m); sTot.push((a + b + c) / m); sT.push(t / m); sCap.push(cap / m); sEl.push(el / m);
+  }
+  const glatt = (arr, w = 3) => arr.map((_, k) => { let s2 = 0, m2 = 0; for (let j = Math.max(0, k - w); j <= Math.min(arr.length - 1, k + w); j++) { s2 += arr[j]; m2++; } return s2 / m2; });
+  sCap.splice(0, sCap.length, ...glatt(sCap));
+  for (let i = 0; i < n; i++) { if (wp.q_rod[i] > 0.01) hRod++; if (wp.q_unmet[i] > 0.01) hUnmet++; if (wp.cycling[i]) hCyc++; }
+  const hHeiz = r.heating_h, peakEl = Math.max(...wp.e_total), peakQ = Math.max(...idx.slice(0, 1).map(bedarf));
+  const ds = [
+    line("Wärmepumpe (Heizung + Warmwasser)", pts(xs, sWp), C.wp, { borderWidth: 1.5, fill: { target: "origin", above: alpha(C.wp, 0.35) }, order: 3 }),
+    line("Heizstab", pts(xs, sRod), C.rod, { borderWidth: 1, fill: { target: 0, above: alpha(C.rod, 0.6) }, order: 3 }),
+    line("_ungedeckt", pts(xs, sTot), C.req, { borderWidth: 1, fill: { target: 1, above: alpha(C.req, 0.6) }, order: 3 }),
+    line("WP max. Heizleistung", pts(xs, sCap), C.wp, { borderWidth: 1.6, borderDash: [6, 4], order: 2 }),
+    line("Elektr. Leistungsaufnahme WP", pts(xs, sEl), "#111", { borderWidth: 1.6, borderDash: [2, 3], order: 2 }),
+    line("Außentemperatur (gedämpft)", pts(xs, sT), C.grey, { borderWidth: 1.6, yAxisID: "y2", order: 1 })];
+  if (hHeiz > 0) ds.push({ type: "scatter", label: `Heizgrenze nach ${de(hHeiz, 0)} h`, data: [{ x: hHeiz, y: 0 }], backgroundColor: C.rec, pointRadius: 5, pointStyle: "triangle" });
+  const ymax = Math.max(...sTot, ...sCap) * 1.1;
+  draw("c10", { data: { datasets: ds }, options: { scales: {
+    x: axis("Stunden im Jahr (nach Wärmebedarf sortiert)", { min: 0, max: HOURS, ticks: { callback: v => de(v, 0) },
+      afterBuildTicks: ax => { ax.ticks = [0, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, HOURS].map(v => ({ value: v })); } }),
+    y: axis("Leistung [kW]", { min: 0, max: ymax }),
+    y2: axis("Außentemperatur [°C]", { position: "right", min: Math.floor(Math.min(...sT) / 5) * 5, max: 30, grid: { display: false } }) },
+    plugins: { legend: { labels: hide }, tooltip: { mode: "index", intersect: false, callbacks: { title: it => `${de(it[0].parsed.x, 0)} h`, label: c => `${c.dataset.label.replace(/^_/, "")}: ${de(c.parsed.y, 2)}` } } } } });
+  const qWp = sum(wp.q_hp) + sum(wp.q_dhw), qAll = wp.sum.heat + wp.sum.q_unmet;
+  $("n10").innerHTML = `Heizbetrieb an <b>${de(hHeiz, 0)} h</b> · WP deckt <b>${de(qWp / qAll * 100, 1)} %</b> der Wärme · Heizstab in <b>${de(hRod, 0)} h</b> (${de(wp.sum.q_rod / qAll * 100, 1)} %)` +
+    (hUnmet ? ` · <span style="color:${C.req}">ungedeckt in ${de(hUnmet, 0)} h</span>` : "") +
+    ` · Taktbetrieb in ${de(hCyc, 0)} h · höchste elektrische Leistungsaufnahme <b>${de(peakEl, 1)} kW</b> (wichtig für Netzanschluss und § 14a EnWG). ` +
+    `Die Fläche unter der Kurve ist die Jahreswärme; wo die gestrichelte WP-Leistung unter der Bedarfskurve liegt, muss der Heizstab nachheizen (Bivalenz).`;
+}
+
+function chartMonate(r) {
+  const m = r.months;
+  draw("c7", { data: { labels: MONTHS, datasets: [
+    { type: "bar", label: "WP Heizung", data: Array.from(m.q_hp, v => v / 1000), backgroundColor: C.wp, stack: "s", order: 2 },
+    { type: "bar", label: "WP Warmwasser", data: Array.from(m.q_dhw, v => v / 1000), backgroundColor: C.dhw, stack: "s", order: 2 },
+    { type: "bar", label: "Heizstab", data: Array.from(m.q_rod, v => v / 1000), backgroundColor: C.rod, stack: "s", order: 2 },
+    { type: "line", label: "Monats-Arbeitszahl", data: Array.from(m.az), borderColor: "#000", backgroundColor: "#000", yAxisID: "y2", pointRadius: 3, order: 1 }] },
+    options: { scales: { x: { stacked: true, grid: { display: false } }, y: axis("Wärme [MWh]", { stacked: true, min: 0 }),
+      y2: axis("Arbeitszahl [–]", { position: "right", min: 0, max: Math.max(...m.az) * 1.15, grid: { display: false } }) },
+      plugins: { tooltip: { mode: "index", intersect: false, callbacks: { label: c => `${c.dataset.label}: ${de(c.parsed.y, 2)}` } } } } });
+  $("n7").innerHTML = `Jahresarbeitszahl: <b>${de(r.wp.jaz, 2)}</b> · Im Sommer nur Warmwasser: höhere Vorlauftemperatur, aber warme Außenluft – die Monatsarbeitszahl folgt vor allem der Außentemperatur`;
+}
+
+function chartWaermekosten(r) {
+  const p = r.p, x = r.x, k = waermekostenKurven(r), lev = r.eco.lev;
+  const ds = [heatShareBars(r.t, r.wp.heat),
+    line("Kessel – Vollkosten", pts(x, k.b_total), C.boiler, { borderWidth: 3 }),
+    line("WP – Vollkosten", pts(x, k.wp_total), C.wp, { borderWidth: 3, fill: { target: 1, above: alpha(C.boiler, 0.12), below: alpha(C.rec, 0.14) } }),
+    line("WP – Energie", pts(x, k.wp_energy), C.wp, { borderDash: [6, 4], borderWidth: 1.6 }),
+    line("Kessel – Energie inkl. CO2", pts(x, k.b_energy), C.boiler, { borderDash: [6, 4], borderWidth: 1.6 })];
+  const cross = [];
+  for (let j = 0; j < x.length - 1; j++) {
+    const a = k.wp_total[j], b = k.wp_total[j + 1], c = k.b_total[j], d = k.b_total[j + 1];
+    if ([a, b, c, d].some(v => v === null)) continue;
+    const d0 = a - c, d1 = b - d;
+    if (Math.sign(d0) !== Math.sign(d1) && d0 !== 0) { const xs = x[j] - d0 * (x[j + 1] - x[j]) / (d1 - d0); cross.push({ x: xs, y: a + (b - a) * (xs - x[j]) / (x[j + 1] - x[j]) }); }
+  }
+  if (cross.length) ds.push({ type: "scatter", label: "Kostengleichheit", data: cross.slice(0, 2), backgroundColor: "#000", pointRadius: 6 });
+  const all = [...k.wp_total, ...k.b_total].filter(v => v !== null);
+  const h = histogram(r.t, r.wp.heat), hm = Math.max(...h) / (sum(h) || 1) * 100;
+  draw("c5", { data: { datasets: ds }, options: { scales: { x: axis("Außentemperatur [°C]", { min: -20, max: p.t_hg - 1 }),
+    y: axis("€ / kWh erzeugte Wärme", { min: 0, max: Math.max(...all) * 1.25 }), y2: axis("Anteil an Jahreswärme [%]", { position: "right", min: 0, max: hm * 3, grid: { display: false } }) },
+    plugins: { tooltip: { ...tip, callbacks: { label: c => `${c.dataset.label}: ${de(c.parsed.y, c.dataset.yAxisID === "y2" ? 1 : 3)}` } } } } });
+  $("n5").innerHTML = `${cross.length ? `Kostengleichheit bei <b>${cross.slice(0, 2).map(c => de(c.x, 1) + " °C").join(" und ")}</b> · ` : ""}grün = WP günstiger, rot = Kessel günstiger<br>
+    Preise levelisiert über ${r.eco.n} a: Strom <b>${de(lev.el * 100, 1)} ct</b> · Gas <b>${de(lev.gas * 100, 1)} ct</b> · CO2 <b>${de(lev.co2, 0)} €/t</b> · Fixkostenanteil: WP <b>${de(k.wp_fix * 100, 1)} ct</b> · Kessel <b>${de(k.b_fix * 100, 1)} ct/kWh</b>`;
+}
+
+function chartKumuliert(r) {
+  const e = r.eco, y = e.years, k = v => Array.from(v, z => z / 1000);
+  const ds = [line("WP nominal", pts(y, k(e.wp_cum)), C.wp, { borderWidth: 3 }), line("Kessel nominal", pts(y, k(e.b_cum)), C.boiler, { borderWidth: 3 }),
+    line("WP abgezinst", pts(y, k(e.wp_cum_d)), C.wp, { borderDash: [6, 4], borderWidth: 1.5 }), line("Kessel abgezinst", pts(y, k(e.b_cum_d)), C.boiler, { borderDash: [6, 4], borderWidth: 1.5 })];
+  if (e.breakeven !== null) {
+    const b = e.breakeven, j = Math.min(Math.floor(b), e.n - 1);
+    ds.push({ type: "scatter", label: `Amortisation ${de(b, 1)} a`, data: [{ x: b, y: (e.wp_cum[j] + (e.wp_cum[j + 1] - e.wp_cum[j]) * (b - j)) / 1000 }], backgroundColor: "#000", pointRadius: 6 });
+  }
+  draw("c4", { data: { datasets: ds }, options: { scales: { x: axis("Jahr", { min: 0, max: e.n }), y: axis("Kosten [Tsd. €]", { min: 0 }) }, plugins: { tooltip: tip } } });
+  const u = r.useful;
+  $("n4").innerHTML = `Jahreskosten (Annuität): WP <b>${de(e.wp_annuity, 0)} €/a</b> (${de(e.wp_annuity / u * 100, 1)} ct/kWh) · Kessel <b>${de(e.b_annuity, 0)} €/a</b> (${de(e.b_annuity / u * 100, 1)} ct/kWh) · Amortisation nominal <b>${e.breakeven !== null ? de(e.breakeven, 1) + " a" : "keine"}</b>, abgezinst <b>${e.breakeven_d !== null ? de(e.breakeven_d, 1) + " a" : "keine"}</b>`;
+}
+
+function chartKostenstruktur(r) {
+  const e = r.eco, names = Object.keys(e.wp_parts);
+  const colors = { "Kapital (netto)": C.kap, "Wartung/Grundpreise": C.fix, "CO2-Kosten": C.co2 };
+  const ds = names.map(n => ({ label: n, data: [e.wp_parts[n], e.b_parts[n]], stack: "s",
+    backgroundColor: n === "Energie" ? [C.wp, C.boiler] : colors[n], borderColor: "#fff", borderWidth: 1 }));
+  draw("c6", { type: "bar", data: { labels: ["Wärmepumpe", "Gas-Brennwert"], datasets: ds },
+    options: { indexAxis: "y", scales: { x: axis("€ pro Jahr", { stacked: true, min: 0 }), y: { stacked: true, grid: { display: false } } },
+      plugins: { legend: { labels: { generateLabels: ch => ch.data.datasets.map((d, i) => ({ text: d.label, fillStyle: Array.isArray(d.backgroundColor) ? "#4a7fb0" : d.backgroundColor, strokeStyle: "#fff", datasetIndex: i, hidden: !ch.isDatasetVisible(i) })) } },
+        tooltip: { callbacks: { label: c => `${c.dataset.label}: ${de(c.parsed.x, 0)} €/a` } } } } });
+  const fmt = parts => names.filter(n => parts[n] > 0).map(n => `${n} ${de(parts[n], 0)} €`).join(" · ");
+  $("n6").innerHTML = `<b>WP ${de(e.wp_annuity, 0)} €/a</b>: ${fmt(e.wp_parts)}<br><b>Kessel ${de(e.b_annuity, 0)} €/a</b>: ${fmt(e.b_parts)}`;
+}
+
+function chartMonatskosten(r) {
+  const p = r.p, m = r.months, gs = sum(m.gas) || 1;
+  const wp = m.e_total.map((e, i) => (e - m.pv[i]) * p.el_price + m.pv[i] * p.feed_in);
+  const b = m.gas.map((g, i) => g * (p.gas_price + p.co2_gas / 1000 * p.co2_start * VAT) + g / gs * r.boiler_aux_kwh * p.el_price);
+  const ds = [{ type: "bar", label: "WP (Strom)", data: Array.from(wp), backgroundColor: C.wp },
+    { type: "bar", label: "Kessel (Gas + CO2)", data: Array.from(b), backgroundColor: C.boiler }];
+  if (sum(m.pv) > 0) ds.splice(1, 0, { type: "bar", label: "davon PV (bewertet)", data: Array.from(m.pv, v => v * p.feed_in), backgroundColor: C.pv });
+  draw("c8", { data: { labels: MONTHS, datasets: ds }, options: { scales: { x: { grid: { display: false } }, y: axis("€", { min: 0 }) },
+    plugins: { tooltip: { mode: "index", intersect: false, callbacks: { label: c => `${c.dataset.label}: ${de(c.parsed.y, 0)} €` } } } } });
+  $("n8").innerHTML = `Ohne Fixkosten · Summe Jahr 1: WP <b>${de(sum(wp), 0)} €</b> · Kessel <b>${de(sum(b), 0)} €</b>`;
+}
+
+function chartWoche(r) {
+  const [a, b] = r.week, wp = r.wp, hrs = [], T = [], req = [], vl = [], hp = [], tot = [];
+  for (let i = a; i < b; i++) { hrs.push((i - a) / 24); T.push(r.t[i]); req.push(r.vl_req[i]); vl.push(wp.vl[i]); hp.push(wp.q_hp[i] + wp.q_dhw[i]); tot.push(wp.q_hp[i] + wp.q_dhw[i] + wp.q_rod[i]); }
+  const temps = [...T, ...req, ...vl], lo = Math.min(...temps), hi = Math.max(...temps);
+  const ds = [
+    line("WP-Wärme", pts(hrs, hp), alpha(C.wp, 0.5), { yAxisID: "y2", stepped: "middle", borderWidth: 1, fill: { target: "origin", above: alpha(C.wp, 0.22) }, order: 5 }),
+    line("Heizstab", pts(hrs, tot), alpha(C.rod, 0.9), { yAxisID: "y2", stepped: "middle", borderWidth: 1, fill: { target: 0, above: alpha(C.rod, 0.55) }, order: 4 }),
+    line("Außentemperatur", pts(hrs, T), C.grey, { borderWidth: 1.6 }),
+    line("Vorlauf erforderlich", pts(hrs, req), C.req, { borderWidth: 1.8 }),
+    line("Vorlauf WP (Ist)", pts(hrs, vl), C.wp, { borderWidth: 2.4 })];
+  draw("c9", { data: { datasets: ds }, options: { scales: { x: axis("Tag", { min: 0, max: 7 }), y: axis("Temperatur [°C]", { min: Math.floor(lo - 2), max: Math.ceil(hi + 0.25 * (hi - lo)) }),
+    y2: axis("Leistung [kW]", { position: "right", min: 0, max: Math.max(...tot) * 2.2 || 1, grid: { display: false } }) }, plugins: { tooltip: tip } } });
+  const rod = sum(wp.q_rod.slice(a, b)), heat = sum(wp.heat.slice(a, b)), el = sum(wp.e_total.slice(a, b));
+  $("n9").innerHTML = `Tag ${Math.floor(a / 24) + 1}–${Math.floor(a / 24) + 7} des Jahres · Ø Außentemperatur <b>${de(sum(T) / T.length, 1)} °C</b> · Wärme <b>${de(heat, 0)} kWh</b> · Strom <b>${de(el, 0)} kWh</b> (Wochen-AZ ${de(heat / el, 2)}) · Heizstab <b>${de(rod, 0)} kWh</b>`;
+}
+
+// ---------- Ablauf ----------
+function renderAll(r) {
+  chartHeizkurve(r); chartCop(r); chartLeistung(r); chartMonate(r); chartDauerlinie(r);
+  chartWaermekosten(r); chartKumuliert(r); chartKostenstruktur(r); chartMonatskosten(r); chartWoche(r);
+  const e = r.eco, wp = r.wp;
+  $("kpis").innerHTML = [["JAZ", de(wp.jaz, 2)], ["Bivalenz", r.biv !== null ? de(r.biv, 1) + " °C" : "< −20 °C"],
+    ["Heizstab", de(wp.sum.q_rod / wp.sum.heat * 100, 1) + " %"], ["Jahreskosten WP", de(e.wp_annuity, 0) + " €"],
+    ["Kessel", de(e.b_annuity, 0) + " €"], ["Amortisation", e.breakeven !== null ? de(e.breakeven, 1) + " a" : "keine"]]
+    .map(([k, v]) => `<span class="kpi">${k} <b>${v}</b></span>`).join("");
+  $("diag").innerHTML = r.warnings.map(([t, s]) => `<li class="${t}">${t === "warn" ? "⚠ " : t === "ok" ? "✓ " : "→ "}${s}</li>`).join("");
+  $("report").textContent = buildReport(r, weatherLabel);
+  const nWarn = r.warnings.filter(w => w[0] === "warn").length;
+  $("status").textContent = `Berechnet (${weatherLabel}). ` + (nWarn ? `${nWarn} Hinweis(e) im Reiter „Ergebnisse & Diagnose“.` : "Keine Auffälligkeiten.");
+}
+function update() {
+  try {
+    const p = readParams();
+    result = simulate(p, weather);
+    renderAll(result);
+  } catch (err) {
+    $("status").textContent = "Fehler: " + err.message.replace(/\n/g, " · ");
+  }
+}
+
+function download(name, blob) {
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+const PNG_NAMES = { c1: "01_heizkurve", c2: "02_cop", c3: "03_leistungsbilanz", c4: "04_kumulierte_kosten", c5: "05_waermekosten_je_kwh",
+  c6: "06_kostenstruktur", c7: "07_monate", c8: "08_monatskosten", c9: "09_kaelteste_woche", c10: "10_jahresdauerlinie" };
+function chartPng(id) {
+  const tab = $(id).closest(".tab"), wasHidden = !tab.classList.contains("active");
+  if (wasHidden) { tab.style.display = "block"; charts[id].resize(); }
+  const url = charts[id].toBase64Image("image/png", 1);
+  if (wasHidden) { tab.style.display = ""; }
+  fetch(url).then(res => res.blob()).then(b => download(PNG_NAMES[id] + ".png", b));
+}
+
+function initUi() {
+  buildForm();
+  // Parameter aus Link (#p=...)
+  if (location.hash.startsWith("#p=")) { try { setParams(JSON.parse(decodeURIComponent(location.hash.slice(3)))); } catch (e) {} }
+
+  // Tabs
+  document.querySelectorAll("#tabs button").forEach(b => b.addEventListener("click", () => {
+    document.querySelectorAll("#tabs button").forEach(x => x.classList.toggle("active", x === b));
+    document.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t.id === "tab-" + b.dataset.tab));
+    Object.values(charts).forEach(c => c.resize());
+  }));
+
+  // Verschiebbare Trennleiste
+  const app = $("app"), sp = $("splitter");
+  const saved = Number(store.get("wp_side_width"));
+  if (saved > 200) app.style.setProperty("--side", saved + "px");
+  sp.addEventListener("pointerdown", e => {
+    sp.classList.add("drag"); sp.setPointerCapture(e.pointerId);
+    const move = ev => { const w = clip(ev.clientX, 240, window.innerWidth - 360); app.style.setProperty("--side", w + "px"); };
+    const up = () => { sp.classList.remove("drag"); sp.removeEventListener("pointermove", move); sp.removeEventListener("pointerup", up);
+      store.set("wp_side_width", parseInt(getComputedStyle(app).getPropertyValue("--side"))); Object.values(charts).forEach(c => c.resize()); };
+    sp.addEventListener("pointermove", move); sp.addEventListener("pointerup", up);
+  });
+
+  $("bCalc").onclick = update;
+  $("bRec").onclick = () => { if (result && result.rec) { setParams({ slope: result.rec[0], level: result.rec[1] }); update(); } };
+  $("bReset").onclick = () => { setParams(DEFAULTS); update(); };
+  $("bSynth").onclick = () => { weather = null; weatherLabel = "synthetisches Testjahr"; update(); };
+  $("bWeather").onclick = () => $("fWeather").click();
+  $("fWeather").onchange = async e => {
+    const f = e.target.files[0]; if (!f) return;
+    try {
+      let col = null;
+      if (!f.name.toLowerCase().endsWith(".dat")) {
+        const ans = prompt("Spaltennummer der Temperatur (1 = erste Spalte).\nLeer lassen = letzte Zahl je Zeile.", "");
+        if (ans === null) return;
+        col = ans.trim() ? parseInt(ans) - 1 : null;
+      }
+      const buf = await f.arrayBuffer();
+      weather = parseWeather(new TextDecoder("latin1").decode(buf), col); weatherLabel = f.name; update();
+    } catch (err) { alert("Wetterdaten: " + err.message); }
+    e.target.value = "";
+  };
+  $("bSave").onclick = () => { try { download("wp_parameter.json", new Blob([JSON.stringify(readParams(), null, 2)], { type: "application/json" })); } catch (err) { alert(err.message); } };
+  $("bLoad").onclick = () => $("fParams").click();
+  $("fParams").onchange = async e => {
+    const f = e.target.files[0]; if (!f) return;
+    try { setParams(JSON.parse(await f.text())); update(); } catch (err) { alert("Parameter laden: " + err.message); }
+    e.target.value = "";
+  };
+  $("bReport").onclick = () => { if (result) download("wp_bericht.txt", new Blob([buildReport(result, weatherLabel)], { type: "text/plain;charset=utf-8" })); };
+  $("bPng").onclick = () => Object.keys(PNG_NAMES).forEach((id, i) => setTimeout(() => chartPng(id), i * 350));
+  document.querySelectorAll("[data-png]").forEach(b => b.addEventListener("click", () => chartPng(b.dataset.png)));
+  $("bLink").onclick = () => {
+    try {
+      const p = readParams(), diff = {};
+      for (const k in p) if (p[k] !== DEFAULTS[k]) diff[k] = p[k];
+      const url = location.href.split("#")[0] + "#p=" + encodeURIComponent(JSON.stringify(diff));
+      history.replaceState(null, "", url);
+      (navigator.clipboard ? navigator.clipboard.writeText(url) : Promise.reject()).then(
+        () => { $("status").textContent = "Link mit Parametern in die Zwischenablage kopiert."; },
+        () => { prompt("Link kopieren:", url); });
+    } catch (err) { alert(err.message); }
+  };
+  update();
+}
+if (typeof Chart === "undefined") {
+  document.body.innerHTML = "<p style='padding:20px'>Die Diagramm-Bibliothek (Chart.js) konnte nicht geladen werden. Bitte Internetverbindung prüfen.</p>";
+} else initUi();
+</script>
+<script src="../../assets/js/toolbar.js" defer></script>
+</body>
+</html>

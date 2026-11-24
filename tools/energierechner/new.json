@@ -1,0 +1,421 @@
+{
+ "Einfamilienhaus 1965, unsaniert, Ölheizung": {
+  "E_el": 3701.4056840123267,
+  "grid": 3701.4056840123267,
+  "pv_ev": 0,
+  "peak": 2.323731396703695,
+  "P": 14.5,
+  "cost": 6256.773360854032,
+  "co2": 12.387849525546486,
+  "E_emob": 0,
+  "M": [
+   [
+    "Wärmepumpe statt Kessel",
+    985
+   ],
+   [
+    "Fassade dämmen",
+    515
+   ],
+   [
+    "Hydraulischer Abgleich + HE-Pumpe",
+    409
+   ],
+   [
+    "Dach dämmen",
+    356
+   ],
+   [
+    "Photovoltaik",
+    1247
+   ],
+   [
+    "Raumtemperatur −1 K",
+    316
+   ],
+   [
+    "Kellerdecke / Boden dämmen",
+    238
+   ],
+   [
+    "Fenster tauschen",
+    232
+   ],
+   [
+    "Lüftung mit Wärmerückgewinnung",
+    112
+   ],
+   [
+    "Solarthermie Warmwasser",
+    183
+   ],
+   [
+    "Wassersparende Armaturen",
+    244
+   ],
+   [
+    "LED-Beleuchtung",
+    59
+   ],
+   [
+    "Gesamtpaket (alle Maßnahmen)",
+    4324
+   ]
+  ],
+  "K": [
+   6257,
+   5543,
+   4132,
+   3490,
+   2217
+  ]
+ },
+ "Einfamilienhaus Neubau, Wärmepumpe + PV": {
+  "E_el": 10413.967858032978,
+  "grid": 6112.528001994718,
+  "pv_ev": 4301.439856038261,
+  "peak": 15.739042375554432,
+  "P": 28.78,
+  "cost": 2568.4087788794523,
+  "co2": 2.322760640757993,
+  "E_emob": 1748.5672618742897,
+  "M": [
+   [
+    "Lüftung mit Wärmerückgewinnung",
+    189
+   ],
+   [
+    "Solarthermie Warmwasser",
+    172
+   ],
+   [
+    "Raumtemperatur −1 K",
+    67
+   ],
+   [
+    "Wassersparende Armaturen",
+    162
+   ],
+   [
+    "Gesamtpaket (alle Maßnahmen)",
+    502
+   ]
+  ],
+  "K": [
+   2568,
+   2406
+  ]
+ },
+ "Mehrfamilienhaus 1970er, 12 WE, Gas": {
+  "E_el": 24411.981855425747,
+  "grid": 24411.981855425747,
+  "pv_ev": 0,
+  "peak": 10.07907922815189,
+  "P": 59.496602867867914,
+  "cost": 30415.298553213383,
+  "co2": 42.83223730343899,
+  "E_emob": 0,
+  "M": [
+   [
+    "Wärmepumpe statt Kessel",
+    3559
+   ],
+   [
+    "Fassade dämmen",
+    3350
+   ],
+   [
+    "Photovoltaik",
+    5899
+   ],
+   [
+    "Lüftung mit Wärmerückgewinnung",
+    1046
+   ],
+   [
+    "Solarthermie Warmwasser",
+    1215
+   ],
+   [
+    "Kellerdecke / Boden dämmen",
+    1051
+   ],
+   [
+    "Raumtemperatur −1 K",
+    901
+   ],
+   [
+    "Hydraulischer Abgleich + HE-Pumpe",
+    743
+   ],
+   [
+    "Dach dämmen",
+    527
+   ],
+   [
+    "Wassersparende Armaturen",
+    1213
+   ],
+   [
+    "Zirkulation zeitsteuern",
+    279
+   ],
+   [
+    "LED-Beleuchtung",
+    363
+   ],
+   [
+    "Gesamtpaket (alle Maßnahmen)",
+    17829
+   ]
+  ],
+  "K": [
+   30415,
+   27815,
+   22735,
+   20476,
+   14624
+  ]
+ },
+ "Verwaltungsgebäude 1980er, Gas": {
+  "E_el": 164570.46407492534,
+  "grid": 164570.46407492534,
+  "pv_ev": 0,
+  "peak": 53.38350871342796,
+  "P": 94.44602751474795,
+  "cost": 86259.178372605,
+  "co2": 118.8460677547545,
+  "E_emob": 0,
+  "M": [
+   [
+    "Wärmepumpe statt Kessel",
+    5941
+   ],
+   [
+    "Fenster tauschen",
+    9550
+   ],
+   [
+    "Photovoltaik",
+    14424
+   ],
+   [
+    "Gebäudeautomation Klasse B",
+    6487
+   ],
+   [
+    "LED-Beleuchtung + Präsenz-/Tageslichtregelung",
+    12840
+   ],
+   [
+    "Fassade dämmen",
+    4716
+   ],
+   [
+    "Lüftung mit Wärmerückgewinnung",
+    2621
+   ],
+   [
+    "Raumtemperatur −1 K",
+    2779
+   ],
+   [
+    "Dach dämmen",
+    1910
+   ],
+   [
+    "Hydraulischer Abgleich + HE-Pumpe",
+    1562
+   ],
+   [
+    "Kellerdecke / Boden dämmen",
+    1324
+   ],
+   [
+    "Wassersparende Armaturen",
+    2537
+   ],
+   [
+    "Gesamtpaket (alle Maßnahmen)",
+    52248
+   ]
+  ],
+  "K": [
+   86259,
+   69191,
+   52622,
+   47902,
+   34775
+  ]
+ },
+ "Schule 1970er, Gas": {
+  "E_el": 128679.52306544576,
+  "grid": 128679.52306544576,
+  "pv_ev": 0,
+  "peak": 53.01208014154607,
+  "P": 90.21616943551129,
+  "cost": 85866.58622828974,
+  "co2": 119.64072701947148,
+  "E_emob": 0,
+  "M": [
+   [
+    "Wärmepumpe statt Kessel",
+    7384
+   ],
+   [
+    "Photovoltaik",
+    18643
+   ],
+   [
+    "Fassade dämmen",
+    6966
+   ],
+   [
+    "Gebäudeautomation Klasse B",
+    7153
+   ],
+   [
+    "Lüftung mit Wärmerückgewinnung",
+    3412
+   ],
+   [
+    "Kellerdecke / Boden dämmen",
+    4049
+   ],
+   [
+    "Raumtemperatur −1 K",
+    3575
+   ],
+   [
+    "LED-Beleuchtung + Präsenz-/Tageslichtregelung",
+    4937
+   ],
+   [
+    "Hydraulischer Abgleich + HE-Pumpe",
+    2054
+   ],
+   [
+    "Dach dämmen",
+    1668
+   ],
+   [
+    "Wassersparende Armaturen",
+    2337
+   ],
+   [
+    "Gesamtpaket (alle Maßnahmen)",
+    47655
+   ]
+  ],
+  "K": [
+   85867,
+   81476,
+   69591,
+   61481,
+   43475
+  ]
+ },
+ "Kindertagesstätte Neubau, Effizienzhaus 40": {
+  "E_el": 31252.133171817262,
+  "grid": 19120.5924606084,
+  "pv_ev": 12131.54071120886,
+  "peak": 9.99265376542243,
+  "P": 17.72274582640431,
+  "cost": 8464.131086543224,
+  "co2": 7.265825135031193,
+  "E_emob": 0,
+  "M": [
+   [
+    "Solarthermie Warmwasser",
+    517
+   ],
+   [
+    "Gebäudeautomation Klasse B",
+    264
+   ],
+   [
+    "Raumtemperatur −1 K",
+    112
+   ],
+   [
+    "Wassersparende Armaturen",
+    348
+   ],
+   [
+    "Gesamtpaket (alle Maßnahmen)",
+    1073
+   ]
+  ],
+  "K": [
+   8464,
+   8117
+  ]
+ },
+ "Büro ohne alles": {
+  "E_el": 169206.85235411025,
+  "grid": 169206.85235411025,
+  "pv_ev": 0,
+  "peak": 52.275327290340854,
+  "P": 93.54025580622158,
+  "cost": 84849.50551793678,
+  "co2": 115.13304587510093,
+  "E_emob": 0,
+  "M": [
+   [
+    "Wärmepumpe statt Kessel",
+    4080
+   ],
+   [
+    "Fassade dämmen",
+    7522
+   ],
+   [
+    "Photovoltaik",
+    14087
+   ],
+   [
+    "Gebäudeautomation Klasse B",
+    5721
+   ],
+   [
+    "Lüftung mit Wärmerückgewinnung",
+    2674
+   ],
+   [
+    "LED-Beleuchtung + Präsenz-/Tageslichtregelung",
+    8246
+   ],
+   [
+    "Raumtemperatur −1 K",
+    2581
+   ],
+   [
+    "Kellerdecke / Boden dämmen",
+    2545
+   ],
+   [
+    "Hydraulischer Abgleich + HE-Pumpe",
+    1513
+   ],
+   [
+    "Dach dämmen",
+    1049
+   ],
+   [
+    "Wassersparende Armaturen",
+    1497
+   ],
+   [
+    "Gesamtpaket (alle Maßnahmen)",
+    41120
+   ]
+  ],
+  "K": [
+   84850,
+   73516,
+   62955,
+   57817,
+   44545
+  ]
+ }
+}

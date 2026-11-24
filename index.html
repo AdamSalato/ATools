@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ATools</title>
+<meta name="description" content="Rechner und Werkzeuge für Energie- und Gebäudemanagement: Energiebedarf, Investitionsrechnung, Photovoltaik, Wärmepumpe.">
+<meta name="theme-color" content="#1d4f7c">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="manifest.webmanifest">
+<script>
+  /* Theme vor dem ersten Rendern setzen (kein Aufblitzen) */
+  try { var t = localStorage.getItem("atools.theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="assets/css/hub.css">
+</head>
+<body>
+<a class="skip" href="#tools">Zu den Tools springen</a>
+
+<header class="top">
+  <div class="wrap top-inner">
+    <a class="brand" href="./" aria-label="Tools – Startseite">
+      <span class="wordmark">Tools</span>
+    </a>
+    <button class="icon-btn" id="themeBtn" type="button" aria-label="Darstellung wechseln" title="Hell / Dunkel / System">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9Z"/></svg>
+    </button>
+  </div>
+</header>
+
+<main class="wrap" id="main">
+  <section class="intro">
+    <p>Alle Rechner laufen vollständig im Browser. Eingaben bleiben auf deinem Gerät und werden nicht übertragen.</p>
+  </section>
+
+  <div class="filters" role="search">
+    <label class="search">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg>
+      <input id="q" type="search" placeholder="Tool suchen …" autocomplete="off" aria-label="Tools durchsuchen">
+      <kbd aria-hidden="true">/</kbd>
+    </label>
+    <div class="chips" id="chips" role="group" aria-label="Nach Kategorie filtern"></div>
+  </div>
+
+  <section id="tools" class="grid" aria-live="polite"></section>
+  <p class="empty" id="empty" hidden>Kein Tool gefunden.</p>
+</main>
+
+<footer class="wrap foot">
+  <span id="ver"></span>
+  <span>Ergebnisse sind Planungs- und Abschätzungswerte und ersetzen keine Fachplanung.</span>
+</footer>
+
+<noscript><p class="wrap">Für ATools muss JavaScript aktiviert sein.</p></noscript>
+
+<script src="assets/js/tools.js"></script>
+<script src="assets/js/theme.js"></script>
+<script src="assets/js/hub.js"></script>
+</body>
+</html>

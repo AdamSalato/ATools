@@ -1,0 +1,1272 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lastgang-Analyse · ATools</title>
+<meta name="description" content="Lastgänge (¼-h- oder Stundenwerte) auswerten: Kennzahlen, Jahresdauerlinie, Teppichdiagramm, Typtage, Lastspitzenkappung mit Speicherauslegung.">
+<link rel="icon" href="../../assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Lastgang-Analyse – gleiche Farbwelt wie die übrigen ATools (Zellenblau, Bernstein). */
+:root{
+  --bg:#eef1f4; --panel:#fff; --panel2:#f5f7f9; --ink:#132130; --muted:#5a6978; --line:#d6dde4; --grid:#e8edf1;
+  --brand:#1d4f7c; --brand-soft:#dbe6f1; --sun:#c7780a; --sun-soft:#fbecd2; --teal:#23807d; --rose:#b3412f; --good:#2c7d48; --warn:#a8670b;
+  --c1:#1d63a8; --c2:#d9730d; --c3:#2a8a5e; --c4:#b8336a;
+  --f-disp:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0d141b; --panel:#141e28; --panel2:#18242f; --ink:#e3e9ef; --muted:#93a2b1; --line:#283746; --grid:#1f2b37;
+  --brand:#6fa8dc; --brand-soft:#1b2f43; --sun:#f0a53a; --sun-soft:#3a2a12; --teal:#4fb7b2; --rose:#e2735f; --good:#5bbf7c; --warn:#e5a443;
+  --c1:#6ea8e6; --c2:#f29b45; --c3:#5cc08f; --c4:#e277a4; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d141b; --panel:#141e28; --panel2:#18242f; --ink:#e3e9ef; --muted:#93a2b1; --line:#283746; --grid:#1f2b37;
+  --brand:#6fa8dc; --brand-soft:#1b2f43; --sun:#f0a53a; --sun-soft:#3a2a12; --teal:#4fb7b2; --rose:#e2735f; --good:#5bbf7c; --warn:#e5a443;
+  --c1:#6ea8e6; --c2:#f29b45; --c3:#5cc08f; --c4:#e277a4; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 var(--f-body)}
+button,input,select,textarea{font:inherit;color:inherit}
+h1,h2,h3{font-family:var(--f-disp);font-weight:600;letter-spacing:.01em;margin:0}
+.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+:focus-visible{outline:2px solid var(--sun);outline-offset:1px}
+
+header.top{display:flex;flex-wrap:wrap;align-items:center;gap:10px 20px;padding:12px max(16px,env(safe-area-inset-left));background:var(--panel);border-bottom:1px solid var(--line)}
+header.top h1{font-size:28px;line-height:1}
+header.top .sub{color:var(--muted);font-size:12.5px}
+.acts{display:flex;flex-wrap:wrap;gap:8px;margin-left:auto}
+.btn{border:1px solid var(--line);background:var(--panel2);border-radius:7px;padding:7px 12px;cursor:pointer;font-size:13px;white-space:nowrap}
+.btn:hover{border-color:var(--brand)}
+.btn.pri{background:var(--brand);border-color:var(--brand);color:var(--panel)}
+.btn.sm{padding:4px 9px;font-size:12px}
+.btn:disabled{opacity:.45;cursor:default}
+
+main{max-width:1440px;margin:0 auto;padding:16px max(16px,env(safe-area-inset-right)) 40px max(16px,env(safe-area-inset-left))}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px}
+
+/* Leerer Zustand */
+.empty{padding:48px 24px;text-align:center;border:2px dashed var(--line);border-radius:14px;background:var(--panel)}
+.empty.drag{border-color:var(--brand);background:var(--brand-soft)}
+.empty h2{font-size:30px;margin-bottom:6px}
+.empty p{color:var(--muted);max-width:640px;margin:6px auto}
+.empty .acts{justify-content:center;margin:18px 0 0}
+.fmt{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;max-width:900px;margin:26px auto 0;text-align:left}
+.fmt div{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:12.5px}
+.fmt b{display:block;margin-bottom:3px}
+.fmt code{font-family:var(--f-mono);font-size:11.5px;color:var(--muted);white-space:pre}
+
+/* Datenzeile + Import */
+.info{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center;padding:10px 14px;margin-bottom:12px}
+.info .k{color:var(--muted);font-size:12px}
+.info .v{font-weight:600}
+.info .warnv{color:var(--warn)}
+.info .sp{margin-left:auto;display:flex;gap:8px}
+details.imp{margin:-4px 0 12px}
+details.imp > summary{display:none}
+.impbox{padding:14px;display:grid;gap:14px}
+.impgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px 14px}
+.impgrid label{display:grid;gap:3px;font-size:12px;color:var(--muted)}
+.impgrid select,.impgrid input{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:6px 7px;color:var(--ink);font-size:13px}
+.prev{overflow:auto;max-height:220px;border:1px solid var(--line);border-radius:6px}
+.prev table{border-collapse:collapse;font:12px var(--f-mono);white-space:nowrap}
+.prev td,.prev th{padding:3px 8px;border-bottom:1px solid var(--grid);text-align:left}
+.prev th{position:sticky;top:0;background:var(--panel2)}
+.prev .hl{background:var(--sun-soft)}
+.prev .hv{background:var(--brand-soft)}
+.prev tr.hdr td{color:var(--muted);font-style:italic}
+.impmsg{font-size:12.5px;color:var(--muted)}
+
+/* Kennzahlen */
+.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:10px;margin-bottom:12px}
+.kpi{padding:11px 13px;border-left:4px solid var(--brand)}
+.kpi .l{font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+.kpi .v{font:600 26px/1.1 var(--f-disp);margin-top:3px}
+.kpi .v small{font:500 14px var(--f-body);color:var(--muted);margin-left:3px}
+.kpi .s{font-size:11.5px;color:var(--muted);margin-top:2px}
+.befunde{padding:12px 14px;margin-bottom:12px}
+.befunde h3{font-size:19px;margin-bottom:6px}
+.befunde ul{margin:0;padding-left:18px;display:grid;gap:4px}
+.befunde li.w::marker{color:var(--warn)}
+.befunde li.g::marker{color:var(--good)}
+
+/* Reiter */
+.tabs{display:flex;gap:2px;overflow-x:auto;border-bottom:1px solid var(--line);margin-bottom:12px;scrollbar-width:thin}
+.tab{border:0;background:none;padding:10px 14px;cursor:pointer;font:600 17px var(--f-disp);color:var(--muted);border-bottom:3px solid transparent;white-space:nowrap}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--brand)}
+.panel{display:grid;gap:12px}
+.panel > .card{padding:14px}
+.panel h3{font-size:20px;margin-bottom:4px}
+.panel .hint{font-size:12.5px;color:var(--muted);margin:0 0 8px}
+.chart{position:relative;width:100%}
+.chart canvas{display:block;width:100%}
+.row{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin-bottom:8px}
+.row label{font-size:12.5px;color:var(--muted);display:flex;gap:6px;align-items:center}
+.row input[type=number],.row input[type=date],.row input[type=time],.row select{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:5px 7px;color:var(--ink);width:auto}
+.row input[type=number]{width:96px;text-align:right}
+.row input[type=range]{width:min(420px,60vw)}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:12px}
+@media (max-width:520px){.two{grid-template-columns:1fr}}
+
+table.t{border-collapse:collapse;width:100%;font-size:13px}
+table.t th,table.t td{padding:6px 8px;border-bottom:1px solid var(--grid);text-align:right;white-space:nowrap}
+table.t th:first-child,table.t td:first-child{text-align:left}
+table.t th{color:var(--muted);font-weight:500;font-size:12px}
+table.t td{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+table.t td:first-child{font-family:var(--f-body)}
+#tTop td:nth-child(2),#tTop th:nth-child(2){text-align:left;font-family:var(--f-body)}
+table.t tr.sel td{background:var(--sun-soft)}
+.tw{overflow-x:auto}
+.res{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px;margin:8px 0}
+.res > div{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.res .l{font-size:11.5px;color:var(--muted)}
+.res .v{font:600 21px var(--f-disp)}
+
+#tip{position:fixed;z-index:80;pointer-events:none;background:var(--ink);color:var(--panel);font-size:12px;padding:6px 9px;border-radius:6px;max-width:280px;box-shadow:0 6px 18px rgba(0,0,0,.25);white-space:pre-line}
+dialog{border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--ink);padding:18px;width:min(720px,94vw)}
+dialog::backdrop{background:rgba(10,16,22,.5)}
+dialog textarea{width:100%;height:280px;font:12px var(--f-mono);border:1px solid var(--line);border-radius:6px;padding:8px;background:var(--panel2)}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:var(--panel);padding:9px 14px;border-radius:7px;font-size:13px;z-index:90}
+.foot{color:var(--muted);font-size:12px;margin-top:18px}
+
+/* Druck: alle Reiter untereinander */
+body.printing .panel{display:grid!important;margin-bottom:14px;break-inside:auto}
+body.printing .ptitle{display:block!important}
+.ptitle{display:none;font:600 22px var(--f-disp);margin:10px 0 4px}
+@media print{
+  @page{size:A4 landscape;margin:12mm}
+  body{background:#fff;font-size:11px}
+  header.top .acts,.tabs,.info .sp,details.imp,.row,#tip,.toast,.noprint{display:none!important}
+  .card{border-color:#ccc;break-inside:avoid}
+  main{padding:0;max-width:none}
+  body.printing .panel{break-before:page}
+  body.printing .panel[data-panel="verlauf"]{break-before:auto}
+  body.printing .panel[data-panel="param"]{display:none!important}
+  .ptitle{break-after:avoid}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div>
+    <h1>Lastgang-Analyse</h1>
+    <div class="sub">¼-h- und Stundenwerte · Kennzahlen · Dauerlinie · Teppichdiagramm · Lastspitzenkappung</div>
+  </div>
+  <div class="acts">
+    <button class="btn pri" id="bOpen" type="button">Datei öffnen</button>
+    <button class="btn" id="bPaste" type="button" title="Spalten in Excel markieren, kopieren und hier einfügen">Aus Excel einfügen</button>
+    <button class="btn" id="bDemo" type="button">Beispiel laden</button>
+    <button class="btn" id="bCsv" type="button" disabled>CSV-Export</button>
+    <button class="btn" id="bPdf" type="button" disabled>PDF / Drucken</button>
+    <input type="file" id="file" accept=".csv,.txt,.tsv,.dat,text/csv,text/plain" hidden>
+  </div>
+</header>
+
+<main>
+  <section id="leer" class="empty">
+    <h2>Lastgang hierher ziehen</h2>
+    <p>CSV- oder Textdatei vom Netzbetreiber, Messstellenbetreiber oder aus dem Energiecontrolling. Aus Excel kopierte Spalten kannst du über „Aus Excel einfügen“ übernehmen.</p>
+    <p>Spalten, Trennzeichen, Datumsformat, Einheit und Intervall werden automatisch erkannt und lassen sich danach anpassen. Die Daten bleiben in deinem Browser.</p>
+    <div class="acts">
+      <button class="btn pri" type="button" data-click="bOpen">Datei öffnen</button>
+      <button class="btn" type="button" data-click="bPaste">Aus Excel einfügen</button>
+      <button class="btn" type="button" data-click="bDemo">Beispiel: Verwaltungsgebäude</button>
+    </div>
+    <div class="fmt">
+      <div><b>Datum und Uhrzeit getrennt</b><code>Datum;Von;Bis;kWh
+01.01.2025;00:00;00:15;4,25</code></div>
+      <div><b>Zeitstempel in einer Spalte</b><code>Zeitstempel;Leistung [kW]
+01.01.2025 00:15;17,0</code></div>
+      <div><b>ISO-Format, Komma-getrennt</b><code>timestamp,value_kW
+2025-01-01T00:00,17.0</code></div>
+    </div>
+  </section>
+
+  <section id="app" hidden>
+    <div class="card info" id="info"></div>
+    <details class="imp" id="impDet"><summary>Import</summary>
+      <div class="card impbox">
+        <div class="impgrid" id="impGrid"></div>
+        <div class="impmsg" id="impMsg"></div>
+        <div class="prev" id="prev"></div>
+        <div class="row" style="margin:0">
+          <button class="btn pri sm" id="bApply" type="button">Übernehmen</button>
+          <button class="btn sm" id="bExportLg" type="button">Lastgang bereinigt als CSV (kW)</button>
+        </div>
+      </div>
+    </details>
+
+    <div class="kpis" id="kpis"></div>
+    <div class="card befunde" id="befunde"></div>
+
+    <nav class="tabs" role="tablist" id="tabs"></nav>
+
+    <section class="panel" data-panel="verlauf">
+      <div class="ptitle">Zeitverlauf</div>
+      <div class="card">
+        <h3>Gesamter Zeitraum</h3>
+        <p class="hint">Fläche: Spanne zwischen kleinstem und größtem Wert je Bildpunkt, Linie: Tagesmittel. Klick in das Diagramm öffnet die Woche darunter.</p>
+        <div class="chart"><canvas id="cvOverview" height="230"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="row">
+          <h3 style="margin:0 auto 0 0">Wochenansicht</h3>
+          <button class="btn sm" id="wPrev" type="button" aria-label="Vorherige Woche">◀</button>
+          <input type="date" id="wDate" aria-label="Woche wählen">
+          <button class="btn sm" id="wNext" type="button" aria-label="Nächste Woche">▶</button>
+          <button class="btn sm" id="wPeak" type="button">Woche mit Höchstlast</button>
+        </div>
+        <div class="chart"><canvas id="cvWeek" height="300"></canvas></div>
+      </div>
+    </section>
+
+    <section class="panel" data-panel="dauer" hidden>
+      <div class="ptitle">Jahresdauerlinie</div>
+      <div class="card">
+        <h3>Jahresdauerlinie</h3>
+        <p class="hint">Alle Leistungswerte absteigend sortiert. Steiler Beginn = wenige, kurze Spitzen (gut für Lastspitzenkappung). Flaches Ende = Grundlast.</p>
+        <div class="chart"><canvas id="cvDauer" height="340"></canvas></div>
+      </div>
+      <div class="card tw"><h3>Leistungsklassen</h3><table class="t" id="tKlassen"></table></div>
+    </section>
+
+    <section class="panel" data-panel="teppich" hidden>
+      <div class="ptitle">Teppichdiagramm</div>
+      <div class="card">
+        <h3>Teppichdiagramm (Tag × Uhrzeit)</h3>
+        <p class="hint">Jede Spalte ist ein Tag, jede Zeile eine Uhrzeit. Nutzungszeiten, Wochenenden, Ferien und nächtlicher Dauerbetrieb werden auf einen Blick sichtbar.</p>
+        <div class="row"><label>Farbskala bis <select id="heatMax"><option value="p99">99-%-Quantil</option><option value="max">Höchstlast</option></select></label></div>
+        <div class="chart"><canvas id="cvHeat" height="380"></canvas></div>
+      </div>
+    </section>
+
+    <section class="panel" data-panel="typtage" hidden>
+      <div class="ptitle">Typtage</div>
+      <div class="card">
+        <div class="row">
+          <h3 style="margin:0 auto 0 0">Mittlere Tagesgänge</h3>
+          <label>Zeitraum <select id="typSaison"><option value="alle">Ganzer Zeitraum</option><option value="winter">Winter (Nov–Feb)</option><option value="ueber">Übergang (Mär–Apr, Sep–Okt)</option><option value="sommer">Sommer (Mai–Aug)</option></select></label>
+          <label><input type="checkbox" id="typBand"> Spanne Werktage (10–90 %)</label>
+        </div>
+        <p class="hint">Feiertage (NRW) zählen als Sonntag. Die grau hinterlegte Fläche ist die eingestellte Nutzungszeit.</p>
+        <div class="chart"><canvas id="cvTyp" height="320"></canvas></div>
+      </div>
+      <div class="card tw"><h3>Mittlere Leistung nach Tagtyp</h3><table class="t" id="tTyp"></table></div>
+    </section>
+
+    <section class="panel" data-panel="monate" hidden>
+      <div class="ptitle">Monatswerte</div>
+      <div class="card">
+        <h3>Arbeit und Höchstlast je Monat</h3>
+        <div class="chart"><canvas id="cvMon" height="300"></canvas></div>
+      </div>
+      <div class="card tw"><h3>Monatstabelle</h3><table class="t" id="tMon"></table></div>
+      <div class="card tw"><h3>Die 10 höchsten Tagesspitzen</h3><table class="t" id="tTop"></table></div>
+    </section>
+
+    <section class="panel" data-panel="kappung" hidden>
+      <div class="ptitle">Lastspitzenkappung</div>
+      <div class="card">
+        <h3>Lastspitzenkappung mit Batteriespeicher</h3>
+        <p class="hint">Simulation über den gesamten Lastgang: Der Speicher entlädt, sobald die Leistung über der Grenze liegt, und lädt unterhalb der Grenze wieder nach. Ergebnis ist die mindestens nötige Speichergröße bei perfekter Vorhersage.</p>
+        <div class="row">
+          <label>Kappungsgrenze <input type="range" id="capR" min="0" max="100" step="0.5"></label>
+          <label><input type="number" id="capV" step="0.5"> kW</label>
+          <span class="num" id="capPct"></span>
+        </div>
+        <div class="row">
+          <label>Leistungspreis <input type="number" id="lp" step="1" min="0"> €/(kW·a)</label>
+          <label>Wirkungsgrad Speicher <input type="number" id="eta" step="1" min="50" max="100"> %</label>
+          <label>Nutzbare Entladetiefe <input type="number" id="dod" step="1" min="50" max="100"> %</label>
+          <label>Speicherkosten <input type="number" id="ckwh" step="10" min="0"> €/kWh</label>
+          <label>Reserve <input type="number" id="reserve" step="5" min="0" max="100"> %</label>
+        </div>
+        <div class="res" id="capRes"></div>
+        <p class="hint" id="capHint"></p>
+      </div>
+      <div class="two">
+        <div class="card"><h3>Dauerlinie mit Kappungsgrenze</h3><div class="chart"><canvas id="cvCap" height="280"></canvas></div></div>
+        <div class="card tw"><h3>Varianten</h3><p class="hint">Zeile anklicken übernimmt die Grenze.</p><table class="t" id="tCap"></table></div>
+      </div>
+    </section>
+
+    <section class="panel" data-panel="param" hidden>
+      <div class="ptitle">Parameter</div>
+      <div class="card">
+        <h3>Nutzungszeit</h3>
+        <p class="hint">Grundlage für die Aufteilung „in / außerhalb der Nutzungszeit“, die Befunde und die Typtage.</p>
+        <div class="row">
+          <label>Werktags von <input type="time" id="nzVon" step="900"></label>
+          <label>bis <input type="time" id="nzBis" step="900"></label>
+          <label><input type="checkbox" id="nzSa"> Samstag ist Nutzungstag</label>
+          <label><input type="checkbox" id="nzFt"> Feiertage (NRW) als Sonntag werten</label>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Preise</h3>
+        <p class="hint">Für die Kostenkennzahlen. Arbeitspreis brutto oder netto, aber ohne Leistungspreis. Der Leistungspreis gilt je kW Jahreshöchstlast (Netzentgelt bei registrierender Leistungsmessung).</p>
+        <div class="row">
+          <label>Arbeitspreis <input type="number" id="ap" step="0.1" min="0"> ct/kWh</label>
+          <label>Leistungspreis <input type="number" id="lp2" step="1" min="0"> €/(kW·a)</label>
+          <label>CO₂-Faktor <input type="number" id="co2" step="1" min="0"> g/kWh</label>
+        </div>
+      </div>
+    </section>
+
+    <p class="foot">Alle Berechnungen laufen im Browser, die Daten werden nicht übertragen. Ergebnisse dienen der Analyse und Vorplanung und ersetzen keine Fachplanung des Speichers oder Prüfung der Netzentgelte.</p>
+  </section>
+</main>
+
+<dialog id="dlgPaste">
+  <h3 style="font-size:22px">Aus Excel einfügen</h3>
+  <p class="hint" style="color:var(--muted);font-size:13px">In Excel die Spalten mit Datum/Uhrzeit und Werten markieren (gern mit Überschrift), kopieren und hier einfügen.</p>
+  <textarea id="pasteTxt" placeholder="Datum	Uhrzeit	kW&#10;01.01.2025	00:00	17,2&#10;…"></textarea>
+  <div class="row" style="justify-content:flex-end;margin:10px 0 0">
+    <button class="btn" type="button" id="pasteCancel">Abbrechen</button>
+    <button class="btn pri" type="button" id="pasteOk">Auswerten</button>
+  </div>
+</dialog>
+<div id="tip" hidden></div>
+
+<script>
+"use strict";
+/* =============================================================================
+   Lastgang-Analyse
+   Datenmodell: Zeitstempel als "naive" Millisekunden (Ortszeit ohne Zeitzone,
+   als UTC gespeichert) → keine Verschiebung durch Sommer-/Winterzeit des Browsers.
+   Jeder Wert ist die mittlere Leistung in kW im Intervall [t, t + Intervall).
+   ============================================================================= */
+const VERSION = "1.0";
+const KEY = "lastgang-analyse.v1";
+const H = 3600000, D = 86400000;
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+
+/* ---------------------------------------------------------------- Format */
+const _nf = {};
+const nf = d => _nf[d] || (_nf[d] = new Intl.NumberFormat("de-DE", {minimumFractionDigits: d, maximumFractionDigits: d}));
+const fmt = (v, d = 0) => (v === null || v === undefined || !isFinite(v)) ? "–" : nf(d).format(v);
+const fmtA = v => !isFinite(v) ? "–" : Math.abs(v) >= 1000 ? fmt(v, 0) : Math.abs(v) >= 100 ? fmt(v, 1) : Math.abs(v) >= 10 ? fmt(v, 1) : fmt(v, 2);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
+const pad = n => String(n).padStart(2, "0");
+const WT = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
+const MON = ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"];
+const dstr = t => { const d = new Date(t); return `${pad(d.getUTCDate())}.${pad(d.getUTCMonth() + 1)}.${d.getUTCFullYear()}`; };
+const tstr = t => { const d = new Date(t); return `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`; };
+const dtstr = t => `${WT[new Date(t).getUTCDay()]} ${dstr(t)} ${tstr(t)}`;
+const dayStart = t => Math.floor(t / D) * D;
+
+/* ---------------------------------------------------------------- Feiertage NRW */
+const _ft = {};
+function ostersonntag(y) {
+  const a = y % 19, b = Math.floor(y / 100), c = y % 100, d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25),
+    g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4,
+    l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451);
+  return Date.UTC(y, Math.floor((h + l - 7 * m + 114) / 31) - 1, ((h + l - 7 * m + 114) % 31) + 1);
+}
+function feiertage(y) {
+  if (_ft[y]) return _ft[y];
+  const o = ostersonntag(y), s = new Map();
+  [[Date.UTC(y, 0, 1), "Neujahr"], [o - 2 * D, "Karfreitag"], [o + D, "Ostermontag"], [Date.UTC(y, 4, 1), "Tag der Arbeit"],
+   [o + 39 * D, "Christi Himmelfahrt"], [o + 50 * D, "Pfingstmontag"], [o + 60 * D, "Fronleichnam"], [Date.UTC(y, 9, 3), "Tag der Deutschen Einheit"],
+   [Date.UTC(y, 10, 1), "Allerheiligen"], [Date.UTC(y, 11, 25), "1. Weihnachtstag"], [Date.UTC(y, 11, 26), "2. Weihnachtstag"]].forEach(([t, n]) => s.set(t, n));
+  return (_ft[y] = s);
+}
+const feiertag = t => feiertage(new Date(t).getUTCFullYear()).get(dayStart(t)) || null;
+
+/* =============================================================================
+   Import
+   ============================================================================= */
+function dekodiere(buf) {
+  let t = new TextDecoder("utf-8").decode(buf);
+  if (t.includes("�")) t = new TextDecoder("windows-1252").decode(buf);
+  return t.replace(/^﻿/, "");
+}
+function zerlege(zeile, d) {
+  if (!zeile.includes('"')) return zeile.split(d).map(s => s.trim());
+  const out = []; let cur = "", q = false;
+  for (let i = 0; i < zeile.length; i++) {
+    const c = zeile[i];
+    if (q) { if (c === '"') { if (zeile[i + 1] === '"') { cur += '"'; i++; } else q = false; } else cur += c; }
+    else if (c === '"') q = true;
+    else if (c === d) { out.push(cur.trim()); cur = ""; }
+    else cur += c;
+  }
+  out.push(cur.trim());
+  return out;
+}
+function trennzeichen(zeilen) {
+  let best = ";", bestScore = -1;
+  for (const d of [";", "\t", ",", "|"]) {
+    const counts = zeilen.slice(0, 60).filter(z => z.trim()).map(z => zerlege(z, d).length);
+    if (!counts.length) continue;
+    counts.sort((a, b) => a - b);
+    const med = counts[Math.floor(counts.length / 2)];
+    const konst = counts.filter(c => c === med).length / counts.length;
+    const score = med > 1 ? konst * 10 + Math.min(med, 6) + (d === ";" || d === "\t" ? 0.5 : 0) : 0;
+    if (score > bestScore) { bestScore = score; best = d; }
+  }
+  return best;
+}
+const RE_DE = /^(\d{1,2})\.(\d{1,2})\.(\d{2,4})(?:[ T,]+(\d{1,2}):(\d{2})(?::(\d{2}))?)?/;
+const RE_ISO = /^(\d{4})-(\d{1,2})-(\d{1,2})(?:[ T](\d{1,2}):(\d{2})(?::(\d{2}))?)?/;
+const RE_SL = /^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:[ T,]+(\d{1,2}):(\d{2})(?::(\d{2}))?)?/;
+const RE_T = /^(\d{1,2}):(\d{2})(?::(\d{2}))?/;
+function datum(s) {
+  s = String(s || "").trim().replace(/^[A-Za-z]{2},?\s+/, "");
+  let m = s.match(RE_DE), y, mo, d;
+  if (m) { d = +m[1]; mo = +m[2]; y = +m[3]; }
+  else if ((m = s.match(RE_ISO))) { y = +m[1]; mo = +m[2]; d = +m[3]; }
+  else if ((m = s.match(RE_SL))) { mo = +m[1]; d = +m[2]; y = +m[3]; }
+  else return null;
+  if (y < 100) y += 2000;
+  if (mo < 1 || mo > 12 || d < 1 || d > 31) return null;
+  const hatZeit = m[4] !== undefined;
+  return {y, mo, d, min: hatZeit ? +m[4] * 60 + +m[5] : null};
+}
+function uhrzeit(s) {
+  const m = String(s || "").trim().match(RE_T);
+  if (!m || +m[1] > 24 || +m[2] > 59) return null;
+  return +m[1] * 60 + +m[2];
+}
+function zahl(s) {
+  s = String(s ?? "").trim().replace(/[\s ']/g, "");
+  if (!s) return NaN;
+  if (s.includes(",")) s = s.replace(/\./g, "").replace(",", ".");
+  return /^[-+]?(\d+\.?\d*|\.\d+)(e[-+]?\d+)?$/i.test(s) ? parseFloat(s) : NaN;
+}
+const EINHEITEN = {kW: [1, false], kWh: [1, true], W: [0.001, false], Wh: [0.001, true], MW: [1000, false], MWh: [1000, true]};
+function einheitAus(text) {
+  const t = String(text || "");
+  const B = "(?:^|[^A-Za-z])", E = "(?![A-Za-z])";
+  for (const [re, e] of [[new RegExp(B + "MWh" + E), "MWh"], [new RegExp(B + "kWh" + E, "i"), "kWh"], [new RegExp(B + "Wh" + E), "Wh"],
+    [new RegExp(B + "MW" + E), "MW"], [new RegExp(B + "kW" + E, "i"), "kW"], [/\[W\]|\(W\)|\bWatt\b/, "W"],
+    [/verbrauch|arbeit|energie|menge|energy|consumption/i, "kWh"], [/leistung|power|demand|\bload\b/i, "kW"]]) if (re.test(t)) return e;
+  return null;
+}
+
+/* Analyse der Rohdaten: Spalten, Kopfzeile, Einheit, Intervall vorschlagen */
+function erkenne(text) {
+  const zeilen = text.split(/\r?\n/);
+  const d = trennzeichen(zeilen);
+  const rows = zeilen.map(z => zerlege(z, d));
+  // erste Datenzeile: Datum in einer Zelle und mind. eine Zahl
+  let start = -1, dateCol = -1;
+  for (let r = 0; r < Math.min(rows.length, 300) && start < 0; r++) {
+    for (let c = 0; c < rows[r].length; c++) {
+      if (datum(rows[r][c]) && rows[r].some((x, j) => j !== c && isFinite(zahl(x)) && uhrzeit(x) === null)) {
+        const nxt = rows[r + 1] || [];
+        if (datum(nxt[c])) { start = r; dateCol = c; break; }
+      }
+    }
+  }
+  if (start < 0) throw new Error("Keine Zeile mit Datum und Messwert gefunden. Unterstützt: 31.12.2025, 2025-12-31 oder 12/31/2025, jeweils mit oder ohne Uhrzeit.");
+  const kopf = start > 0 ? rows[start - 1] : [];
+  const probe = rows.slice(start, start + 400).filter(r => r.length > 1);
+  const ncol = Math.max(...probe.map(r => r.length));
+  const st = Array.from({length: ncol}, (_, c) => {
+    let dat = 0, datZ = 0, zeit = 0, num = 0; const vals = new Set();
+    for (const r of probe) {
+      const v = r[c]; if (v === undefined || v === "") continue;
+      const dd = datum(v);
+      if (dd) { dat++; if (dd.min !== null) datZ++; }
+      else if (uhrzeit(v) !== null) zeit++;
+      else if (isFinite(zahl(v))) { num++; vals.add(v); }
+    }
+    const n = probe.length || 1;
+    return {c, dat: dat / n, datZ: datZ / n, zeit: zeit / n, num: num / n, var: vals.size, kopf: kopf[c] || ""};
+  });
+  const zeitCols = st.filter(s => s.zeit > 0.8).map(s => s.c);
+  const kombi = st[dateCol].datZ > 0.8;
+  const bad = /status|qualit|blind|kvar|var\b|flag|ersatz|kennz/i, gut = /kwh|kw\b|kw\]|wert|leistung|verbrauch|menge|energie|wirk|value|bezug/i;
+  const kand = st.filter(s => s.num > 0.8 && s.c !== dateCol && !zeitCols.includes(s.c));
+  let wert = kand.find(s => gut.test(s.kopf) && !bad.test(s.kopf) && s.var > 1) || kand.find(s => !bad.test(s.kopf) && s.var > 1) || kand[0];
+  if (!wert) throw new Error("Keine Spalte mit Messwerten gefunden.");
+  const vor = zeilen.slice(0, start).join(" ");
+  const einheit = einheitAus(wert.kopf) || einheitAus(vor) || "kW";
+  return {
+    delim: d, start, kopfZeile: start > 0, dateCol, timeCol: kombi ? -1 : (zeitCols[0] ?? -1), timeCol2: kombi ? -1 : (zeitCols[1] ?? -1),
+    valCol: wert.c, einheit, einheitSicher: !!(einheitAus(wert.kopf) || einheitAus(vor)), stempel: "auto", rows, ncol, kopf
+  };
+}
+
+/* Rohzeilen → Zeitreihe nach Einstellungen */
+function baue(cfg) {
+  const {rows, start, dateCol, timeCol, valCol} = cfg;
+  const roh = []; let ungueltig = 0, hat24 = false;
+  for (let r = start; r < rows.length; r++) {
+    const row = rows[r]; if (!row || row.length <= Math.max(dateCol, valCol)) continue;
+    const dd = datum(row[dateCol]); if (!dd) { if (row.join("").trim()) ungueltig++; continue; }
+    let min = timeCol >= 0 ? uhrzeit(row[timeCol]) : dd.min;
+    if (min === null) min = 0;
+    if (min === 1440) hat24 = true;
+    const v = zahl(row[valCol]);
+    if (!isFinite(v)) { ungueltig++; continue; }
+    roh.push([Date.UTC(dd.y, dd.mo - 1, dd.d) + min * 60000, v]);
+  }
+  if (roh.length < 24) throw new Error("Zu wenige gültige Messwerte (mindestens 24).");
+  // Intervall: häufigster Abstand
+  const zaehl = new Map();
+  for (let i = 1; i < Math.min(roh.length, 5000); i++) { const df = roh[i][0] - roh[i - 1][0]; if (df > 0) zaehl.set(df, (zaehl.get(df) || 0) + 1); }
+  let step = [...zaehl.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] || 15 * 60000;
+  if (cfg.intervall && cfg.intervall !== "auto") step = +cfg.intervall * 60000;
+  const stepMin = step / 60000;
+  // Zeitstempel = Intervallende?
+  let ende = cfg.stempel === "ende";
+  if (cfg.stempel === "auto") {
+    const m0 = Math.round((roh[0][0] % D) / 60000);
+    ende = hat24 || (cfg.timeCol2 < 0 && m0 === stepMin && stepMin < 1440);
+    cfg.stempelErkannt = ende ? "ende" : "beginn";
+  }
+  const [faktor, energie] = EINHEITEN[cfg.einheit];
+  const dtH = stepMin / 60;
+  const n = roh.length, t = new Float64Array(n), p = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    t[i] = roh[i][0] - (ende ? step : 0);
+    p[i] = roh[i][1] * faktor / (energie ? dtH : 1);
+  }
+  // sortieren, falls nötig (stabil, Duplikate z. B. Zeitumstellung bleiben erhalten)
+  let sortiert = true;
+  for (let i = 1; i < n; i++) if (t[i] < t[i - 1]) { sortiert = false; break; }
+  if (!sortiert) {
+    const idx = Array.from({length: n}, (_, i) => i).sort((a, b) => t[a] - t[b] || a - b);
+    const t2 = new Float64Array(n), p2 = new Float32Array(n);
+    idx.forEach((j, i) => { t2[i] = t[j]; p2[i] = p[j]; });
+    return fertig(t2, p2, step, ungueltig, cfg);
+  }
+  return fertig(t, p, step, ungueltig, cfg);
+}
+function fertig(t, p, step, ungueltig, cfg) {
+  let luecken = 0, doppelt = 0, groessteLuecke = 0;
+  for (let i = 1; i < t.length; i++) {
+    const df = t[i] - t[i - 1];
+    if (df > step * 1.5) { const k = Math.round(df / step) - 1; luecken += k; groessteLuecke = Math.max(groessteLuecke, k); }
+    else if (df === 0) doppelt++;
+  }
+  const soll = Math.round((t[t.length - 1] - t[0]) / step) + 1;
+  return {t, p, step, ungueltig, luecken, doppelt, groessteLuecke, soll, name: cfg.name || "Lastgang", einheit: cfg.einheit, stempel: cfg.stempelErkannt || cfg.stempel};
+}
+
+/* =============================================================================
+   Auswertung
+   ============================================================================= */
+const P = {nzVon: 7 * 60, nzBis: 18 * 60, nzSa: false, nzFt: true, ap: 25, lp: 110, co2: 380, eta: 90, dod: 90, ckwh: 650, reserve: 25, cap: null, heatMax: "p99", typSaison: "alle", typBand: false};
+
+function tagtyp(t) {
+  const wd = new Date(t).getUTCDay();
+  if (P.nzFt && feiertag(t)) return 2;
+  return wd === 0 ? 2 : wd === 6 ? 1 : 0;   // 0 Werktag, 1 Samstag, 2 Sonn-/Feiertag
+}
+function nutzung(t) {
+  const typ = tagtyp(t);
+  if (typ === 2 || (typ === 1 && !P.nzSa)) return false;
+  const m = Math.round((t % D) / 60000);
+  return m >= P.nzVon && m < P.nzBis;
+}
+function quantil(sortAsc, q) {
+  if (!sortAsc.length) return NaN;
+  const x = (sortAsc.length - 1) * q, i = Math.floor(x), f = x - i;
+  return i + 1 < sortAsc.length ? sortAsc[i] * (1 - f) + sortAsc[i + 1] * f : sortAsc[i];
+}
+
+function analysiere(L) {
+  const {t, p, step} = L, n = p.length, dt = step / H;
+  const A = {n, dt, step};
+  const tag0 = dayStart(t[0]), tagN = dayStart(t[n - 1]);
+  A.tage = Math.round((tagN - tag0) / D) + 1;
+  A.spd = Math.round(D / step);                               // Intervalle pro Tag
+  let E = 0, pmax = -Infinity, imax = 0, pmin = Infinity, eNutz = 0, eNacht = 0, nNacht = 0, eWe = 0;
+  const typSum = [0, 0, 0], typN = [0, 0, 0];
+  for (let i = 0; i < n; i++) {
+    const v = p[i]; E += v * dt;
+    if (v > pmax) { pmax = v; imax = i; }
+    if (v < pmin) pmin = v;
+    const typ = tagtyp(t[i]); typSum[typ] += v; typN[typ]++;
+    if (nutzung(t[i])) eNutz += v * dt; else if (typ === 0 || (typ === 1 && P.nzSa)) eNacht += v * dt; else eWe += v * dt;
+    const m = (t[i] % D) / 60000;
+    if (m >= 60 && m < 240) { nNacht++; A.nachtSum = (A.nachtSum || 0) + v; }
+  }
+  const sorted = Float32Array.from(p).sort();
+  A.sorted = sorted;
+  A.E = E; A.pmax = pmax; A.tmax = t[imax]; A.pmin = pmin; A.pmean = E / (n * dt);
+  A.stunden = n * dt;
+  A.jahrFaktor = A.stunden >= 8700 && A.stunden <= 8800 ? 1 : 8760 / A.stunden;
+  A.Ea = E * A.jahrFaktor;
+  A.hochgerechnet = A.jahrFaktor !== 1;
+  A.p05 = quantil(sorted, 0.05); A.p50 = quantil(sorted, 0.5); A.p99 = quantil(sorted, 0.99);
+  A.grund = A.p05;
+  A.nacht = nNacht ? A.nachtSum / nNacht : NaN;
+  A.grundAnteil = Math.min(1, A.grund * A.stunden / E);
+  A.bd = A.Ea / pmax;                                          // Benutzungsdauer h/a
+  A.lastfaktor = A.pmean / pmax;
+  A.eNutz = eNutz; A.eNacht = eNacht; A.eWe = eWe;
+  A.anteilAussen = (eNacht + eWe) / E;
+  A.typMittel = typSum.map((s, k) => typN[k] ? s / typN[k] : NaN);
+  // Stunden über x % der Höchstlast
+  A.ueber = [0.95, 0.9, 0.8, 0.7].map(q => { let k = 0; const g = q * pmax; for (let i = n - 1; i >= 0 && sorted[i] > g; i--) k++; return [q, k * dt]; });
+  // Monate
+  const mon = new Map();
+  for (let i = 0; i < n; i++) {
+    const d = new Date(t[i]), k = d.getUTCFullYear() * 12 + d.getUTCMonth();
+    let m = mon.get(k); if (!m) mon.set(k, m = {k, E: 0, pmax: -Infinity, tmax: 0, n: 0, eAussen: 0});
+    m.E += p[i] * dt; m.n++; if (p[i] > m.pmax) { m.pmax = p[i]; m.tmax = t[i]; }
+    if (!nutzung(t[i])) m.eAussen += p[i] * dt;
+  }
+  A.monate = [...mon.values()].sort((a, b) => a.k - b.k);
+  A.monate.forEach(m => { const y = Math.floor(m.k / 12), mo = m.k % 12; m.label = `${MON[mo]} ${y}`; m.soll = Math.round(new Date(Date.UTC(y, mo + 1, 1)) - Date.UTC(y, mo, 1)) / step; });
+  // Tageswerte (Maximum je Tag, Mittel)
+  const tage = new Map();
+  for (let i = 0; i < n; i++) {
+    const k = dayStart(t[i]); let d = tage.get(k);
+    if (!d) tage.set(k, d = {t: k, max: -Infinity, tmax: 0, s: 0, n: 0, min: Infinity});
+    d.s += p[i]; d.n++; if (p[i] > d.max) { d.max = p[i]; d.tmax = t[i]; } if (p[i] < d.min) d.min = p[i];
+  }
+  A.tageListe = [...tage.values()].sort((a, b) => a.t - b.t);
+  A.top = [...A.tageListe].sort((a, b) => b.max - a.max).slice(0, 10);
+  A.kosten = A.Ea * P.ap / 100 + pmax * P.lp;
+  A.kostenAussen = (eNacht + eWe) * A.jahrFaktor * P.ap / 100;
+  A.co2 = A.Ea * P.co2 / 1e6;
+  return A;
+}
+
+/* Typtage: Mittelwert je Uhrzeit-Slot und Tagtyp, optional Saison */
+function typtage(L, A) {
+  const spd = A.spd, sum = [0, 1, 2].map(() => new Float64Array(spd)), cnt = [0, 1, 2].map(() => new Uint32Array(spd));
+  const werk = Array.from({length: spd}, () => []);
+  const ok = mo => P.typSaison === "alle" || (P.typSaison === "winter" ? [10, 11, 0, 1].includes(mo) : P.typSaison === "sommer" ? [4, 5, 6, 7].includes(mo) : [2, 3, 8, 9].includes(mo));
+  for (let i = 0; i < L.p.length; i++) {
+    const t = L.t[i]; if (!ok(new Date(t).getUTCMonth())) continue;
+    const s = Math.min(spd - 1, Math.floor((t % D) / L.step)), typ = tagtyp(t);
+    sum[typ][s] += L.p[i]; cnt[typ][s]++;
+    if (typ === 0 && P.typBand) werk[s].push(L.p[i]);
+  }
+  const mittel = sum.map((a, k) => Array.from(a, (v, s) => cnt[k][s] ? v / cnt[k][s] : NaN));
+  const band = P.typBand ? werk.map(w => { w.sort((a, b) => a - b); return [quantil(w, 0.1), quantil(w, 0.9)]; }) : null;
+  return {mittel, band, spd, tage: cnt.map(c => Math.round(Math.max(...c)))};
+}
+
+/* Lastspitzenkappung: Speicher entlädt oberhalb der Grenze, lädt darunter (max. mit Entladeleistung) */
+function kappung(L, A, grenze) {
+  const {p} = L, dt = A.dt, eta = Math.sqrt(P.eta / 100);
+  const pBat = Math.max(0, A.pmax - grenze);
+  let defizit = 0, bedarf = 0, eUeber = 0, nUeber = 0, ereignisse = 0, lauf = 0, maxLauf = 0, tBedarf = 0;
+  for (let i = 0; i < p.length; i++) {
+    const v = p[i];
+    if (v > grenze) {
+      const x = v - grenze; eUeber += x * dt; nUeber++; defizit += x * dt / eta;
+      if (!lauf) ereignisse++; lauf++; if (lauf > maxLauf) maxLauf = lauf;
+      if (defizit > bedarf) { bedarf = defizit; tBedarf = L.t[i]; }
+    } else {
+      lauf = 0;
+      if (defizit > 0) defizit = Math.max(0, defizit - Math.min(grenze - v, pBat) * dt * eta);
+    }
+  }
+  const kap = bedarf / (P.dod / 100) * (1 + P.reserve / 100);
+  const ersparnis = pBat * P.lp, invest = kap * P.ckwh;
+  return {grenze, pBat, bedarf, kap, eUeber, stundenUeber: nUeber * dt, ereignisse, maxDauer: maxLauf * dt, tBedarf, ersparnis, invest,
+    amort: ersparnis > 0 ? invest / ersparnis : Infinity};
+}
+
+/* Befunde in Klartext */
+function befunde(L, A) {
+  const b = [];
+  const vollst = L.t.length / L.soll;
+  if (L.luecken > 0) b.push(["w", `Datenlücken: ${fmt(L.luecken)} fehlende Intervalle (${fmt((1 - Math.min(1, vollst)) * 100, 1)} %), größte Lücke ${fmtDauer(L.groessteLuecke * A.dt)}. Kennzahlen beziehen sich nur auf vorhandene Werte${A.hochgerechnet ? ", die Jahresarbeit ist hochgerechnet" : ""}.`]);
+  if (A.grundAnteil >= 0.4) b.push(["w", `Hohe Grundlast: ${fmt(A.grund, 1)} kW laufen praktisch rund um die Uhr, das sind ${fmt(A.grundAnteil * 100, 0)} % des Verbrauchs. Prüfen: Lüftung und Pumpen nachts, Server und Netzwerktechnik, Kälte, Beleuchtung, Standby.`]);
+  else b.push(["g", `Grundlast ${fmt(A.grund, 1)} kW (${fmt(A.grundAnteil * 100, 0)} % des Verbrauchs) – im üblichen Rahmen für Nichtwohngebäude.`]);
+  if (A.anteilAussen >= 0.5) b.push(["w", `${fmt(A.anteilAussen * 100, 0)} % des Stroms fließen außerhalb der Nutzungszeit (${fmtZeit(P.nzVon)}–${fmtZeit(P.nzBis)} Uhr${P.nzSa ? ", Mo–Sa" : ", Mo–Fr"}) – rund ${fmt(A.kostenAussen, 0)} € pro Jahr. Abschaltzeiten und Zeitprogramme prüfen.`]);
+  else b.push(["g", `${fmt(A.anteilAussen * 100, 0)} % des Stroms fließen außerhalb der Nutzungszeit.`]);
+  const [w, s, so] = A.typMittel;
+  if (isFinite(w) && isFinite(so) && w > 0 && so / w > 0.6) b.push(["w", `Sonn- und Feiertage liegen mit ${fmt(so, 1)} kW bei ${fmt(so / w * 100, 0)} % der mittleren Werktagsleistung – kaum Absenkung am Wochenende.`]);
+  if (!nutzung(A.tmax)) b.push(["w", `Die Höchstlast (${fmt(A.pmax, 1)} kW) trat außerhalb der Nutzungszeit auf: ${dtstr(A.tmax)}. Ursache klären (Anlaufvorgang, Störung, Sonderbetrieb).`]);
+  const h90 = A.ueber[1][1];
+  if (h90 <= 20 && A.pmax > 0) {
+    const k = kappung(L, A, 0.9 * A.pmax);
+    b.push(["g", `Spitzen sind selten: nur ${fmtDauer(h90)} pro Jahr über 90 % der Höchstlast. Eine Kappung auf ${fmt(k.grenze, 0)} kW spart rund ${fmt(k.ersparnis, 0)} € Leistungspreis pro Jahr und braucht etwa ${fmtA(k.kap)} kWh Speicher (siehe Reiter „Lastspitzenkappung“).`]);
+  }
+  if (A.bd < 2500) b.push(["", `Benutzungsdauer ${fmt(A.bd, 0)} h/a liegt unter 2.500 h: Netzbetreiber berechnen dann meist einen niedrigen Leistungspreis und einen höheren Arbeitspreis. Leistungspreis unter „Parameter“ an den Preisblatt-Wert anpassen.`]);
+  else b.push(["", `Benutzungsdauer ${fmt(A.bd, 0)} h/a (≥ 2.500 h): Netzentgelt mit hohem Leistungspreis und niedrigem Arbeitspreis – Lastspitzen wirken sich deutlich auf die Kosten aus.`]);
+  return b;
+}
+const fmtZeit = m => `${pad(Math.floor(m / 60))}:${pad(m % 60)}`;
+const fmtDauer = h => h < 1 ? `${fmt(h * 60, 0)} min` : h < 48 ? `${fmt(h, h < 10 ? 1 : 0)} h` : `${fmt(h / 24, 0)} Tage`;
+
+/* =============================================================================
+   Diagramme (Canvas, ohne externe Bibliothek)
+   ============================================================================= */
+const css = k => getComputedStyle(document.documentElement).getPropertyValue(k).trim();
+function leinwand(cv) {
+  const dpr = window.devicePixelRatio || 1, w = cv.clientWidth || cv.parentElement.clientWidth, h = +cv.getAttribute("height");
+  cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); cv.style.height = h + "px";
+  const ctx = cv.getContext("2d"); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.font = `11px ${css("--f-body")}`; ctx.textBaseline = "middle";
+  return {ctx, w, h};
+}
+function ticks(min, max, n = 5) {
+  if (!(max > min)) max = min + 1;
+  const raw = (max - min) / n, mag = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / mag;
+  const st = (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * mag;
+  const out = []; for (let v = Math.ceil(min / st - 1e-9) * st; v <= max + st * 1e-9; v += st) out.push(+v.toFixed(10));
+  return {t: out, lo: Math.min(min, out[0]), hi: Math.max(max, out[out.length - 1]), st};
+}
+function yAchse(ctx, box, ys, einheit, rechts = false) {
+  ctx.strokeStyle = css("--grid"); ctx.fillStyle = css("--muted"); ctx.lineWidth = 1;
+  ctx.textAlign = rechts ? "left" : "right";
+  for (const v of ys.t) {
+    const y = box.y + box.h - (v - ys.lo) / (ys.hi - ys.lo) * box.h;
+    if (!rechts) { ctx.beginPath(); ctx.moveTo(box.x, Math.round(y) + .5); ctx.lineTo(box.x + box.w, Math.round(y) + .5); ctx.stroke(); }
+    ctx.fillText(fmt(v, ys.st < 1 ? 1 : 0), rechts ? box.x + box.w + 6 : box.x - 6, y);
+  }
+  if (einheit) { ctx.save(); ctx.textAlign = rechts ? "right" : "left"; ctx.fillText(einheit, rechts ? box.x + box.w + 40 : box.x - 44, box.y - 12); ctx.restore(); }
+}
+const Y = (box, ys, v) => box.y + box.h - (v - ys.lo) / (ys.hi - ys.lo) * box.h;
+function hlinie(ctx, box, y, farbe, text, dash = [5, 4]) {
+  ctx.save(); ctx.strokeStyle = farbe; ctx.setLineDash(dash); ctx.lineWidth = 1.3;
+  ctx.beginPath(); ctx.moveTo(box.x, y); ctx.lineTo(box.x + box.w, y); ctx.stroke(); ctx.setLineDash([]);
+  if (text) { ctx.fillStyle = farbe; ctx.textAlign = "right"; ctx.font = `600 11px ${css("--f-body")}`; ctx.fillText(text, box.x + box.w - 4, y - 8); }
+  ctx.restore();
+}
+function legende(ctx, x, y, items) {
+  ctx.save(); ctx.textAlign = "left";
+  for (const [farbe, text, typ] of items) {
+    ctx.fillStyle = farbe; ctx.strokeStyle = farbe;
+    if (typ === "l") { ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + 16, y); ctx.stroke(); } else ctx.fillRect(x, y - 5, 14, 10);
+    ctx.fillStyle = css("--ink"); ctx.fillText(text, x + 20, y); x += 28 + ctx.measureText(text).width;
+  }
+  ctx.restore();
+}
+const HOVER = new Map();
+function hover(cv, fn) { HOVER.set(cv, fn); }
+
+/* Zeitverlauf gesamt */
+function zOverview() {
+  const cv = $("#cvOverview"), {ctx, w, h} = leinwand(cv), L = S.L, A = S.A;
+  const box = {x: 52, y: 18, w: w - 64, h: h - 44};
+  const t0 = dayStart(L.t[0]), t1 = dayStart(L.t[L.t.length - 1]) + D;
+  const ys = ticks(0, A.pmax * 1.05);
+  yAchse(ctx, box, ys, "kW");
+  const X = t => box.x + (t - t0) / (t1 - t0) * box.w;
+  // Min/Max je Pixelspalte
+  const cols = Math.max(1, Math.floor(box.w)), mn = new Float32Array(cols).fill(Infinity), mx = new Float32Array(cols).fill(-Infinity);
+  for (let i = 0; i < L.p.length; i++) { const c = Math.min(cols - 1, Math.floor((L.t[i] - t0) / (t1 - t0) * cols)); if (L.p[i] < mn[c]) mn[c] = L.p[i]; if (L.p[i] > mx[c]) mx[c] = L.p[i]; }
+  ctx.fillStyle = css("--brand-soft"); ctx.strokeStyle = css("--c1");
+  ctx.beginPath(); let auf = false;
+  for (let c = 0; c < cols; c++) { if (!isFinite(mx[c])) continue; const x = box.x + c + .5; auf ? ctx.lineTo(x, Y(box, ys, mx[c])) : (ctx.moveTo(x, Y(box, ys, mx[c])), auf = true); }
+  for (let c = cols - 1; c >= 0; c--) { if (!isFinite(mn[c])) continue; ctx.lineTo(box.x + c + .5, Y(box, ys, mn[c])); }
+  ctx.closePath(); ctx.fill();
+  // Tagesmittel
+  ctx.lineWidth = 1.4; ctx.beginPath(); auf = false;
+  for (const d of A.tageListe) { const x = X(d.t + D / 2), y = Y(box, ys, d.s / d.n); auf ? ctx.lineTo(x, y) : (ctx.moveTo(x, y), auf = true); }
+  ctx.stroke();
+  // Woche markieren
+  if (S.woche) { ctx.fillStyle = css("--sun"); ctx.globalAlpha = .18; ctx.fillRect(X(S.woche), box.y, Math.max(2, X(S.woche + 7 * D) - X(S.woche)), box.h); ctx.globalAlpha = 1; }
+  hlinie(ctx, box, Y(box, ys, A.pmax), css("--rose"), `Höchstlast ${fmt(A.pmax, 1)} kW`);
+  hlinie(ctx, box, Y(box, ys, A.grund), css("--teal"), `Grundlast ${fmt(A.grund, 1)} kW`);
+  // Monatsachse
+  ctx.fillStyle = css("--muted"); ctx.textAlign = "center"; ctx.strokeStyle = css("--grid");
+  const d0 = new Date(t0); let m = Date.UTC(d0.getUTCFullYear(), d0.getUTCMonth(), 1);
+  const spanne = (t1 - t0) / D, schritt = spanne > 800 ? 3 : spanne > 400 ? 2 : 1;
+  for (let k = 0; m < t1; k++) {
+    const dm = new Date(m);
+    if (m >= t0 && k % schritt === 0) { const x = X(m); ctx.beginPath(); ctx.moveTo(x + .5, box.y); ctx.lineTo(x + .5, box.y + box.h); ctx.stroke(); }
+    const mitte = Math.max(m, t0) + (Math.min(Date.UTC(dm.getUTCFullYear(), dm.getUTCMonth() + 1, 1), t1) - Math.max(m, t0)) / 2;
+    if (k % schritt === 0 && X(Date.UTC(dm.getUTCFullYear(), dm.getUTCMonth() + 1, 1)) - X(Math.max(m, t0)) > 18) ctx.fillText(MON[dm.getUTCMonth()] + (dm.getUTCMonth() === 0 || k === 0 ? " " + String(dm.getUTCFullYear()).slice(2) : ""), X(mitte), box.y + box.h + 13);
+    m = Date.UTC(dm.getUTCFullYear(), dm.getUTCMonth() + 1, 1);
+  }
+  cv.onclick = ev => { const r = cv.getBoundingClientRect(), t = t0 + (ev.clientX - r.left - box.x) / box.w * (t1 - t0); if (t >= t0 && t <= t1) { setzeWoche(t); zeichne(); } };
+  cv.style.cursor = "pointer";
+  hover(cv, (x) => {
+    const t = t0 + (x - box.x) / box.w * (t1 - t0); const d = A.tageListe.find(d => d.t === dayStart(t));
+    return d ? `${WT[new Date(d.t).getUTCDay()]} ${dstr(d.t)}${feiertag(d.t) ? " (" + feiertag(d.t) + ")" : ""}\nMax ${fmt(d.max, 1)} kW um ${tstr(d.tmax)}\nMittel ${fmt(d.s / d.n, 1)} kW · Min ${fmt(d.min, 1)} kW` : null;
+  });
+}
+
+/* Woche */
+function montag(t) { const d = dayStart(t), wd = (new Date(d).getUTCDay() + 6) % 7; return d - wd * D; }
+function setzeWoche(t) { S.woche = montag(t); $("#wDate").value = new Date(S.woche).toISOString().slice(0, 10); }
+function zWoche() {
+  const cv = $("#cvWeek"), {ctx, w, h} = leinwand(cv), L = S.L, A = S.A;
+  const box = {x: 52, y: 22, w: w - 64, h: h - 50}, t0 = S.woche, t1 = t0 + 7 * D;
+  let i0 = lowerBound(L.t, t0), i1 = lowerBound(L.t, t1);
+  let mx = 0; for (let i = i0; i < i1; i++) mx = Math.max(mx, L.p[i]);
+  const ys = ticks(0, Math.max(mx, A.grund) * 1.1 || 1);
+  const X = t => box.x + (t - t0) / (t1 - t0) * box.w;
+  // Tage, Nutzungszeit, Wochenende
+  for (let k = 0; k < 7; k++) {
+    const td = t0 + k * D, x0 = X(td), x1 = X(td + D), typ = tagtyp(td);
+    if (typ > 0) { ctx.fillStyle = css("--panel2"); ctx.fillRect(x0, box.y, x1 - x0, box.h); }
+    if (typ === 0 || (typ === 1 && P.nzSa)) { ctx.fillStyle = css("--brand-soft"); ctx.globalAlpha = .55; ctx.fillRect(X(td + P.nzVon * 60000), box.y, X(td + P.nzBis * 60000) - X(td + P.nzVon * 60000), box.h); ctx.globalAlpha = 1; }
+    ctx.fillStyle = css("--muted"); ctx.textAlign = "center";
+    ctx.fillText(`${WT[new Date(td).getUTCDay()]} ${dstr(td).slice(0, 6)}${feiertag(td) ? " · " + feiertag(td) : ""}`, (x0 + x1) / 2, box.y + box.h + 14);
+    ctx.strokeStyle = css("--line"); ctx.beginPath(); ctx.moveTo(Math.round(x0) + .5, box.y); ctx.lineTo(Math.round(x0) + .5, box.y + box.h); ctx.stroke();
+  }
+  yAchse(ctx, box, ys, "kW");
+  ctx.strokeStyle = css("--c1"); ctx.lineWidth = 1.4; ctx.beginPath();
+  let vor = null;
+  for (let i = i0; i < i1; i++) {
+    const x = X(L.t[i] + L.step / 2), y = Y(box, ys, L.p[i]);
+    if (vor !== null && L.t[i] - vor > L.step * 1.5) ctx.moveTo(x, y); else if (i === i0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    vor = L.t[i];
+  }
+  ctx.stroke();
+  if (i1 <= i0) { ctx.fillStyle = css("--muted"); ctx.textAlign = "center"; ctx.fillText("Keine Messwerte in dieser Woche", box.x + box.w / 2, box.y + box.h / 2); }
+  hlinie(ctx, box, Y(box, ys, A.grund), css("--teal"), `Grundlast ${fmt(A.grund, 1)} kW`);
+  if (A.pmax <= ys.hi) hlinie(ctx, box, Y(box, ys, A.pmax), css("--rose"), `Höchstlast ${fmt(A.pmax, 1)} kW`);
+  if (S.cap && S.cap.grenze < ys.hi) hlinie(ctx, box, Y(box, ys, S.cap.grenze), css("--sun"), `Kappungsgrenze ${fmt(S.cap.grenze, 1)} kW`, [2, 3]);
+  legende(ctx, box.x, 9, [[css("--c1"), "Leistung", "l"], [css("--brand-soft"), "Nutzungszeit"], [css("--panel2"), "Wochenende/Feiertag"]]);
+  hover(cv, x => {
+    const t = t0 + (x - box.x) / box.w * (t1 - t0) - L.step / 2, i = lowerBound(L.t, t);
+    if (i < i0 || i >= i1) return null;
+    return `${dtstr(L.t[i])}–${tstr(L.t[i] + L.step)}\n${fmt(L.p[i], 2)} kW`;
+  });
+}
+function lowerBound(arr, v) { let lo = 0, hi = arr.length; while (lo < hi) { const m = (lo + hi) >> 1; if (arr[m] < v) lo = m + 1; else hi = m; } return lo; }
+
+/* Dauerlinie (auch für Kappung) */
+function zDauer(cvId, grenze) {
+  const cv = $(cvId), {ctx, w, h} = leinwand(cv), A = S.A, s = A.sorted, n = s.length;
+  const box = {x: 52, y: 20, w: w - 64, h: h - 56};
+  const ys = ticks(0, A.pmax * 1.05), xs = ticks(0, n * A.dt, 6);
+  yAchse(ctx, box, ys, "kW");
+  const X = hh => box.x + hh / xs.hi * box.w;
+  ctx.fillStyle = css("--muted"); ctx.textAlign = "center";
+  for (const v of xs.t) ctx.fillText(fmt(v, 0), X(v), box.y + box.h + 13);
+  ctx.textAlign = "right"; ctx.fillText("Stunden", box.x + box.w, box.y + box.h + 27);
+  const cols = Math.floor(box.w);
+  const punkt = c => { const hh = c / cols * xs.hi; const k = Math.min(n - 1, Math.floor(hh / A.dt)); return k < n ? s[n - 1 - k] : NaN; };
+  ctx.beginPath(); ctx.moveTo(box.x, Y(box, ys, 0));
+  let lastX = box.x;
+  for (let c = 0; c <= cols; c++) { const hh = c / cols * xs.hi; if (hh > n * A.dt) break; ctx.lineTo(box.x + c, Y(box, ys, punkt(c))); lastX = box.x + c; }
+  ctx.lineTo(lastX, Y(box, ys, 0)); ctx.closePath();
+  ctx.fillStyle = css("--brand-soft"); ctx.fill();
+  ctx.strokeStyle = css("--c1"); ctx.lineWidth = 1.8; ctx.beginPath();
+  for (let c = 0; c <= cols; c++) { const hh = c / cols * xs.hi; if (hh > n * A.dt) break; const y = Y(box, ys, punkt(c)); c ? ctx.lineTo(box.x + c, y) : ctx.moveTo(box.x, y); }
+  ctx.stroke();
+  if (grenze !== undefined) {
+    ctx.save(); ctx.beginPath(); ctx.rect(box.x, box.y, box.w, Y(box, ys, grenze) - box.y); ctx.clip();
+    ctx.fillStyle = css("--sun"); ctx.globalAlpha = .55; ctx.beginPath(); ctx.moveTo(box.x, Y(box, ys, grenze));
+    for (let c = 0; c <= cols; c++) { const hh = c / cols * xs.hi; if (hh > n * A.dt) break; ctx.lineTo(box.x + c, Y(box, ys, Math.max(grenze, punkt(c)))); }
+    ctx.lineTo(lastX, Y(box, ys, grenze)); ctx.closePath(); ctx.fill(); ctx.restore();
+    hlinie(ctx, box, Y(box, ys, grenze), css("--sun"), `Grenze ${fmt(grenze, 1)} kW`);
+  } else {
+    hlinie(ctx, box, Y(box, ys, A.grund), css("--teal"), `Grundlast ${fmt(A.grund, 1)} kW`);
+    hlinie(ctx, box, Y(box, ys, A.pmean), css("--muted"), `Mittel ${fmt(A.pmean, 1)} kW`);
+  }
+  hover(cv, x => {
+    const hh = (x - box.x) / box.w * xs.hi; if (hh < 0 || hh > n * A.dt) return null;
+    const k = Math.min(n - 1, Math.floor(hh / A.dt));
+    return `${fmt(s[n - 1 - k], 1)} kW werden an ${fmtDauer(hh)} im Jahr${A.hochgerechnet ? "" : ""} erreicht oder überschritten`;
+  });
+}
+
+/* Teppichdiagramm */
+const FARBEN = [[0, [12, 24, 74]], [0.25, [31, 99, 168]], [0.5, [42, 160, 140]], [0.75, [236, 190, 46]], [1, [214, 64, 36]]];
+function farbe(f) {
+  f = Math.max(0, Math.min(1, f));
+  for (let k = 1; k < FARBEN.length; k++) if (f <= FARBEN[k][0]) {
+    const [a, ca] = FARBEN[k - 1], [b, cb] = FARBEN[k], u = (f - a) / (b - a);
+    return ca.map((c, j) => Math.round(c + (cb[j] - c) * u));
+  }
+  return FARBEN[FARBEN.length - 1][1];
+}
+function zTeppich() {
+  const cv = $("#cvHeat"), {ctx, w, h} = leinwand(cv), L = S.L, A = S.A;
+  const box = {x: 44, y: 10, w: w - 120, h: h - 36};
+  const t0 = dayStart(L.t[0]), tage = A.tage, spd = A.spd, vmax = P.heatMax === "max" ? A.pmax : A.p99;
+  const img = ctx.createImageData(tage, spd);
+  img.data.fill(0);
+  for (let i = 0; i < L.p.length; i++) {
+    const d = Math.round((dayStart(L.t[i]) - t0) / D), s = Math.min(spd - 1, Math.floor((L.t[i] % D) / L.step));
+    const o = (s * tage + d) * 4, c = farbe(L.p[i] / vmax);
+    img.data[o] = c[0]; img.data[o + 1] = c[1]; img.data[o + 2] = c[2]; img.data[o + 3] = 255;
+  }
+  const off = document.createElement("canvas"); off.width = tage; off.height = spd; off.getContext("2d").putImageData(img, 0, 0);
+  ctx.imageSmoothingEnabled = false;
+  ctx.fillStyle = css("--panel2"); ctx.fillRect(box.x, box.y, box.w, box.h);
+  ctx.drawImage(off, box.x, box.y, box.w, box.h);
+  ctx.fillStyle = css("--muted"); ctx.textAlign = "right";
+  for (let hh = 0; hh <= 24; hh += 3) ctx.fillText(`${pad(hh)}:00`, box.x - 5, box.y + hh / 24 * box.h);
+  ctx.textAlign = "center";
+  const d0 = new Date(t0); let m = Date.UTC(d0.getUTCFullYear(), d0.getUTCMonth() + 1, 1);
+  const Xd = t => box.x + (t - t0) / (tage * D) * box.w;
+  ctx.strokeStyle = "rgba(255,255,255,.35)";
+  while (m < t0 + tage * D) { const dm = new Date(m); ctx.beginPath(); ctx.moveTo(Xd(m) + .5, box.y); ctx.lineTo(Xd(m) + .5, box.y + box.h); ctx.stroke(); if (Xd(m + 15 * D) < box.x + box.w) ctx.fillText(MON[dm.getUTCMonth()], Xd(m + 15 * D), box.y + box.h + 13); m = Date.UTC(dm.getUTCFullYear(), dm.getUTCMonth() + 1, 1); }
+  // Legende
+  const lx = box.x + box.w + 22, lh = box.h;
+  for (let k = 0; k < lh; k++) { const c = farbe(1 - k / lh); ctx.fillStyle = `rgb(${c})`; ctx.fillRect(lx, box.y + k, 14, 1.5); }
+  ctx.fillStyle = css("--muted"); ctx.textAlign = "left";
+  ctx.fillText(`${fmt(vmax, 0)} kW`, lx + 18, box.y + 4); ctx.fillText("0", lx + 18, box.y + lh - 4);
+  hover(cv, (x, y) => {
+    const d = Math.floor((x - box.x) / box.w * tage), s = Math.floor((y - box.y) / box.h * spd);
+    if (d < 0 || d >= tage || s < 0 || s >= spd) return null;
+    const t = t0 + d * D + s * L.step, i = lowerBound(L.t, t);
+    if (i >= L.t.length || L.t[i] !== t) return `${dtstr(t)}\nkein Messwert`;
+    return `${dtstr(t)}${feiertag(t) ? " (" + feiertag(t) + ")" : ""}\n${fmt(L.p[i], 1)} kW`;
+  });
+}
+
+/* Typtage */
+function zTyp() {
+  const cv = $("#cvTyp"), {ctx, w, h} = leinwand(cv), A = S.A, T = typtage(S.L, A);
+  const box = {x: 52, y: 26, w: w - 64, h: h - 58};
+  let mx = 0; T.mittel.forEach(a => a.forEach(v => { if (v > mx) mx = v; })); if (T.band) T.band.forEach(b => { if (b[1] > mx) mx = b[1]; });
+  const ys = ticks(0, mx * 1.1 || 1);
+  const X = s => box.x + s / T.spd * box.w;
+  ctx.fillStyle = css("--panel2"); ctx.fillRect(X(P.nzVon / (1440 / T.spd)), box.y, X(P.nzBis / (1440 / T.spd)) - X(P.nzVon / (1440 / T.spd)), box.h);
+  yAchse(ctx, box, ys, "kW");
+  ctx.fillStyle = css("--muted"); ctx.textAlign = "center";
+  for (let hh = 0; hh <= 24; hh += 2) ctx.fillText(`${hh}`, X(hh / 24 * T.spd), box.y + box.h + 13);
+  ctx.textAlign = "right"; ctx.fillText("Uhr", box.x + box.w, box.y + box.h + 26);
+  if (T.band) {
+    ctx.fillStyle = css("--c1"); ctx.globalAlpha = .15; ctx.beginPath();
+    T.band.forEach((b, s) => { const x = X(s + .5), y = Y(box, ys, b[1]); s ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
+    for (let s = T.spd - 1; s >= 0; s--) ctx.lineTo(X(s + .5), Y(box, ys, T.band[s][0]));
+    ctx.closePath(); ctx.fill(); ctx.globalAlpha = 1;
+  }
+  const farb = [css("--c1"), css("--c2"), css("--c3")], namen = ["Werktag", "Samstag", "Sonn-/Feiertag"];
+  T.mittel.forEach((a, k) => {
+    ctx.strokeStyle = farb[k]; ctx.lineWidth = 2; ctx.beginPath(); let auf = false;
+    a.forEach((v, s) => { if (!isFinite(v)) { auf = false; return; } const x = X(s + .5), y = Y(box, ys, v); auf ? ctx.lineTo(x, y) : (ctx.moveTo(x, y), auf = true); });
+    ctx.stroke();
+  });
+  legende(ctx, box.x, 10, namen.map((n, k) => [farb[k], `${n} (${T.tage[k]} Tage)`, "l"]));
+  hover(cv, x => {
+    const s = Math.floor((x - box.x) / box.w * T.spd); if (s < 0 || s >= T.spd) return null;
+    const m = s * 1440 / T.spd;
+    return `${fmtZeit(m)}–${fmtZeit(m + 1440 / T.spd)} Uhr\n` + namen.map((n, k) => `${n}: ${fmt(T.mittel[k][s], 1)} kW`).join("\n");
+  });
+  // Tabelle
+  const zeile = (n, k) => { const a = T.mittel[k].filter(isFinite); if (!a.length) return `<tr><td>${n}</td><td colspan="4">keine Tage</td></tr>`;
+    const tagesE = a.reduce((x, y) => x + y, 0) * 24 / T.spd;
+    return `<tr><td>${n}</td><td>${T.tage[k]}</td><td>${fmt(tagesE, 0)}</td><td>${fmt(Math.min(...a), 1)}</td><td>${fmt(Math.max(...a), 1)}</td></tr>`; };
+  $("#tTyp").innerHTML = `<tr><th>Tagtyp</th><th>Tage</th><th>Ø Arbeit je Tag [kWh]</th><th>Minimum [kW]</th><th>Maximum Ø-Gang [kW]</th></tr>` + namen.map(zeile).join("");
+}
+
+/* Monate */
+function zMonate() {
+  const cv = $("#cvMon"), {ctx, w, h} = leinwand(cv), A = S.A, M = A.monate;
+  const box = {x: 58, y: 26, w: w - 120, h: h - 52};
+  const yE = ticks(0, Math.max(...M.map(m => m.E)) * 1.1), yP = ticks(0, A.pmax * 1.1);
+  yAchse(ctx, box, yE, "kWh"); yAchse(ctx, box, yP, "kW", true);
+  const bw = box.w / M.length;
+  M.forEach((m, k) => {
+    const x = box.x + k * bw;
+    ctx.fillStyle = css("--brand-soft"); const ya = Y(box, yE, m.E - m.eAussen); ctx.fillRect(x + bw * .15, ya, bw * .7, Y(box, yE, 0) - ya);
+    ctx.fillStyle = css("--c1"); ctx.globalAlpha = .5; const yb = Y(box, yE, m.E); ctx.fillRect(x + bw * .15, yb, bw * .7, ya - yb); ctx.globalAlpha = 1;
+    ctx.fillStyle = css("--muted"); ctx.textAlign = "center"; if (bw > 26 || k % 2 === 0) ctx.fillText(m.label.split(" ")[0], x + bw / 2, box.y + box.h + 13);
+  });
+  ctx.strokeStyle = css("--rose"); ctx.fillStyle = css("--rose"); ctx.lineWidth = 2; ctx.beginPath();
+  M.forEach((m, k) => { const x = box.x + (k + .5) * bw, y = Y(box, yP, m.pmax); k ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
+  ctx.stroke();
+  M.forEach((m, k) => { ctx.beginPath(); ctx.arc(box.x + (k + .5) * bw, Y(box, yP, m.pmax), 3.5, 0, 7); ctx.fill(); });
+  // Ersetze brand-soft-Legende sichtbar
+  legende(ctx, box.x, 10, [[css("--c1"), "Arbeit außerhalb Nutzungszeit"], [css("--brand-soft"), "Arbeit in Nutzungszeit"], [css("--rose"), "Höchstlast (rechte Achse)", "l"]]);
+  hover(cv, x => { const k = Math.floor((x - box.x) / bw); const m = M[k]; if (!m) return null;
+    return `${m.label}\n${fmt(m.E, 0)} kWh (außerhalb Nutzungszeit ${fmt(m.eAussen / m.E * 100, 0)} %)\nHöchstlast ${fmt(m.pmax, 1)} kW am ${dtstr(m.tmax)}${m.n < m.soll * 0.98 ? `\nnur ${fmt(m.n / m.soll * 100, 0)} % der Werte vorhanden` : ""}`; });
+  $("#tMon").innerHTML = `<tr><th>Monat</th><th>Arbeit [kWh]</th><th>davon außerhalb NZ</th><th>Höchstlast [kW]</th><th>Zeitpunkt</th><th>Ø Leistung [kW]</th><th>Vollständig</th></tr>` +
+    M.map(m => `<tr><td>${m.label}</td><td>${fmt(m.E, 0)}</td><td>${fmt(m.eAussen / m.E * 100, 0)} %</td><td>${fmt(m.pmax, 1)}</td><td>${dtstr(m.tmax)}</td><td>${fmt(m.E / (m.n * A.dt), 1)}</td><td>${fmt(Math.min(1, m.n / m.soll) * 100, 0)} %</td></tr>`).join("") +
+    `<tr><td><b>Summe</b></td><td><b>${fmt(A.E, 0)}</b></td><td>${fmt(A.anteilAussen * 100, 0)} %</td><td><b>${fmt(A.pmax, 1)}</b></td><td>${dtstr(A.tmax)}</td><td>${fmt(A.pmean, 1)}</td><td>${fmt(Math.min(1, S.L.t.length / S.L.soll) * 100, 1)} %</td></tr>`;
+  $("#tTop").innerHTML = `<tr><th>Rang</th><th>Tag</th><th>Uhrzeit</th><th>Leistung [kW]</th><th>in % der Höchstlast</th><th>Nutzungszeit</th></tr>` +
+    A.top.map((d, k) => `<tr><td>${k + 1}</td><td>${WT[new Date(d.t).getUTCDay()]} ${dstr(d.t)}${feiertag(d.t) ? " · " + feiertag(d.t) : ""}</td><td>${tstr(d.tmax)}</td><td>${fmt(d.max, 1)}</td><td>${fmt(d.max / A.pmax * 100, 1)} %</td><td>${nutzung(d.tmax) ? "ja" : "nein"}</td></tr>`).join("");
+}
+
+/* Leistungsklassen */
+function tKlassen() {
+  const A = S.A, s = A.sorted, n = s.length, st = ticks(0, A.pmax, 8).st, rows = [];
+  for (let lo = 0; lo < A.pmax; lo += st) {
+    const hi = lo + st, i0 = lowerBound(s, lo), i1 = lowerBound(s, hi);
+    let e = 0; for (let i = i0; i < i1; i++) e += s[i] * A.dt;
+    rows.push(`<tr><td>${fmt(lo, 0)} – ${fmt(hi, 0)} kW</td><td>${fmt((i1 - i0) * A.dt, 0)}</td><td>${fmt((i1 - i0) / n * 100, 1)} %</td><td>${fmt(e, 0)}</td><td>${fmt(e / A.E * 100, 1)} %</td></tr>`);
+  }
+  $("#tKlassen").innerHTML = `<tr><th>Leistungsbereich</th><th>Stunden</th><th>Zeitanteil</th><th>Arbeit [kWh]</th><th>Arbeitsanteil</th></tr>` + rows.join("") +
+    A.ueber.map(([q, hh]) => `<tr><td>über ${fmt(q * 100, 0)} % der Höchstlast (${fmt(q * A.pmax, 1)} kW)</td><td>${fmt(hh, 1)}</td><td>${fmt(hh / A.stunden * 100, 2)} %</td><td></td><td></td></tr>`).join("");
+}
+
+/* Kappung */
+function zKappung() {
+  const A = S.A;
+  if (P.cap === null || P.cap >= A.pmax || P.cap <= 0) P.cap = Math.round(A.pmax * 0.9 * 2) / 2;
+  const r = $("#capR"); r.min = Math.max(0, Math.floor(A.grund)); r.max = Math.ceil(A.pmax); r.value = P.cap; $("#capV").value = P.cap;
+  const k = S.cap = kappung(S.L, A, P.cap);
+  $("#capPct").textContent = `= ${fmt(P.cap / A.pmax * 100, 1)} % der Höchstlast`;
+  const box = (l, v) => `<div><div class="l">${l}</div><div class="v">${v}</div></div>`;
+  $("#capRes").innerHTML =
+    box("Leistungsreduktion", `${fmtA(k.pBat)} kW`) + box("Ersparnis Leistungspreis", `${fmt(k.ersparnis, 0)} €/a`) +
+    box("Speicherleistung", `${fmtA(k.pBat)} kW`) + box("Speicherkapazität (nominal)", `${fmtA(k.kap)} kWh`) +
+    box("Investition (grob)", `${fmt(k.invest, 0)} €`) + box("Einfache Amortisation", isFinite(k.amort) ? `${fmt(k.amort, 1)} Jahre` : "–") +
+    box("Überschreitungen", `${fmt(k.ereignisse)} × · ${fmtDauer(k.stundenUeber)}`) + box("Längstes Ereignis", fmtDauer(k.maxDauer));
+  $("#capHint").textContent = k.pBat > 0 ? `Gekappte Arbeit ${fmtA(k.eUeber)} kWh. Kritischster Zeitpunkt für die Speichergröße: ${dtstr(k.tBedarf)}. Die Kapazität enthält Wirkungsgrad, Entladetiefe und ${P.reserve} % Reserve für Prognosefehler. Ersparnis nur Leistungspreis, ohne Netzentgelt-Sonderregeln (z. B. atypische Netznutzung § 19 StromNEV) und ohne weitere Speichererlöse.` : "Die Grenze liegt über der Höchstlast – keine Kappung nötig.";
+  zDauer("#cvCap", P.cap);
+  const stufen = [0.95, 0.9, 0.85, 0.8, 0.75, 0.7, 0.6].map(q => Math.round(q * A.pmax * 2) / 2);
+  if (!stufen.includes(P.cap)) stufen.push(P.cap);
+  stufen.sort((a, b) => b - a);
+  $("#tCap").innerHTML = `<tr><th>Grenze [kW]</th><th>% Pmax</th><th>Speicher kW / kWh</th><th>Ersparnis [€/a]</th><th>Amortisation</th></tr>` +
+    stufen.map(g => { const v = kappung(S.L, A, g); return `<tr data-g="${g}" class="${g === P.cap ? "sel" : ""}" style="cursor:pointer"><td>${fmt(g, 1)}</td><td>${fmt(g / A.pmax * 100, 0)} %</td><td>${fmtA(v.pBat)} / ${fmtA(v.kap)}</td><td>${fmt(v.ersparnis, 0)}</td><td>${isFinite(v.amort) ? fmt(v.amort, 1) + " J." : "–"}</td></tr>`; }).join("");
+}
+
+/* =============================================================================
+   Oberfläche
+   ============================================================================= */
+const S = {roh: null, cfg: null, L: null, A: null, tab: "verlauf", woche: null, cap: null};
+const TABS = [["verlauf", "Zeitverlauf"], ["dauer", "Dauerlinie"], ["teppich", "Teppichdiagramm"], ["typtage", "Typtage"], ["monate", "Monate & Spitzen"], ["kappung", "Lastspitzenkappung"], ["param", "Parameter"]];
+const ZEICHNER = {verlauf: () => { zOverview(); zWoche(); }, dauer: () => { zDauer("#cvDauer"); tKlassen(); }, teppich: zTeppich, typtage: zTyp, monate: zMonate, kappung: zKappung, param: () => {}};
+
+function toast(t, ms = 3500) { const d = document.createElement("div"); d.className = "toast"; d.textContent = t; document.body.appendChild(d); setTimeout(() => d.remove(), ms); }
+
+function zeigeInfo() {
+  const L = S.L, A = S.A, vollst = Math.min(1, L.t.length / L.soll);
+  const it = (k, v, c = "") => `<span><span class="k">${k}</span> <span class="v ${c}">${v}</span></span>`;
+  $("#info").innerHTML = it("Datei", esc(L.name)) + it("Zeitraum", `${dstr(L.t[0])} – ${dstr(L.t[L.t.length - 1])}`) +
+    it("Intervall", `${fmt(L.step / 60000)} min`) + it("Werte", fmt(L.t.length)) +
+    it("Vollständigkeit", `${fmt(vollst * 100, 1)} %`, vollst < 0.99 ? "warnv" : "") +
+    (L.ungueltig ? it("verworfen", fmt(L.ungueltig), "warnv") : "") +
+    `<span class="sp"><button class="btn sm" id="bImp" type="button">Importeinstellungen</button></span>`;
+  $("#bImp").onclick = () => { const d = $("#impDet"); d.open = !d.open; if (d.open) zeigeImport(); };
+}
+function kpis() {
+  const A = S.A, k = (l, v, u, s, farbe) => `<div class="card kpi"${farbe ? ` style="border-left-color:var(${farbe})"` : ""}><div class="l">${l}</div><div class="v">${v}<small>${u}</small></div><div class="s">${s}</div></div>`;
+  $("#kpis").innerHTML =
+    k(A.hochgerechnet ? "Arbeit (hochgerechnet)" : "Jahresarbeit", fmt(A.Ea / (A.Ea >= 1e6 ? 1000 : 1), A.Ea >= 1e6 ? 1 : 0), A.Ea >= 1e6 ? "MWh/a" : "kWh/a", A.hochgerechnet ? `gemessen ${fmt(A.E, 0)} kWh in ${fmt(A.stunden / 24, 0)} Tagen` : `Ø ${fmt(A.E / A.tage, 0)} kWh pro Tag`, "--c1") +
+    k("Höchstlast", fmt(A.pmax, 1), "kW", dtstr(A.tmax), "--rose") +
+    k("Grundlast", fmt(A.grund, 1), "kW", `5-%-Quantil · Ø nachts 1–4 Uhr ${fmt(A.nacht, 1)} kW`, "--teal") +
+    k("Mittlere Leistung", fmt(A.pmean, 1), "kW", `Lastfaktor ${fmt(A.lastfaktor * 100, 0)} %`) +
+    k("Benutzungsdauer", fmt(A.bd, 0), "h/a", A.bd < 2500 ? "unter 2.500 h" : "ab 2.500 h") +
+    k("Außerhalb Nutzungszeit", fmt(A.anteilAussen * 100, 0), "%", `Nacht ${fmt(A.eNacht / A.E * 100, 0)} % · WE/Feiertag ${fmt(A.eWe / A.E * 100, 0)} %`, "--warn") +
+    k("Kosten (Schätzung)", fmt(A.kosten, 0), "€/a", `davon Leistungspreis ${fmt(A.pmax * P.lp, 0)} €`, "--sun") +
+    k("CO₂", fmt(A.co2, 1), "t/a", `${fmt(P.co2)} g/kWh`);
+  $("#befunde").innerHTML = `<h3>Befunde</h3><ul>${befunde(S.L, A).map(([c, t]) => `<li class="${c}">${t}</li>`).join("")}</ul>`;
+}
+function zeigeTab(id) {
+  S.tab = id;
+  $$(".tab").forEach(t => t.setAttribute("aria-selected", String(t.dataset.tab === id)));
+  $$(".panel").forEach(p => p.hidden = p.dataset.panel !== id);
+  zeichne();
+  try { localStorage.setItem(KEY + ".tab", id); } catch (e) {}
+}
+function zeichne() {
+  if (!S.A) return;
+  HOVER.clear();
+  if (document.body.classList.contains("printing")) TABS.forEach(([id]) => ZEICHNER[id]()); else ZEICHNER[S.tab]();
+}
+function neuRechnen() {
+  S.A = analysiere(S.L);
+  zeigeInfo(); kpis(); zeichne();
+}
+function laden(L) {
+  S.L = L; S.cap = null; P.cap = null;
+  if (S.woche === null || S.woche < L.t[0] - 7 * D || S.woche > L.t[L.t.length - 1]) setzeWoche(L.t[0] + 7 * D > L.t[L.t.length - 1] ? L.t[0] : L.t[0]);
+  $("#leer").hidden = true; $("#app").hidden = false;
+  $("#bCsv").disabled = $("#bPdf").disabled = false;
+  S.A = analysiere(L);
+  setzeWoche(S.A.tmax);
+  zeigeInfo(); kpis(); zeigeTab(S.tab);
+  speichere();
+}
+
+/* Import aus Text */
+function importiere(text, name) {
+  try {
+    const cfg = erkenne(text); cfg.name = name; cfg.intervall = "auto";
+    S.roh = text; S.cfg = cfg;
+    const L = baue(cfg);
+    laden(L);
+    $("#impDet").open = !cfg.einheitSicher || L.ungueltig > L.t.length * 0.01;
+    if ($("#impDet").open) zeigeImport();
+    toast(cfg.einheitSicher ? `${fmt(L.t.length)} Werte eingelesen.` : `${fmt(L.t.length)} Werte eingelesen – Einheit nicht erkannt, bitte prüfen.`, 5000);
+  } catch (err) { alert("Import nicht möglich: " + err.message); }
+}
+function zeigeImport() {
+  const c = S.cfg; if (!c) { $("#impGrid").innerHTML = ""; $("#impMsg").textContent = "Beispieldaten – keine Importeinstellungen."; $("#prev").innerHTML = ""; return; }
+  const opt = (sel, list) => list.map(([v, l]) => `<option value="${v}" ${String(v) === String(sel) ? "selected" : ""}>${esc(l)}</option>`).join("");
+  const spalten = Array.from({length: c.ncol}, (_, i) => [i, `${i + 1}: ${c.kopf[i] || "(ohne Titel)"}`]);
+  $("#impGrid").innerHTML = `
+    <label>Trennzeichen<select id="iDelim">${opt(c.delim, [[";", "Semikolon ;"], ["\t", "Tabulator"], [",", "Komma ,"], ["|", "Senkrechter Strich |"]])}</select></label>
+    <label>Erste Datenzeile<input type="number" id="iStart" min="1" value="${c.start + 1}"></label>
+    <label>Datum (ggf. mit Uhrzeit)<select id="iDate">${opt(c.dateCol, spalten)}</select></label>
+    <label>Uhrzeit<select id="iTime">${opt(c.timeCol, [[-1, "– im Datum enthalten –"], ...spalten])}</select></label>
+    <label>Messwert<select id="iVal">${opt(c.valCol, spalten)}</select></label>
+    <label>Einheit des Messwerts<select id="iEinh">${opt(c.einheit, [["kW", "kW (Leistung)"], ["kWh", "kWh je Intervall (Arbeit)"], ["W", "W"], ["Wh", "Wh je Intervall"], ["MW", "MW"], ["MWh", "MWh je Intervall"]])}</select></label>
+    <label>Zeitstempel bezeichnet<select id="iStemp">${opt(c.stempel, [["auto", `automatisch (erkannt: ${c.stempelErkannt === "ende" ? "Ende" : "Beginn"})`], ["beginn", "Beginn des Intervalls"], ["ende", "Ende des Intervalls"]])}</select></label>
+    <label>Intervall<select id="iInt">${opt(c.intervall, [["auto", `automatisch (${fmt(S.L.step / 60000)} min)`], [5, "5 min"], [10, "10 min"], [15, "15 min"], [30, "30 min"], [60, "60 min"]])}</select></label>`;
+  const L = S.L;
+  $("#impMsg").innerHTML = `Ergebnis: <b>${fmt(L.t.length)}</b> Werte, Summe <b>${fmt(S.A.E, 0)} kWh</b>, Höchstlast <b>${fmt(S.A.pmax, 1)} kW</b>. ` +
+    (c.einheitSicher ? "" : `<b style="color:var(--warn)">Einheit nicht erkannt – mit der Rechnung vergleichen: Stimmt die Summe in kWh nicht, „kWh je Intervall“ bzw. „kW“ wählen.</b>`) +
+    (L.ungueltig ? ` ${fmt(L.ungueltig)} Zeilen ohne gültigen Wert wurden übersprungen.` : "");
+  const vorschau = c.rows.slice(Math.max(0, c.start - 1), c.start + 8);
+  $("#prev").innerHTML = `<table><tr><th>Zeile</th>${Array.from({length: c.ncol}, (_, i) => `<th>${i + 1}</th>`).join("")}</tr>` +
+    vorschau.map((r, k) => { const z = Math.max(0, c.start - 1) + k; return `<tr class="${z < c.start ? "hdr" : ""}"><td>${z + 1}</td>${Array.from({length: c.ncol}, (_, i) => `<td class="${i === c.valCol ? "hv" : (i === c.dateCol || i === c.timeCol) ? "hl" : ""}">${esc(r[i] ?? "")}</td>`).join("")}</tr>`; }).join("") + "</table>";
+}
+function uebernehmeImport() {
+  const c = S.cfg; if (!c) return;
+  const delim = $("#iDelim").value;
+  if (delim !== c.delim) { c.delim = delim; c.rows = S.roh.split(/\r?\n/).map(z => zerlege(z, delim)); c.ncol = Math.max(...c.rows.slice(c.start, c.start + 50).map(r => r.length)); }
+  c.start = Math.max(0, +$("#iStart").value - 1);
+  c.kopf = c.start > 0 ? c.rows[c.start - 1] : [];
+  c.dateCol = +$("#iDate").value; c.timeCol = +$("#iTime").value; c.valCol = +$("#iVal").value;
+  if (c.einheit !== $("#iEinh").value) c.einheitSicher = true;
+  c.einheit = $("#iEinh").value; c.stempel = $("#iStemp").value; c.intervall = $("#iInt").value;
+  try { laden(baue(c)); zeigeImport(); toast("Import aktualisiert."); } catch (err) { alert(err.message); }
+}
+
+/* Beispiel: Verwaltungsgebäude, 15-min-Werte 2025 */
+function beispiel() {
+  let seed = 20250101; const rnd = () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296;
+  const step = 15 * 60000, t0 = Date.UTC(2025, 0, 1), n = 365 * 96, t = new Float64Array(n), p = new Float32Array(n);
+  const ferien = [[Date.UTC(2025, 11, 22), Date.UTC(2026, 0, 1)], [Date.UTC(2025, 0, 1), Date.UTC(2025, 0, 6)]];
+  let stoerung = 0;
+  for (let i = 0; i < n; i++) {
+    const tt = t0 + i * step; t[i] = tt;
+    const d = new Date(tt), wd = d.getUTCDay(), m = (tt % D) / 60000, doy = Math.floor((tt - t0) / D);
+    const winter = 0.5 + 0.5 * Math.cos((doy - 15) / 365 * 2 * Math.PI);           // 1 im Januar, 0 im Juli
+    const sommer = Math.max(0, Math.sin((doy - 120) / 365 * 2 * Math.PI)) ** 2;
+    let v = 16 + 3 * winter;                                                       // Grundlast: Server, Lüftung, Notbeleuchtung
+    const frei = wd === 0 || wd === 6 || feiertag(tt) || ferien.some(([a, b]) => tt >= a && tt < b);
+    if (!frei) {
+      const an = m >= 6 * 60 && m < 19 * 60;
+      const kern = Math.max(0, Math.min(1, (m - 6.5 * 60) / 60)) * Math.max(0, Math.min(1, (18.5 * 60 - m) / 75));
+      v += an ? 6 : 0;
+      v += kern * (38 + 10 * winter + 18 * sommer * (m > 11 * 60 && m < 17 * 60 ? 1 : 0.4));
+      if (m >= 12 * 60 && m < 13 * 60) v -= kern * 6;
+      if (wd === 5) v -= kern * 8;
+      if (m >= 6 * 60 + 15 && m < 7 * 60 + 15 && winter > 0.6) v += 22 * winter;    // Anlaufspitze Lüftung/Heizungspumpen
+    } else if (wd === 6 && m >= 8 * 60 && m < 13 * 60) v += 5;
+    if (doy === 212 && m === 14 * 60) stoerung = 6;                                // Kältespitze im Hochsommer
+    if (stoerung > 0) { v += 35; stoerung--; }
+    if (doy >= 300 && doy < 304 && (m < 6 * 60 || m >= 20 * 60)) v += 14;           // Lüftung nachts vergessen
+    p[i] = Math.max(2, v * (1 + (rnd() - 0.5) * 0.12) + (rnd() - 0.5) * 2);
+  }
+  S.cfg = null; S.roh = null;
+  laden({t, p, step, ungueltig: 0, luecken: 0, doppelt: 0, groessteLuecke: 0, soll: n, name: "Beispiel: Verwaltungsgebäude 2025", einheit: "kW", stempel: "beginn"});
+  $("#impDet").open = false;
+}
+
+/* Export */
+function download(name, inhalt, typ) {
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([inhalt], {type: typ})); a.download = name;
+  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+}
+const dn = (s, ext) => (S.L.name.replace(/\.[a-z]+$/i, "").replace(/[^\wäöüÄÖÜß-]+/g, "_").slice(0, 60) || "lastgang") + s + "." + ext;
+const c2 = (v, d = 2) => isFinite(v) ? v.toFixed(d).replace(".", ",") : "";
+function exportCsv() {
+  const A = S.A, L = S.L, r = [];
+  r.push(["Lastgang-Analyse", L.name], ["Zeitraum", `${dstr(L.t[0])} - ${dstr(L.t[L.t.length - 1])}`], ["Intervall [min]", L.step / 60000], [], ["KENNZAHL", "Wert", "Einheit"]);
+  [["Arbeit gemessen", A.E, "kWh"], ["Jahresarbeit" + (A.hochgerechnet ? " (hochgerechnet)" : ""), A.Ea, "kWh/a"], ["Höchstlast", A.pmax, "kW"], ["Zeitpunkt Höchstlast", dtstr(A.tmax), ""],
+   ["Grundlast (5-%-Quantil)", A.grund, "kW"], ["Ø Nachtlast 1-4 Uhr", A.nacht, "kW"], ["Mittlere Leistung", A.pmean, "kW"], ["Minimum", A.pmin, "kW"], ["Benutzungsdauer", A.bd, "h/a"],
+   ["Lastfaktor", A.lastfaktor * 100, "%"], ["Grundlastanteil", A.grundAnteil * 100, "%"], ["Anteil außerhalb Nutzungszeit", A.anteilAussen * 100, "%"],
+   ["Kosten (Schätzung)", A.kosten, "€/a"], ["CO2", A.co2, "t/a"], ["Vollständigkeit", Math.min(1, L.t.length / L.soll) * 100, "%"]]
+    .forEach(([l, v, u]) => r.push([l, typeof v === "number" ? c2(v) : v, u]));
+  r.push([], ["MONAT", "Arbeit [kWh]", "außerhalb NZ [kWh]", "Höchstlast [kW]", "Zeitpunkt", "Werte", "Soll-Werte"]);
+  A.monate.forEach(m => r.push([m.label, c2(m.E, 1), c2(m.eAussen, 1), c2(m.pmax), dtstr(m.tmax), m.n, Math.round(m.soll)]));
+  const T = typtage(L, A);
+  r.push([], ["TYPTAG [kW]", "Werktag", "Samstag", "Sonn-/Feiertag"]);
+  for (let s = 0; s < T.spd; s++) r.push([fmtZeit(s * 1440 / T.spd), c2(T.mittel[0][s]), c2(T.mittel[1][s]), c2(T.mittel[2][s])]);
+  r.push([], ["TAG", "Max [kW]", "Uhrzeit Max", "Mittel [kW]", "Min [kW]", "Arbeit [kWh]"]);
+  A.tageListe.forEach(d => r.push([dstr(d.t), c2(d.max), tstr(d.tmax), c2(d.s / d.n), c2(d.min), c2(d.s * A.dt, 1)]));
+  download(dn("_Auswertung", "csv"), "﻿" + r.map(z => z.join(";")).join("\r\n"), "text/csv;charset=utf-8");
+}
+function exportLastgang() {
+  const L = S.L, z = ["Datum;Uhrzeit von;Leistung [kW];Arbeit [kWh]"], dt = L.step / H;
+  for (let i = 0; i < L.t.length; i++) z.push(`${dstr(L.t[i])};${tstr(L.t[i])};${c2(L.p[i], 3)};${c2(L.p[i] * dt, 4)}`);
+  download(dn("_bereinigt", "csv"), "﻿" + z.join("\r\n"), "text/csv;charset=utf-8");
+}
+function exportPdf() {
+  document.body.classList.add("printing");
+  $$(".panel").forEach(p => p.hidden = false);
+  requestAnimationFrame(() => { zeichne(); setTimeout(() => window.print(), 50); });
+}
+window.addEventListener("afterprint", () => { document.body.classList.remove("printing"); zeigeTab(S.tab); });
+
+/* Speichern im Browser */
+function b64(buf) { let s = ""; const b = new Uint8Array(buf); for (let i = 0; i < b.length; i += 0x8000) s += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000)); return btoa(s); }
+function unb64(s, T) { const b = atob(s), u = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return new T(u.buffer); }
+function speichere() {
+  try {
+    const {t, p, step, name, ungueltig, luecken, doppelt, groessteLuecke, soll, einheit, stempel} = S.L;
+    localStorage.setItem(KEY + ".daten", JSON.stringify({name, step, ungueltig, luecken, doppelt, groessteLuecke, soll, einheit, stempel, t: b64(t.buffer), p: b64(p.buffer)}));
+  } catch (e) { /* zu groß oder privat: dann eben nicht */ }
+  speicherePar();
+}
+function speicherePar() { try { const {cap, ...rest} = P; localStorage.setItem(KEY + ".par", JSON.stringify(rest)); } catch (e) {} }
+function ladeGespeichert() {
+  try {
+    const par = JSON.parse(localStorage.getItem(KEY + ".par") || "null"); if (par) Object.assign(P, par);
+    const tab = localStorage.getItem(KEY + ".tab"); if (tab && ZEICHNER[tab]) S.tab = tab;
+    const d = JSON.parse(localStorage.getItem(KEY + ".daten") || "null");
+    if (d) { d.t = unb64(d.t, Float64Array); d.p = unb64(d.p, Float32Array); laden(d); return true; }
+  } catch (e) {}
+  return false;
+}
+function parAnzeigen() {
+  $("#nzVon").value = fmtZeit(P.nzVon); $("#nzBis").value = fmtZeit(P.nzBis); $("#nzSa").checked = P.nzSa; $("#nzFt").checked = P.nzFt;
+  $("#ap").value = P.ap; $("#lp").value = P.lp; $("#lp2").value = P.lp; $("#co2").value = P.co2; $("#eta").value = P.eta; $("#dod").value = P.dod;
+  $("#ckwh").value = P.ckwh; $("#reserve").value = P.reserve; $("#heatMax").value = P.heatMax; $("#typSaison").value = P.typSaison; $("#typBand").checked = P.typBand;
+}
+
+/* Tooltip */
+function initTip() {
+  const tip = $("#tip");
+  document.addEventListener("mousemove", ev => {
+    const cv = ev.target; const fn = HOVER.get(cv);
+    if (!fn) { tip.hidden = true; return; }
+    const r = cv.getBoundingClientRect(), txt = fn(ev.clientX - r.left, ev.clientY - r.top);
+    if (!txt) { tip.hidden = true; return; }
+    tip.textContent = txt; tip.hidden = false;
+    const x = Math.min(ev.clientX + 14, innerWidth - tip.offsetWidth - 8), y = ev.clientY + 16 + tip.offsetHeight > innerHeight ? ev.clientY - tip.offsetHeight - 10 : ev.clientY + 16;
+    tip.style.left = x + "px"; tip.style.top = y + "px";
+  });
+}
+
+function init() {
+  $("#tabs").innerHTML = TABS.map(([id, l]) => `<button class="tab" role="tab" type="button" data-tab="${id}">${l}</button>`).join("");
+  $("#tabs").onclick = ev => { const b = ev.target.closest(".tab"); if (b) zeigeTab(b.dataset.tab); };
+  $$("[data-click]").forEach(b => b.onclick = () => $("#" + b.dataset.click).click());
+  $("#bOpen").onclick = () => $("#file").click();
+  $("#file").onchange = async ev => { const f = ev.target.files[0]; if (f) importiere(dekodiere(await f.arrayBuffer()), f.name); ev.target.value = ""; };
+  $("#bDemo").onclick = beispiel;
+  $("#bPaste").onclick = () => { $("#pasteTxt").value = ""; $("#dlgPaste").showModal(); };
+  $("#pasteCancel").onclick = () => $("#dlgPaste").close();
+  $("#pasteOk").onclick = () => { const t = $("#pasteTxt").value; $("#dlgPaste").close(); if (t.trim()) importiere(t, "Aus Excel eingefügt"); };
+  $("#bCsv").onclick = exportCsv; $("#bPdf").onclick = exportPdf; $("#bExportLg").onclick = exportLastgang; $("#bApply").onclick = uebernehmeImport;
+  // Drag & Drop
+  const zone = document.body;
+  zone.addEventListener("dragover", ev => { ev.preventDefault(); $("#leer").classList.add("drag"); });
+  zone.addEventListener("dragleave", ev => { if (ev.target === zone || ev.relatedTarget === null) $("#leer").classList.remove("drag"); });
+  zone.addEventListener("drop", async ev => { ev.preventDefault(); $("#leer").classList.remove("drag"); const f = ev.dataTransfer.files[0]; if (f) importiere(dekodiere(await f.arrayBuffer()), f.name); });
+  // Woche
+  $("#wPrev").onclick = () => { S.woche -= 7 * D; setzeWoche(S.woche); zeichne(); };
+  $("#wNext").onclick = () => { S.woche += 7 * D; setzeWoche(S.woche); zeichne(); };
+  $("#wPeak").onclick = () => { setzeWoche(S.A.tmax); zeichne(); };
+  $("#wDate").onchange = ev => { if (ev.target.value) { setzeWoche(Date.parse(ev.target.value + "T00:00:00Z")); zeichne(); } };
+  // Parameter
+  const zahlIn = (id, key, cb) => $(id).addEventListener("input", ev => { const v = parseFloat(ev.target.value); if (isFinite(v)) { P[key] = v; if (key === "lp") $(id === "#lp" ? "#lp2" : "#lp").value = v; speicherePar(); cb ? cb() : neuRechnen(); } });
+  zahlIn("#ap", "ap"); zahlIn("#lp", "lp"); zahlIn("#lp2", "lp"); zahlIn("#co2", "co2");
+  ["#eta", "#dod", "#ckwh", "#reserve"].forEach(id => zahlIn(id, id.slice(1), () => zKappung()));
+  const zeitIn = (id, key) => $(id).addEventListener("change", ev => { const m = uhrzeit(ev.target.value); if (m !== null) { P[key] = m; speicherePar(); neuRechnen(); } });
+  zeitIn("#nzVon", "nzVon"); zeitIn("#nzBis", "nzBis");
+  $("#nzSa").onchange = ev => { P.nzSa = ev.target.checked; speicherePar(); neuRechnen(); };
+  $("#nzFt").onchange = ev => { P.nzFt = ev.target.checked; speicherePar(); neuRechnen(); };
+  $("#heatMax").onchange = ev => { P.heatMax = ev.target.value; speicherePar(); zeichne(); };
+  $("#typSaison").onchange = ev => { P.typSaison = ev.target.value; speicherePar(); zeichne(); };
+  $("#typBand").onchange = ev => { P.typBand = ev.target.checked; speicherePar(); zeichne(); };
+  $("#capR").oninput = ev => { P.cap = +ev.target.value; zKappung(); };
+  $("#capV").onchange = ev => { const v = parseFloat(ev.target.value); if (v > 0) { P.cap = v; zKappung(); } };
+  $("#tCap").onclick = ev => { const tr = ev.target.closest("tr[data-g]"); if (tr) { P.cap = +tr.dataset.g; zKappung(); } };
+  parAnzeigen();
+  initTip();
+  let rt; new ResizeObserver(() => { clearTimeout(rt); rt = setTimeout(zeichne, 80); }).observe($("main"));
+  new MutationObserver(zeichne).observe(document.documentElement, {attributes: true, attributeFilter: ["data-theme"]});
+  try { matchMedia("(prefers-color-scheme: dark)").addEventListener("change", zeichne); } catch (e) {}
+  ladeGespeichert();
+}
+
+/* Testschnittstelle */
+window.__LG = {erkenne, baue, analysiere, kappung, typtage, feiertag, importiere, beispiel, P, S};
+document.addEventListener("DOMContentLoaded", init);
+</script>
+<script src="../../assets/js/toolbar.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,885 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Übungsaufgaben · ATools</title>
+<meta name="description" content="Übungsaufgaben mit Zufallswerten und ausführlichen Lösungen: Wirtschaftlichkeit, Photovoltaik, Wärmepumpe, Lastgang, Vertragsmanagement.">
+<link rel="icon" href="../../assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#eef1f4; --panel:#fff; --panel2:#f5f7f9; --ink:#132130; --muted:#5a6978; --line:#d6dde4;
+  --brand:#1d4f7c; --brand-soft:#dbe6f1; --sun:#c7780a; --sun-soft:#fbecd2; --good:#2c7d48;
+  --f-disp:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0d141b; --panel:#141e28; --panel2:#18242f; --ink:#e3e9ef; --muted:#93a2b1; --line:#283746;
+  --brand:#6fa8dc; --brand-soft:#1b2f43; --sun:#f0a53a; --sun-soft:#3a2a12; --good:#5bbf7c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d141b; --panel:#141e28; --panel2:#18242f; --ink:#e3e9ef; --muted:#93a2b1; --line:#283746;
+  --brand:#6fa8dc; --brand-soft:#1b2f43; --sun:#f0a53a; --sun-soft:#3a2a12; --good:#5bbf7c; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 var(--f-body)}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--sun);outline-offset:1px}
+header.top{display:flex;flex-wrap:wrap;align-items:center;gap:10px 20px;padding:12px max(16px,env(safe-area-inset-left));background:var(--panel);border-bottom:1px solid var(--line)}
+header.top h1{font:600 28px/1 var(--f-disp);margin:0}
+header.top .sub{color:var(--muted);font-size:12.5px}
+.acts{display:flex;flex-wrap:wrap;gap:8px;margin-left:auto}
+.btn{border:1px solid var(--line);background:var(--panel2);border-radius:7px;padding:7px 12px;cursor:pointer;font-size:13px;white-space:nowrap}
+.btn:hover{border-color:var(--brand)}
+.btn.pri{background:var(--brand);border-color:var(--brand);color:var(--panel)}
+
+.layout{display:grid;grid-template-columns:340px minmax(0,1fr);gap:16px;padding:16px max(16px,env(safe-area-inset-right)) 40px max(16px,env(safe-area-inset-left));align-items:start}
+@media (max-width:900px){.layout{grid-template-columns:1fr}}
+.side{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto}
+@media (max-width:900px){.side{position:static;max-height:none}}
+.side h2{font:600 19px var(--f-disp);margin:14px 0 6px}
+.side h2:first-child{margin-top:0}
+.side label.f{display:grid;gap:3px;font-size:12.5px;color:var(--muted);margin-bottom:8px}
+.side input[type=text],.side input[type=number],.side input[type=date],.side select{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:6px 8px;color:var(--ink);width:100%}
+.side .two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.chk{display:flex;gap:7px;align-items:flex-start;font-size:13px;margin:4px 0;cursor:pointer}
+.chk input{margin-top:3px}
+.thema{border:1px solid var(--line);border-radius:8px;padding:6px 9px;margin-bottom:6px;background:var(--panel2)}
+.thema > .chk{font-weight:600}
+.thema .typen{padding-left:20px}
+.thema .typen .chk{font-size:12.5px;color:var(--muted)}
+.hint{font-size:12px;color:var(--muted);margin:4px 0 8px}
+.lvl{font-size:12px;color:var(--muted);background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:6px 8px;margin-bottom:8px}
+
+/* Blätter */
+.sheets{display:grid;gap:16px;justify-items:center}
+.sheet{background:#fff;color:#111;width:min(210mm,100%);min-height:297mm;padding:16mm 16mm 18mm;box-shadow:0 2px 10px rgba(0,0,0,.12);border-radius:2px;font:10.5pt/1.45 var(--f-body)}
+.sheet h1{font:600 20pt/1.1 var(--f-disp);margin:0 0 2mm}
+.sheet h2{font:600 14pt/1.2 var(--f-disp);margin:7mm 0 2mm;break-after:avoid}
+.sheet .meta{display:grid;grid-template-columns:1fr 1fr;gap:1mm 8mm;font-size:9.5pt;border-top:1.5pt solid #1d4f7c;border-bottom:.6pt solid #999;padding:2.5mm 0;margin-bottom:4mm}
+.sheet .meta span b{font-weight:600}
+.sheet .namen{display:grid;grid-template-columns:2fr 1fr;gap:6mm;margin:3mm 0 4mm;font-size:9.5pt}
+.sheet .namen div{border-bottom:.6pt solid #333;padding-top:7mm;color:#555}
+.aufg{break-inside:auto;margin-bottom:5mm}
+.aufg .kopf{display:flex;justify-content:space-between;align-items:baseline;border-bottom:.6pt solid #1d4f7c;margin:6mm 0 2mm;break-after:avoid}
+.aufg .kopf h2{margin:0}
+.aufg .kopf > span{font-size:9.5pt;color:#444;white-space:nowrap;margin-left:4mm}
+.aufg p{margin:1.5mm 0}
+table.d{border-collapse:collapse;margin:2mm 0 3mm;font-size:9.5pt;break-inside:avoid}
+table.d td,table.d th{border:.5pt solid #999;padding:1.2mm 2.5mm;text-align:left;vertical-align:top}
+table.d th{background:#eef2f6;font-weight:600}
+table.d td.n{text-align:right;font-family:var(--f-mono);font-size:9pt;white-space:nowrap}
+ol.teil{margin:2mm 0 0;padding-left:7mm}
+ol.teil > li{margin:2mm 0;break-inside:avoid}
+ol.teil > li .pk{float:right;font-size:9pt;color:#444;margin-left:4mm}
+figure.fig{margin:2mm 0 3mm;break-inside:avoid}
+figure.fig svg{display:block;height:auto}
+figure.fig figcaption{font-size:8.5pt;color:#555;margin-top:1mm}
+.platz{border:.5pt dashed #bbb;border-radius:1.5mm;margin:1.5mm 0 3mm;background:repeating-linear-gradient(#fff 0 6.5mm,#e6e6e6 6.5mm calc(6.5mm + .4pt))}
+.loes ol.teil > li{margin:2.5mm 0}
+.lw{font-family:var(--f-mono);font-size:9pt;background:#f4f6f8;border-left:2pt solid #2c7d48;padding:1.5mm 3mm;margin:1mm 0;white-space:pre-wrap}
+.ek{font-size:9.3pt;line-height:1.45;color:#1f3550;background:#eef3f9;border-left:2pt solid #1d63a8;padding:1.5mm 3mm;margin:1mm 0 .8mm}
+.ek b{color:#1d4f7c}
+.erg{font-weight:600;color:#1f5f35}
+.punkte{border-collapse:collapse;font-size:9.5pt;margin:3mm 0}
+.punkte td,.punkte th{border:.5pt solid #999;padding:1mm 2.5mm;text-align:center}
+.fuss{font-size:8.5pt;color:#555;margin-top:6mm;border-top:.5pt solid #ccc;padding-top:2mm}
+.tag{display:inline-block;font-size:8pt;border:.5pt solid #1d4f7c;color:#1d4f7c;border-radius:1mm;padding:0 1.5mm;margin-left:2mm;vertical-align:middle}
+
+@media print{
+  @page{size:A4;margin:0}
+  body{background:#fff}
+  header.top,.side,#atools-home{display:none!important}
+  .layout{display:block;padding:0}
+  .sheets{display:block}
+  .sheet{box-shadow:none;width:210mm;min-height:0;break-after:page;border-radius:0}
+  .sheet:last-child{break-after:auto}
+  .noprint{display:none!important}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div>
+    <h1>Übungsaufgaben</h1>
+    <div class="sub">Aufgaben mit Zufallswerten · ausführliche Lösungen · Varianten je Prüfling</div>
+  </div>
+  <div class="acts">
+    <button class="btn" id="bNeu" type="button" title="Neue Zahlenwerte erzeugen">Neue Zahlen</button>
+    <button class="btn" id="bLoes" type="button">Nur Lösungen drucken</button>
+    <button class="btn pri" id="bDruck" type="button">PDF / Drucken</button>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="side" aria-label="Einstellungen">
+    <h2>Prüfung</h2>
+    <label class="f">Titel<input type="text" id="titel"></label>
+    <label class="f">Zielgruppe<select id="gruppe"></select></label>
+    <label class="f">Niveau<select id="niveau"><option value="auto">automatisch nach Zielgruppe</option><option value="1">Grundlagen</option><option value="2">Fortgeschritten</option><option value="3">Vertieft</option></select></label>
+    <div class="lvl" id="lvlInfo"></div>
+    <label class="f">Organisation im Aufgabentext (mit Artikel)<input type="text" id="org" placeholder="z. B. die Kreisverwaltung, der Landkreis"></label>
+    <div class="two">
+      <label class="f">Datum<input type="date" id="datum"></label>
+      <label class="f">Bearbeitungszeit (min)<input type="number" id="zeit" min="0" step="5" placeholder="auto"></label>
+    </div>
+    <label class="f">Hilfsmittel<input type="text" id="hilfs"></label>
+
+    <h2>Aufgaben</h2>
+    <div id="themen"></div>
+    <div class="two">
+      <label class="f">Anzahl Aufgaben<input type="number" id="anzahl" min="1" max="12"></label>
+      <label class="f">Varianten<input type="number" id="varianten" min="1" max="40"></label>
+    </div>
+    <label class="f">Startwert für Zufallszahlen<input type="number" id="seed" min="1" step="1"></label>
+    <p class="hint">Gleicher Startwert = gleiche Aufgaben. Jede Variante hat eigene Zahlen bei gleichen Aufgabentypen, so dass Nachbarn nicht abschreiben können.</p>
+    <label class="chk"><input type="checkbox" id="mischen"> Reihenfolge der Aufgaben je Variante mischen</label>
+
+    <h2>Ausgabe</h2>
+    <label class="chk"><input type="checkbox" id="oLoes"> Lösungen anzeigen und drucken</label>
+    <label class="chk"><input type="checkbox" id="oPlatz"> Platz für Rechenwege auf dem Aufgabenblatt</label>
+    <label class="chk"><input type="checkbox" id="oNoten"> Notenschlüssel (IHK) im Lösungsteil</label>
+    <label class="chk"><input type="checkbox" id="oName"> Felder für Name und Prüflingsnummer</label>
+  </aside>
+  <main class="sheets" id="blaetter" aria-live="polite"></main>
+</div>
+
+<script>
+"use strict";
+/* =============================================================================
+   Übungsaufgaben-Generator
+   Jede Aufgabe ist ein Generator (rng, niveau, ctx) → {titel, thema, text, daten, teil[]}.
+   Zwischenergebnisse werden auf die angezeigte Genauigkeit gerundet und so weiterverwendet,
+   damit Rechenweg und Musterlösung exakt zusammenpassen.
+   ============================================================================= */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const KEY = "uebungsaufgaben.v1";
+
+/* ---------------------------------------------------------------- Zahlen */
+const nf = {}; const NF = d => nf[d] || (nf[d] = new Intl.NumberFormat("de-DE", {minimumFractionDigits: d, maximumFractionDigits: d}));
+const z = (v, d = 0) => NF(d).format(Math.abs(v) < 1e-12 ? 0 : v);
+const eur = (v, d = 2) => z(v, d) + " €";
+const ct = (v, d = 2) => z(v, d) + " ct/kWh";
+const kwh = (v, d = 0) => z(v, d) + " kWh";
+const pr = (v, d = 1) => z(v, d) + " %";
+const rd = (v, d = 2) => { const f = Math.pow(10, d); return Math.round(v * f + (v >= 0 ? 1e-9 : -1e-9)) / f; };
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
+const datumStr = d => `${String(d.getUTCDate()).padStart(2, "0")}.${String(d.getUTCMonth() + 1).padStart(2, "0")}.${d.getUTCFullYear()}`;
+
+/* Zufall: mulberry32, reproduzierbar */
+function RNG(seed) {
+  let a = seed >>> 0;
+  const r = () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  r.int = (lo, hi) => lo + Math.floor(r() * (hi - lo + 1));
+  r.step = (lo, hi, st) => rd(lo + st * r.int(0, Math.round((hi - lo) / st)), 6);
+  r.pick = arr => arr[Math.floor(r() * arr.length)];
+  r.shuffle = arr => { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  return r;
+}
+
+/* Bausteine für Aufgaben */
+const tab = (zeilen, kopf) => `<table class="d">${kopf ? `<tr>${kopf.map(k => `<th>${k}</th>`).join("")}</tr>` : ""}${zeilen.map(r => `<tr>${r.map((c, i) => `<td${kopf && i > 0 ? ' class="n"' : ""}>${c}</td>`).join("")}</tr>`).join("")}</table>`;
+const ek = t => `<p class="ek"><b>Lösungsansatz:</b> ${t}</p>`;
+const lw = (...zeilen) => `<div class="lw">${zeilen.join("\n")}</div>`;
+const erg = t => `<span class="erg">${t}</span>`;
+const T = (f, p, l, platz = 3) => ({f, p, l, platz});
+
+const rbf = (i, n) => (Math.pow(1 + i, n) - 1) / (i * Math.pow(1 + i, n));
+const anf = (i, n) => 1 / rbf(i, n);
+
+/* ---------------------------------------------------------------- Diagramme (SVG, druckfest) */
+const FB = {blau: "#1d63a8", orange: "#d9730d", gruen: "#2a8a5e", rot: "#b3412f", grau: "#6b7785", hell: "#dbe6f1", ink: "#1a2633"};
+function skala(min, max, n = 5) {
+  if (!(max > min)) max = min + 1;
+  const raw = (max - min) / n, mag = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / mag;
+  const st = (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * mag;
+  const lo = Math.floor(min / st) * st, hi = Math.ceil(max / st) * st, t = [];
+  for (let v = lo; v <= hi + st / 1e6; v += st) t.push(rd(v, 8));
+  return {lo, hi, t, st};
+}
+const svgText = (x, y, t, o = {}) => `<text x="${rd(x, 1)}" y="${rd(y, 1)}" font-size="${o.fs || 10}" fill="${o.fill || FB.ink}" text-anchor="${o.a || "start"}"${o.w ? ` font-weight="${o.w}"` : ""}${o.rot ? ` transform="rotate(${o.rot} ${rd(x, 1)} ${rd(y, 1)})"` : ""} font-family="IBM Plex Sans, Arial, sans-serif">${t}</text>`;
+const fig = (svg, cap) => `<figure class="fig">${svg}${cap ? `<figcaption>${cap}</figcaption>` : ""}</figure>`;
+function achsen(B, ys, ylabel, fmt = v => z(v, ys.st < 1 ? 1 : 0)) {
+  let s = "";
+  for (const v of ys.t) { const y = B.y + B.h - (v - ys.lo) / (ys.hi - ys.lo) * B.h; s += `<line x1="${B.x}" x2="${B.x + B.w}" y1="${rd(y, 1)}" y2="${rd(y, 1)}" stroke="#e2e6ea"/>` + svgText(B.x - 5, y + 3.5, fmt(v), {a: "end", fill: FB.grau, fs: 9}); }
+  s += `<line x1="${B.x}" x2="${B.x}" y1="${B.y}" y2="${B.y + B.h}" stroke="${FB.grau}"/><line x1="${B.x}" x2="${B.x + B.w}" y1="${B.y + B.h}" y2="${B.y + B.h}" stroke="${FB.grau}"/>`;
+  if (ylabel) s += svgText(B.x - 38, B.y + B.h / 2, ylabel, {rot: -90, a: "middle", fill: FB.grau, fs: 9.5});
+  return s;
+}
+/* Säulen mit optionaler Grenzlinie */
+function svgSaeulen(cats, vals, o = {}) {
+  const W = o.w || 520, H = o.h || 210, B = {x: 52, y: 14, w: W - 64, h: H - 46};
+  const ys = skala(0, Math.max(...vals, o.grenze || 0) * 1.08);
+  const Y = v => B.y + B.h - (v - ys.lo) / (ys.hi - ys.lo) * B.h, bw = B.w / cats.length;
+  let s = achsen(B, ys, o.ylabel);
+  vals.forEach((v, k) => {
+    const x = B.x + k * bw + bw * 0.15, farbe = o.farben ? o.farben[k] : FB.blau;
+    s += `<rect x="${rd(x, 1)}" y="${rd(Y(v), 1)}" width="${rd(bw * 0.7, 1)}" height="${rd(Y(0) - Y(v), 1)}" fill="${farbe}"/>`;
+    if (o.werte !== false) s += svgText(x + bw * 0.35, Y(v) - 3, z(v, o.dez ?? 1), {a: "middle", fs: 8.5});
+    s += svgText(B.x + (k + 0.5) * bw, B.y + B.h + 13, cats[k], {a: "middle", fs: 8.5, fill: FB.grau});
+  });
+  if (o.grenze !== undefined) s += `<line x1="${B.x}" x2="${B.x + B.w}" y1="${rd(Y(o.grenze), 1)}" y2="${rd(Y(o.grenze), 1)}" stroke="${FB.rot}" stroke-dasharray="5 3" stroke-width="1.4"/>` + svgText(B.x + B.w, Y(o.grenze) - 4, o.grenzText || "", {a: "end", fill: FB.rot, fs: 9, w: 600});
+  if (o.xlabel) s += svgText(B.x + B.w, H - 4, o.xlabel, {a: "end", fill: FB.grau, fs: 9});
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:${W * 0.3}mm" role="img">${s}</svg>`;
+}
+/* Linien (x linear) mit Markierungen */
+function svgLinien(serien, o = {}) {
+  const W = o.w || 520, H = o.h || 220, B = {x: 58, y: 24, w: W - 72, h: H - 58};
+  const xs = serien.flatMap(s => s.p.map(q => q[0])), yv = serien.flatMap(s => s.p.map(q => q[1]));
+  const xsk = skala(o.xmin ?? Math.min(...xs), o.xmax ?? Math.max(...xs)), ysk = skala(o.ymin ?? Math.min(0, ...yv), Math.max(...yv) * 1.05);
+  const X = v => B.x + (v - xsk.lo) / (xsk.hi - xsk.lo) * B.w, Y = v => B.y + B.h - (v - ysk.lo) / (ysk.hi - ysk.lo) * B.h;
+  let s = achsen(B, ysk, o.ylabel, o.yfmt);
+  for (const v of xsk.t) s += svgText(X(v), B.y + B.h + 13, (o.xfmt || (q => z(q, xsk.st < 1 ? 1 : 0)))(v), {a: "middle", fs: 9, fill: FB.grau});
+  let lx = B.x;
+  serien.forEach(se => {
+    s += `<polyline fill="none" stroke="${se.farbe}" stroke-width="1.8"${se.dash ? ` stroke-dasharray="${se.dash}"` : ""} points="${se.p.map(q => `${rd(X(q[0]), 1)},${rd(Y(q[1]), 1)}`).join(" ")}"/>`;
+    s += `<line x1="${lx}" x2="${lx + 16}" y1="10" y2="10" stroke="${se.farbe}" stroke-width="2"${se.dash ? ` stroke-dasharray="${se.dash}"` : ""}/>` + svgText(lx + 20, 13.5, se.name, {fs: 9});
+    lx += 32 + se.name.length * 5.2;
+  });
+  (o.marken || []).forEach(m => { s += `<circle cx="${rd(X(m.x), 1)}" cy="${rd(Y(m.y), 1)}" r="3.5" fill="${m.farbe || FB.ink}"/>` + (m.text ? svgText(X(m.x) + (m.dx ?? 6), Y(m.y) + (m.dy ?? -6), m.text, {fs: 9, w: 600, a: m.a || "start"}) : "") + (m.lot ? `<line x1="${rd(X(m.x), 1)}" x2="${rd(X(m.x), 1)}" y1="${rd(Y(m.y), 1)}" y2="${B.y + B.h}" stroke="${FB.grau}" stroke-dasharray="3 3"/>` : ""); });
+  if (o.xlabel) s += svgText(B.x + B.w, H - 4, o.xlabel, {a: "end", fill: FB.grau, fs: 9});
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:${W * 0.3}mm" role="img">${s}</svg>`;
+}
+/* Waagerechte Balken (Anteile) */
+function svgAnteile(items, o = {}) {
+  const W = o.w || 520, zh = 20, H = items.length * zh + 22, max = Math.max(...items.map(i => i.v)), lw = o.lw || 170, bw = W - lw - 80;
+  let s = "";
+  items.forEach((it, k) => {
+    const y = 8 + k * zh, w = max > 0 ? it.v / max * bw : 0;
+    s += svgText(lw - 6, y + 12, it.label, {a: "end", fs: 9}) + `<rect x="${lw}" y="${y + 3}" width="${rd(w, 1)}" height="${zh - 7}" fill="${it.farbe || FB.blau}"/>` + svgText(lw + w + 5, y + 12.5, it.text || z(it.v, 2), {fs: 9});
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:${W * 0.3}mm" role="img">${s}</svg>`;
+}
+/* Zeitstrahl mit Ereignissen (Datum-Objekte): nummerierte Punkte, Legende darunter – keine Überlappung */
+function svgZeitstrahl(ev, o = {}) {
+  const W = o.w || 560, zeilen = Math.ceil(ev.length / 2), H = 70 + zeilen * 16, x0 = 24, x1 = W - 24, t0 = Math.min(...ev.map(e => e.d.getTime())), t1 = Math.max(...ev.map(e => e.d.getTime()));
+  const X = t => x0 + (t - t0) / (t1 - t0 || 1) * (x1 - x0);
+  let s = `<line x1="${x0}" x2="${x1}" y1="26" y2="26" stroke="${FB.grau}" stroke-width="2"/>`;
+  (o.spannen || []).forEach(sp => { const a = X(sp.a.getTime()), b = X(sp.b.getTime()); s += `<rect x="${rd(a, 1)}" y="20" width="${rd(b - a, 1)}" height="12" fill="${sp.farbe}" opacity=".3"/>` + svgText((a + b) / 2, 46, sp.text, {a: "middle", fs: 8.5, fill: sp.farbe}); });
+  let letztesX = -99, ebene = 0;
+  ev.forEach((e, k) => {
+    const x = X(e.d.getTime()); ebene = x - letztesX < 16 ? ebene + 1 : 0; letztesX = x;
+    const y = 12 - ebene * 0;
+    s += `<circle cx="${rd(x, 1)}" cy="26" r="4" fill="${e.farbe || FB.ink}"/>` + `<circle cx="${rd(x + ebene * 14, 1)}" cy="${y - 2}" r="6.5" fill="#fff" stroke="${e.farbe || FB.ink}"/>` + svgText(x + ebene * 14, y + 1.5, k + 1, {a: "middle", fs: 8, w: 700, fill: e.farbe || FB.ink});
+    const sp = k % 2, zl = Math.floor(k / 2);
+    s += svgText(x0 + sp * (W / 2), 66 + zl * 16, `${k + 1}  ${e.text}: ${datumStr(e.d)}`, {fs: 9, fill: e.farbe || FB.ink, w: 600});
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:${W * 0.3}mm" role="img">${s}</svg>`;
+}
+/* Übersichtsschaltplan PV-Anlage (einpolig, vereinfacht) mit nummerierten Bauteilen */
+const PV_BAUTEILE = [
+  ["modul", "PV-Generator (Module in Reihe = Strang/String)", "wandelt Sonnenlicht in Gleichstrom; Reihenschaltung erhöht die Spannung, Parallelschaltung der Stränge den Strom"],
+  ["gak", "Generatoranschlusskasten mit Strangsicherungen und DC-Überspannungsschutz (SPD Typ 2)", "fasst die Stränge zusammen, schützt vor Rückströmen und Überspannungen"],
+  ["dcs", "DC-Freischalter (Lasttrennschalter)", "trennt den PV-Generator lastfrei vom Wechselrichter, z. B. für Wartung und Feuerwehr"],
+  ["wr", "Wechselrichter mit MPP-Tracker", "wandelt Gleich- in netzkonformen Wechsel-/Drehstrom und regelt den Arbeitspunkt maximaler Leistung"],
+  ["ls", "Leitungsschutzschalter und Fehlerstrom-Schutzeinrichtung (RCD)", "schützt die AC-Leitung vor Überlast/Kurzschluss und Personen vor Fehlerströmen"],
+  ["na", "NA-Schutz (Netz- und Anlagenschutz)", "trennt die Anlage bei unzulässiger Spannung/Frequenz automatisch vom Netz (VDE-AR-N 4105)"],
+  ["zaehler", "Zweirichtungszähler", "erfasst getrennt Netzbezug und Einspeisung"],
+  ["hak", "Hausanschlusskasten (Netzanschluss)", "Übergabestelle zum Verteilnetz mit Hausanschlusssicherungen"],
+  ["pa", "Potentialausgleichsschiene / Erdung", "verbindet Modulrahmen und Gestell mit dem Potentialausgleich (Schutz bei Fehlern und Blitzströmen)"]
+];
+function svgPVSchaltplan(nr, o = {}) {
+  const W = 720, H = 300, c = FB.ink, n = k => nr[k];
+  const kreis = (x, y, k) => `<circle cx="${x}" cy="${y}" r="9" fill="#fff" stroke="${FB.blau}" stroke-width="1.5"/>` + svgText(x, y + 3.6, n(k), {a: "middle", fs: 10.5, w: 700, fill: FB.blau});
+  const modul = (x, y) => `<rect x="${x}" y="${y}" width="34" height="46" fill="#eef3f8" stroke="${c}"/>` + [1, 2].map(i => `<line x1="${x + i * 11.3}" x2="${x + i * 11.3}" y1="${y}" y2="${y + 46}" stroke="#9fb3c8" stroke-width=".7"/>`).join("") + [1, 2, 3].map(i => `<line x1="${x}" x2="${x + 34}" y1="${y + i * 11.5}" y2="${y + i * 11.5}" stroke="#9fb3c8" stroke-width=".7"/>`).join("");
+  let s = "";
+  // zwei Stränge
+  for (const [k, y] of [[0, 30], [1, 118]]) {
+    for (let m = 0; m < 3; m++) s += modul(20 + m * 46, y) + (m < 2 ? `<line x1="${54 + m * 46}" x2="${66 + m * 46}" y1="${y + 23}" y2="${y + 23}" stroke="${c}"/>` : "");
+    s += svgText(165, y + 27, "⋯", {fs: 14}) + modul(184, y);
+    s += `<polyline fill="none" stroke="${c}" points="20,${y + 23} 10,${y + 23} 10,${y + 60} 236,${y + 60} 236,${y + 30} 254,${y + 30}"/>`;
+    s += `<polyline fill="none" stroke="${c}" points="218,${y + 23} 230,${y + 23} 230,${y + 16} 254,${y + 16}"/>`;
+    s += svgText(238, y + 12, "+", {fs: 10}) + svgText(240, y + 46, "−", {fs: 10});
+    s += svgText(26, y - 4, k === 0 ? "Strang 1" : (o.np > 2 ? `Strang 2 … ${o.np} (gleich aufgebaut)` : "Strang 2"), {fs: 8.5, fill: FB.grau});
+  }
+  // GAK
+  s += `<rect x="254" y="34" width="58" height="140" fill="#fff" stroke="${c}" stroke-width="1.3"/>`;
+  for (const y of [46, 134]) s += `<rect x="268" y="${y - 4}" width="16" height="8" fill="#fff" stroke="${c}"/><line x1="268" x2="284" y1="${y}" y2="${y}" stroke="${c}"/>`;
+  s += `<rect x="290" y="88" width="12" height="22" fill="#fff" stroke="${c}"/><path d="M296 92 l-3 7 h6 l-3 7" fill="none" stroke="${c}"/><line x1="296" x2="296" y1="110" y2="124" stroke="${c}"/><line x1="290" x2="302" y1="124" y2="124" stroke="${c}"/>`;
+  s += kreis(283, 196, "gak");
+  // DC-Leitung → DC-Freischalter
+  s += `<line x1="312" x2="352" y1="104" y2="104" stroke="${c}" stroke-width="1.5"/><path d="M328 100 l6 8 M332 100 l6 8" stroke="${c}"/>` + svgText(332, 96, "DC", {a: "middle", fs: 8, fill: FB.grau});
+  s += `<line x1="352" x2="362" y1="104" y2="104" stroke="${c}"/><line x1="362" x2="380" y1="104" y2="92" stroke="${c}" stroke-width="1.5"/><circle cx="362" cy="104" r="1.8" fill="${c}"/><circle cx="382" cy="104" r="1.8" fill="${c}"/>` + kreis(371, 128, "dcs");
+  // Wechselrichter
+  s += `<line x1="382" x2="398" y1="104" y2="104" stroke="${c}"/><rect x="398" y="78" width="52" height="52" fill="#fff" stroke="${c}" stroke-width="1.3"/><line x1="398" x2="450" y1="130" y2="78" stroke="${c}"/>` + svgText(409, 96, "=", {fs: 15}) + svgText(438, 123, "~", {fs: 15, a: "middle"}) + kreis(462, 70, "wr");
+  // AC: LS/RCD
+  s += `<line x1="450" x2="480" y1="104" y2="104" stroke="${c}" stroke-width="1.5"/><path d="M459 100 l6 8 M463 100 l6 8 M467 100 l6 8" stroke="${c}"/>` + svgText(466, 96, "AC", {a: "middle", fs: 8, fill: FB.grau});
+  s += `<rect x="480" y="92" width="26" height="24" fill="#fff" stroke="${c}"/><line x1="486" x2="500" y1="110" y2="98" stroke="${c}"/><rect x="494" y="96" width="6" height="5" fill="${c}"/>` + kreis(493, 140, "ls");
+  // NA-Schutz
+  s += `<line x1="506" x2="520" y1="104" y2="104" stroke="${c}"/><rect x="520" y="90" width="34" height="28" fill="#fff" stroke="${c}"/>` + svgText(537, 108, "U f", {a: "middle", fs: 9.5, w: 600}) + kreis(537, 140, "na");
+  // Zähler
+  s += `<line x1="554" x2="570" y1="104" y2="104" stroke="${c}"/><rect x="570" y="86" width="40" height="36" fill="#fff" stroke="${c}"/>` + svgText(590, 101, "kWh", {a: "middle", fs: 9, w: 600}) + svgText(590, 115, "⇄", {a: "middle", fs: 11}) + kreis(590, 140, "zaehler");
+  // HAK / Netz
+  s += `<line x1="610" x2="626" y1="104" y2="104" stroke="${c}"/><rect x="626" y="88" width="30" height="32" fill="#fff" stroke="${c}" stroke-width="1.3"/>` + [96, 104, 112].map(y => `<rect x="634" y="${y - 2.5}" width="14" height="5" fill="#fff" stroke="${c}"/>`).join("") + kreis(641, 140, "hak");
+  s += `<line x1="656" x2="676" y1="104" y2="104" stroke="${c}"/>` + svgText(690, 101, "Netz", {a: "middle", fs: 9, w: 600}) + svgText(690, 112, "3/N/PE", {a: "middle", fs: 7.5, fill: FB.grau});
+  // Potentialausgleich
+  s += `<polyline fill="none" stroke="${FB.gruen}" stroke-dasharray="4 2" points="200,${118 + 46} 200,250 520,250"/><line x1="440" x2="440" y1="130" y2="250" stroke="${FB.gruen}" stroke-dasharray="4 2"/>`;
+  s += svgText(204, 240, "Modulrahmen/Gestell", {fs: 8, fill: FB.gruen}) + ``;
+  s += `<rect x="440" y="244" width="110" height="12" fill="${FB.gruen}" opacity=".25" stroke="${FB.gruen}"/>` + [0, 1, 2].map(i => `<line x1="${560 + i * 0}" x2="${560}" y1="250" y2="262" stroke="${FB.gruen}"/>`).join("") + `<line x1="550" x2="560" y1="250" y2="250" stroke="${FB.gruen}"/>` + [0, 1, 2].map(i => `<line x1="${553 + i * 3}" x2="${567 - i * 3}" y1="${263 + i * 3}" y2="${263 + i * 3}" stroke="${FB.gruen}"/>`).join("") + kreis(495, 276, "pa");
+  s += kreis(150, 14, "modul");
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:180mm" role="img" aria-label="Übersichtsschaltplan PV-Anlage">${s}</svg>`;
+}
+
+/* =============================================================================
+   Aufgabenbibliothek
+   ============================================================================= */
+const THEMEN = {
+  wirt: "Wirtschaftlichkeit",
+  pv: "Photovoltaik",
+  wp: "Wärmepumpe",
+  last: "Lastgang & Verbrauch",
+  vert: "Vertragsmanagement",
+  nk: "Betriebskosten"
+};
+const A = [];
+
+/* ---------- Wirtschaftlichkeit: LED-Umrüstung ---------- */
+A.push({id: "led", thema: "wirt", name: "LED-Umrüstung: Einsparung und Amortisation", gen(r, L, c) {
+  const n = r.step(40, 240, 10), alt = r.step(60, 110, 5), neu = r.step(20, 45, 5), h = r.step(2000, 3400, 100),
+    preis = r.step(24, 36, 1), invProL = r.step(110, 240, 10), wart = L >= 2 ? r.step(400, 1500, 100) : 0,
+    co2f = r.step(340, 420, 10), i = r.step(2, 5, 0.5), nd = 15;
+  const inv = n * invProL;
+  const eKwh = rd(n * (alt - neu) * h / 1000, 0);
+  const eEur = rd(eKwh * preis / 100, 2);
+  const vorteil = rd(eEur + wart, 2);
+  const amort = rd(inv / vorteil, 1);
+  const daten = [["Anzahl Leuchten", z(n)], ["Leistung je Leuchte bisher (inkl. Vorschaltgerät)", z(alt) + " W"], ["Leistung je LED-Leuchte", z(neu) + " W"],
+    ["Betriebsstunden pro Jahr", z(h) + " h"], ["Strompreis (netto)", ct(preis, 0)], ["Investition je Leuchte inkl. Montage", eur(invProL, 0)], ["Nutzungsdauer LED-Leuchten", nd + " Jahre"]];
+  if (L >= 2) daten.push(["Ersparnis Wartung/Leuchtmitteltausch", eur(wart, 0) + " pro Jahr"], ["CO₂-Faktor Strom", z(co2f) + " g/kWh"]);
+  if (L >= 3) daten.push(["Kalkulationszinssatz", pr(i, 1)]);
+  const teil = [
+    T("Berechnen Sie die jährliche Stromeinsparung in kWh.", 3, ek(`Elektrische Arbeit = Leistung × Zeit. Je Leuchte wird die Leistungsdifferenz (alt − neu) eingespart; multipliziert mit Anzahl und Betriebsstunden ergibt sich die Arbeit in Wh. Geteilt durch 1.000 erhält man kWh.`) + lw(`Einsparung = Anzahl × (P_alt − P_neu) × Betriebsstunden`, `         = ${n} × (${alt} W − ${neu} W) × ${z(h)} h`, `         = ${z(n * (alt - neu) * h)} Wh = ${erg(kwh(eKwh))} pro Jahr`)),
+    T("Berechnen Sie die jährliche Kosteneinsparung beim Strom.", 2, ek(`Jede nicht bezogene kWh spart den Arbeitspreis. Cent in Euro umrechnen: ÷ 100.`) + lw(`${kwh(eKwh)} × ${z(preis)} ct/kWh = ${erg(eur(eEur))} pro Jahr`)),
+    T(`Ermitteln Sie die statische Amortisationszeit der Gesamtinvestition${L >= 2 ? " unter Berücksichtigung der Wartungsersparnis" : ""}.`, 3,
+      ek(`Die statische Amortisationszeit gibt an, nach wie vielen Jahren die Investition durch die jährlichen Rückflüsse (hier: Einsparungen) wieder hereingeholt ist: Investition ÷ jährlicher Rückfluss. Zinsen und Preissteigerungen bleiben unberücksichtigt – deshalb „statisch“.${L >= 2 ? " Die Wartungsersparnis ist ebenfalls ein Rückfluss und wird zur Stromkostenersparnis addiert." : ""}`) + lw(`Investition = ${n} × ${eur(invProL, 0)} = ${eur(inv, 0)}`, ...(L >= 2 ? [`jährlicher Vorteil = ${eur(eEur)} + ${eur(wart, 0)} = ${eur(vorteil)}`] : []),
+        `Amortisationszeit = Investition / jährlicher Vorteil = ${eur(inv, 0)} / ${eur(vorteil)} = ${erg(z(amort, 1) + " Jahre")}`) +
+      fig(svgLinien([{name: "kumulierte Einsparung", farbe: FB.gruen, p: Array.from({length: nd + 1}, (_, t) => [t, vorteil * t])}, {name: "Investition", farbe: FB.rot, dash: "5 3", p: [[0, inv], [nd, inv]]}],
+        {xlabel: "Jahre", ylabel: "€", xmin: 0, marken: [{x: amort, y: inv, text: `Amortisation nach ${z(amort, 1)} J.`, lot: true}]}), "Statische Amortisation"))
+  ];
+  if (L >= 2) teil.push(T("Wie viele Tonnen CO₂ werden pro Jahr eingespart?", 2, ek(`Emissionen = Energiemenge × Emissionsfaktor. Umrechnung Gramm in Tonnen: ÷ 1.000.000.`) + lw(`${kwh(eKwh)} × ${z(co2f)} g/kWh = ${z(eKwh * co2f / 1e6, 2)} t → ${erg(z(eKwh * co2f / 1e6, 1) + " t CO₂ pro Jahr")}`)));
+  if (L >= 3) {
+    const f = rd(rbf(i / 100, nd), 4), kw = rd(-inv + vorteil * f, 0);
+    teil.push(T(`Berechnen Sie den Kapitalwert über ${nd} Jahre und beurteilen Sie die Investition.`, 4,
+      ek(`Bei jährlich gleich hohen Rückflüssen muss nicht jedes Jahr einzeln abgezinst werden: Der Rentenbarwertfaktor fasst die Abzinsung aller Jahre zusammen. Kapitalwert = Barwert der Rückflüsse − Investition (die Investition fällt heute an und ist bereits ein Barwert).`) + lw(`Rentenbarwertfaktor RBF = ((1+i)^n − 1) / (i·(1+i)^n) mit i = ${z(i / 100, 3)}, n = ${nd}`, `RBF = ${z(f, 4)}`,
+        `Kapitalwert = −${eur(inv, 0)} + ${eur(vorteil)} × ${z(f, 4)} = ${erg(eur(kw, 0))}`,
+        kw >= 0 ? "Kapitalwert > 0 → die Investition ist wirtschaftlich vorteilhaft; sie erwirtschaftet mehr als die geforderte Verzinsung." : "Kapitalwert < 0 → die Investition erreicht die geforderte Verzinsung nicht.")));
+  } else teil.push(T("Beurteilen Sie die Wirtschaftlichkeit der Maßnahme in einem Satz.", 2,
+    ek(`Maßstab ist die Nutzungsdauer: Nur wenn die Amortisationszeit kürzer ist, wird die Investition innerhalb ihrer Lebensdauer aus den Einsparungen bezahlt.`) + lw(amort < nd ? `Die Amortisationszeit von ${z(amort, 1)} Jahren liegt deutlich unter der Nutzungsdauer von ${nd} Jahren → die Umrüstung ist wirtschaftlich.` : `Die Amortisationszeit von ${z(amort, 1)} Jahren liegt über der Nutzungsdauer von ${nd} Jahren → die Umrüstung ist allein aus Stromkostensicht nicht wirtschaftlich.`,
+      "(Auch weitere Argumente wie Lichtqualität oder Wartungsaufwand werden anerkannt.)"), 2));
+  return {titel: "LED-Umrüstung in einem Verwaltungsgebäude", text: `<p>${c.Org} plant, die Beleuchtung in einem Bürogebäude auf LED umzurüsten. Sie sollen die Wirtschaftlichkeit prüfen.</p>${tab(daten)}`, teil};
+}});
+
+/* ---------- Wirtschaftlichkeit: Kapitalwert ---------- */
+A.push({id: "kapitalwert", thema: "wirt", name: "Kapitalwertmethode (Dämmung/Heizungsoptimierung)", gen(r, L, c) {
+  const mass = r.pick([["Dämmung der obersten Geschossdecke", "Heizkosteneinsparung"], ["Optimierung der Heizungsanlage (hydraulischer Abgleich, Hocheffizienzpumpen)", "Energiekosteneinsparung"], ["Einbau einer Gebäudeautomation", "Energiekosteneinsparung"]]);
+  const inv = r.step(20000, 120000, 2500), rueck = rd(inv * r.step(0.09, 0.16, 0.005), -2), n = r.pick([10, 12, 15, 20]), i = r.step(2, 6, 0.5);
+  const f = rd(rbf(i / 100, n), 4);
+  const bw = rd(rueck * f, 0), kw = rd(bw - inv, 0);
+  const daten = [["Investitionsauszahlung (t = 0)", eur(inv, 0)], [`jährliche ${mass[1]} (Jahresende)`, eur(rueck, 0)], ["Nutzungsdauer", n + " Jahre"], ["Kalkulationszinssatz", pr(i, 1)], ["Restwert", "0 €"]];
+  if (L === 1) daten.push(["Rentenbarwertfaktor (Tabellenwert)", z(f, 4)]);
+  const teil = [];
+  if (L >= 2) teil.push(T("Berechnen Sie den Rentenbarwertfaktor (Barwertfaktor für gleichbleibende Zahlungen).", 2, ek(`Der Rentenbarwertfaktor ist die Summe der Abzinsungsfaktoren 1/(1+i)^t für t = 1 bis n. Er wird verwendet, weil die Einsparung in jedem Jahr gleich hoch ist und jeweils am Jahresende anfällt (nachschüssige Rente).`) + lw(`RBF = ((1+i)^n − 1) / (i × (1+i)^n)`, `    = (${z(1 + i / 100, 3)}^${n} − 1) / (${z(i / 100, 3)} × ${z(1 + i / 100, 3)}^${n})`, `    = ${erg(z(f, 4))}`)));
+  teil.push(T("Berechnen Sie den Barwert der Einsparungen.", 2, ek(`Zahlungen in der Zukunft sind heute weniger wert, weil man das Geld sonst zum Kalkulationszins anlegen könnte. Der Barwert rechnet alle künftigen Einsparungen auf den heutigen Zeitpunkt (t = 0) um, damit sie mit der heutigen Investition vergleichbar sind.`) + lw(`Barwert = jährliche Einsparung × RBF = ${eur(rueck, 0)} × ${z(f, 4)} = ${erg(eur(bw, 0))}`)));
+  teil.push(T("Berechnen Sie den Kapitalwert der Investition.", 2, ek(`Erst wenn alle Zahlungen auf denselben Zeitpunkt bezogen sind, dürfen sie verrechnet werden: Kapitalwert = Barwert der Rückflüsse − Investitionsauszahlung in t = 0.`) + lw(`Kapitalwert = Barwert − Investition = ${eur(bw, 0)} − ${eur(inv, 0)} = ${erg(eur(kw, 0))}`)));
+  if (L >= 2) { const pkt = []; let irrS = null; for (let q = 0; q <= 20; q += 0.5) { const v = rueck * rbf(Math.max(q, 1e-6) / 100, n) - inv; pkt.push([q, v]); }
+    let lo2 = 0, hi2 = 1; for (let k = 0; k < 100; k++) { const m = (lo2 + hi2) / 2; if (rueck * rbf(m, n) - inv > 0) lo2 = m; else hi2 = m; } irrS = lo2 * 100;
+    teil[teil.length - 1].l += fig(svgLinien([{name: "Kapitalwert C₀", farbe: FB.blau, p: pkt}], {xlabel: "Kalkulationszins [%]", ylabel: "€", xmin: 0, ymin: Math.min(...pkt.map(q => q[1])),
+      marken: [{x: i, y: kw, text: `C₀ bei ${z(i, 1)} %`, farbe: FB.gruen}, ...(irrS < 20 ? [{x: irrS, y: 0, text: `interner Zinsfuß ≈ ${z(irrS, 1)} %`, farbe: FB.rot, dy: -8}] : [])]}), "Kapitalwertprofil: C₀ in Abhängigkeit vom Zinssatz"); }
+  teil.push(T("Beurteilen Sie die Investition anhand des Kapitalwerts.", 2, ek(`Entscheidungsregel: C₀ > 0 → vorteilhaft (Verzinsung über dem Kalkulationszins), C₀ = 0 → Kalkulationszins genau erreicht, C₀ < 0 → nicht vorteilhaft.`) + lw(kw >= 0 ? `C₀ = ${eur(kw, 0)} > 0 → die Investition ist vorteilhaft: Sie verzinst das eingesetzte Kapital mit mehr als ${pr(i, 1)} und erzielt zusätzlich einen Vermögenszuwachs (Barwert) von ${eur(kw, 0)}.` : `C₀ = ${eur(kw, 0)} < 0 → die Investition ist nicht vorteilhaft: Die Verzinsung liegt unter ${pr(i, 1)}.`)));
+  if (L >= 2) { const an = rd(kw * anf(i / 100, n), 0); teil.push(T("Ermitteln Sie die Annuität (gleichbleibender jährlicher Überschuss) und erklären Sie ihre Bedeutung.", 3, ek(`Die Annuität verteilt den Kapitalwert gleichmäßig auf die Jahre der Nutzungsdauer – mathematisch die Umkehrung des Rentenbarwertfaktors (Annuitätenfaktor = 1/RBF). Jahreswerte sind anschaulich und erlauben den Vergleich von Investitionen mit unterschiedlicher Nutzungsdauer.`) + lw(`Annuität = Kapitalwert / RBF = ${eur(kw, 0)} / ${z(f, 4)} = ${erg(eur(an, 0) + " pro Jahr")}`, `Bedeutung: Über die Nutzungsdauer entsteht jedes Jahr ein Überschuss von ${eur(an, 0)} über die Kapitalkosten (Zins und Tilgung) hinaus.`))); }
+  if (L >= 3) {
+    const x = 1 - inv * (i / 100) / rueck, tdyn = x > 0 ? rd(-Math.log(x) / Math.log(1 + i / 100), 1) : null;
+    teil.push(T("Berechnen Sie die dynamische Amortisationszeit.", 3, ek(`Gesucht ist das Jahr t, in dem der Barwert der Rückflüsse die Investition gerade deckt (C₀ = 0). Die Gleichung R × RBF(t) = I wird mit dem Logarithmus nach t aufgelöst. Die dynamische Amortisationszeit ist immer länger als die statische, weil spätere Rückflüsse abgezinst werden. Alternativ: kumulierte Barwerte Jahr für Jahr aufsummieren.`) + lw(`Bedingung: Rückfluss × RBF(t) = Investition → RBF(t) = ${eur(inv, 0)} / ${eur(rueck, 0)} = ${z(inv / rueck, 4)}`, `t = −ln(1 − I·i/R) / ln(1+i) = −ln(1 − ${z(inv, 0)} × ${z(i / 100, 3)} / ${z(rueck, 0)}) / ln(${z(1 + i / 100, 3)})`, tdyn !== null ? `t = ${erg(z(tdyn, 1) + " Jahre")}` : "Die Investition amortisiert sich bei diesem Zins nie.")));
+    // IRR per Interpolation
+    let lo = 0, hi = 1; for (let k = 0; k < 200; k++) { const m = (lo + hi) / 2; if (rueck * rbf(m, n) - inv > 0) lo = m; else hi = m; }
+    const irr = (lo + hi) / 2, i2 = Math.ceil(irr * 100 + 1), f2 = rd(rbf(i2 / 100, n), 4), kw2 = rd(rueck * f2 - inv, 0);
+    if (kw > 0) {
+      const interp = rd(i + (i2 - i) * kw / (kw - kw2), 2);
+      teil.push(T(`Schätzen Sie den internen Zinsfuß durch lineare Interpolation. Nutzen Sie als zweiten Versuchszinssatz ${pr(i2, 0)}.`, 4, ek(`Der interne Zinsfuß ist der Zinssatz, bei dem C₀ = 0 ist – also die tatsächliche Rendite der Investition. Er lässt sich nicht direkt auflösen. Man berechnet C₀ für einen zweiten Zinssatz mit negativem Ergebnis und verbindet beide Punkte durch eine Gerade (Regula falsi). Da die Kapitalwertkurve gekrümmt ist, ist das Ergebnis nur eine Näherung.`) + lw(`C₀ bei ${pr(i2, 0)}: RBF = ${z(f2, 4)} → ${eur(rueck, 0)} × ${z(f2, 4)} − ${eur(inv, 0)} = ${eur(kw2, 0)}`, `r ≈ i₁ + (i₂ − i₁) × C₀₁ / (C₀₁ − C₀₂) = ${z(i, 1)} % + (${z(i2, 0)} % − ${z(i, 1)} %) × ${z(kw, 0)} / (${z(kw, 0)} − (${z(kw2, 0)}))`, `r ≈ ${erg(pr(interp, 2))}   (exakt: ${pr(irr * 100, 2)} – Abweichung durch die lineare Näherung)`)));
+    }
+  }
+  return {titel: "Investitionsrechnung mit der Kapitalwertmethode", text: `<p>Für eine ${mass[0]} liegt ein Angebot vor. ${c.Org} beurteilt Investitionen mit der Kapitalwertmethode.</p>${tab(daten)}`, teil};
+}});
+
+/* ---------- Wirtschaftlichkeit: Kostenvergleich ---------- */
+A.push({id: "kostenvergleich", thema: "wirt", name: "Kostenvergleichsrechnung zweier Heizungsanlagen", gen(r, L, c) {
+  const q = r.step(40000, 180000, 5000);
+  const a = {n: "Gas-Brennwertkessel", ak: r.step(18000, 45000, 1000), nd: 20, fix: r.step(600, 1500, 50), kv: r.step(0.11, 0.15, 0.005)};
+  const b = {n: "Wärmepumpe", ak: rd(a.ak + r.step(30000, 90000, 1000), 0), nd: 20, fix: r.step(300, 900, 50), kv: r.step(0.065, 0.095, 0.005)};
+  const i = r.step(2, 5, 0.5);
+  const k = x => { const ab = rd(x.ak / x.nd, 2), zi = rd(x.ak / 2 * i / 100, 2), var_ = rd(q * x.kv, 2); return {ab, zi, var_, ges: rd(ab + zi + x.fix + var_, 2), kfix: rd(ab + zi + x.fix, 2)}; };
+  const ka = k(a), kb = k(b);
+  const daten = [["", a.n, b.n], ["Anschaffungskosten", eur(a.ak, 0), eur(b.ak, 0)], ["Nutzungsdauer", a.nd + " Jahre", b.nd + " Jahre"], ["Wartung/Versicherung/Schornsteinfeger p.a.", eur(a.fix, 0), eur(b.fix, 0)],
+    ["Energiekosten je kWh Wärme", ct(a.kv * 100, 1), ct(b.kv * 100, 1)]];
+  const daten2 = tab(daten.slice(1), daten[0]);
+  const teil = [
+    T("Berechnen Sie für beide Anlagen die kalkulatorische Abschreibung und die kalkulatorischen Zinsen (Restwert 0, Zinsen auf das durchschnittlich gebundene Kapital).", 4,
+      ek(`Kalkulatorische Kosten bilden Werteverzehr und Kapitalbindung ab. Abschreibung: Anschaffungskosten gleichmäßig über die Nutzungsdauer verteilt. Zinsen: Bei linearer Abschreibung und Restwert 0 ist im Durchschnitt nur die Hälfte des Kapitals gebunden – daher Anschaffungskosten ÷ 2 × Zinssatz.`) + lw(`${a.n}: AfA = ${eur(a.ak, 0)} / ${a.nd} = ${eur(ka.ab)};  Zinsen = ${eur(a.ak, 0)} / 2 × ${pr(i, 1)} = ${eur(ka.zi)}`, `${b.n}: AfA = ${eur(b.ak, 0)} / ${b.nd} = ${eur(kb.ab)};  Zinsen = ${eur(b.ak, 0)} / 2 × ${pr(i, 1)} = ${eur(kb.zi)}`)),
+    T(`Ermitteln Sie die jährlichen Gesamtkosten beider Anlagen bei einem Wärmebedarf von ${kwh(q)} pro Jahr.`, 4,
+      ek(`Gesamtkosten = fixe Kosten (Abschreibung, Zinsen, Wartung – unabhängig von der Wärmemenge) + variable Kosten (Wärmemenge × Energiekosten je kWh Wärme).`) + lw(`${a.n}: ${eur(ka.ab)} + ${eur(ka.zi)} + ${eur(a.fix, 0)} + ${kwh(q)} × ${z(a.kv, 3)} €/kWh (${eur(ka.var_)}) = ${erg(eur(ka.ges))}`, `${b.n}: ${eur(kb.ab)} + ${eur(kb.zi)} + ${eur(b.fix, 0)} + ${kwh(q)} × ${z(b.kv, 3)} €/kWh (${eur(kb.var_)}) = ${erg(eur(kb.ges))}`)),
+    T("Welche Anlage ist kostengünstiger? Begründen Sie kurz.", 1, ek(`Bei gleicher Leistung (gleicher Wärmebedarf) entscheidet die Kostenvergleichsrechnung nach den niedrigsten durchschnittlichen Gesamtkosten pro Jahr.`) + lw(`${ka.ges < kb.ges ? a.n : b.n} ist um ${eur(Math.abs(ka.ges - kb.ges))} pro Jahr günstiger.`))
+  ];
+  if (L >= 2) {
+    const xk = rd((kb.kfix - ka.kfix) / (a.kv - b.kv), 0);
+    teil.push(T("Ab welchem jährlichen Wärmebedarf ist die Wärmepumpe günstiger (kritische Menge)?", 3, ek(`Beide Kostenfunktionen haben die Form K = K_fix + k_v × x. An der kritischen Menge sind sie gleich hoch: Gleichsetzen und nach x auflösen. Die Anlage mit höheren Fix-, aber niedrigeren variablen Kosten lohnt sich erst oberhalb dieser Menge.`) + lw(`Fixkosten A = ${eur(ka.kfix)}, Fixkosten B = ${eur(kb.kfix)}`, `x* = (K_fix,B − K_fix,A) / (k_v,A − k_v,B) = (${z(kb.kfix, 2)} − ${z(ka.kfix, 2)}) / (${z(a.kv, 3)} − ${z(b.kv, 3)})`, xk > 0 ? `x* = ${erg(kwh(xk))} pro Jahr – darüber ist die Wärmepumpe günstiger.` : `x* ≤ 0 → die Wärmepumpe ist bei jedem Wärmebedarf günstiger.`) +
+      fig(svgLinien([{name: a.n, farbe: FB.orange, p: [[0, ka.kfix], [Math.max(q, xk) * 1.3, ka.kfix + a.kv * Math.max(q, xk) * 1.3]]}, {name: b.n, farbe: FB.blau, p: [[0, kb.kfix], [Math.max(q, xk) * 1.3, kb.kfix + b.kv * Math.max(q, xk) * 1.3]]}],
+        {xlabel: "Wärmebedarf [kWh/a]", ylabel: "€/a", xmin: 0, ymin: 0, xfmt: v => z(v / 1000, 0) + " Tsd.", marken: [...(xk > 0 ? [{x: xk, y: ka.kfix + a.kv * xk, text: "x*", lot: true}] : []), {x: q, y: kb.ges, text: "Ist", farbe: FB.blau, lot: true}]}), "Kostenfunktionen und kritische Menge")));
+  }
+  if (L >= 3) teil.push(T("Nennen Sie zwei Grenzen der Kostenvergleichsrechnung.", 2, ek(`Bewertung: je sachlich richtiger Grenze 1 Punkt.`) + lw("z. B.: statisch (keine zeitliche Verteilung der Zahlungen, kein Zinseszins); Durchschnittsperiode, Preissteigerungen werden nicht abgebildet; keine Aussage zur Rentabilität bzw. absoluten Vorteilhaftigkeit; Erlöse/Förderungen und CO₂-Kosten nur pauschal.")));
+  return {titel: "Kostenvergleich: Gas-Brennwertkessel oder Wärmepumpe", text: `<p>Für ein Schulgebäude mit einem jährlichen Wärmebedarf von ${kwh(q)} soll die Heizung erneuert werden. Kalkulationszinssatz: ${pr(i, 1)}.</p>${daten2}`, teil};
+}});
+
+/* ---------- Photovoltaik ---------- */
+A.push({id: "pv", thema: "pv", name: "PV-Anlage: Leistung, Ertrag, Eigenverbrauch, Wirtschaftlichkeit", gen(r, L, c) {
+  const fl = r.step(120, 600, 10), bedarf = r.step(5, 6.5, 0.5), spez = r.step(850, 1000, 10), verbr = r.step(60000, 250000, 5000), evq = r.step(30, 70, 5),
+    sp = r.step(24, 34, 1), ev = r.step(5.5, 8.0, 0.1), ikwp = r.step(1000, 1500, 50), bk = 1.5, i = r.step(3, 5, 0.5), nd = 20;
+  const kwp = Math.floor(fl / bedarf * 10) / 10;
+  const ertrag = rd(kwp * spez, 0);
+  const eig = rd(ertrag * evq / 100, 0), einsp = ertrag - eig;
+  const aut = rd(eig / verbr * 100, 1);
+  const inv = rd(kwp * ikwp, 0);
+  const vEig = rd(eig * sp / 100, 2), vEin = rd(einsp * ev / 100, 2), betr = L >= 2 ? rd(inv * bk / 100, 2) : 0, vort = rd(vEig + vEin - betr, 2);
+  const amort = rd(inv / vort, 1);
+  const daten = [["nutzbare Dachfläche", z(fl) + " m²"], ["Flächenbedarf je kWp", z(bedarf, 1) + " m²/kWp"], ["spezifischer Jahresertrag", z(spez) + " kWh/kWp"], ["Stromverbrauch des Gebäudes", kwh(verbr) + " pro Jahr"],
+    ["erwartete Eigenverbrauchsquote", pr(evq, 0)], ["Strombezugspreis (netto)", ct(sp, 0)], ["Einspeisevergütung", ct(ev, 1)], ["Investition", eur(ikwp, 0) + " je kWp"]];
+  if (L >= 2) daten.push(["Betriebskosten (Wartung, Versicherung, Zähler)", pr(bk, 1) + " der Investition pro Jahr"]);
+  if (L >= 3) daten.push(["Kalkulationszinssatz / Betrachtungszeitraum", `${pr(i, 1)} / ${nd} Jahre`]);
+  const teil = [
+    T("Berechnen Sie die installierbare Leistung (auf 0,1 kWp abrunden).", 2, ek(`Leistung = verfügbare Fläche ÷ Flächenbedarf je kWp. Es wird abgerundet, weil nur so viele Module installiert werden können, wie vollständig auf die Fläche passen.`) + lw(`${z(fl)} m² / ${z(bedarf, 1)} m²/kWp = ${z(fl / bedarf, 2)} kWp → ${erg(z(kwp, 1) + " kWp")}`)),
+    T("Berechnen Sie den jährlichen Stromertrag.", 2, ek(`Der spezifische Ertrag (kWh je kWp und Jahr) beschreibt, wie viel Strom 1 kWp am Standort liefert. Er enthält bereits Einstrahlung, Ausrichtung, Neigung und Systemverluste.`) + lw(`${z(kwp, 1)} kWp × ${z(spez)} kWh/kWp = ${erg(kwh(ertrag))}`)),
+    T("Wie viel Strom wird selbst verbraucht und wie viel eingespeist?", 3, ek(`Die Eigenverbrauchsquote gibt an, welcher Anteil des PV-Stroms im Gebäude selbst genutzt wird. Der Rest wird ins Netz eingespeist: Einspeisung = Ertrag − Eigenverbrauch.`) + lw(`Eigenverbrauch = ${kwh(ertrag)} × ${pr(evq, 0)} = ${erg(kwh(eig))}`, `Einspeisung = ${kwh(ertrag)} − ${kwh(eig)} = ${erg(kwh(einsp))}`) +
+      fig(svgAnteile([{label: "PV-Ertrag", v: ertrag, text: kwh(ertrag), farbe: FB.orange}, {label: "Eigenverbrauch", v: eig, text: kwh(eig), farbe: FB.gruen}, {label: "Einspeisung", v: einsp, text: kwh(einsp), farbe: FB.blau}, {label: "Gebäudeverbrauch", v: verbr, text: kwh(verbr), farbe: FB.grau}], {lw: 120}), "Energiebilanz pro Jahr")),
+    T("Welcher Anteil des Gebäudeverbrauchs wird durch die PV-Anlage gedeckt (Autarkiegrad)?", 2, ek(`Nicht verwechseln: Die Eigenverbrauchsquote bezieht sich auf den PV-Ertrag (Wie viel vom Solarstrom nutze ich?), der Autarkiegrad auf den Gebäudeverbrauch (Wie viel meines Bedarfs deckt die Anlage?).`) + lw(`Autarkiegrad = Eigenverbrauch / Verbrauch = ${kwh(eig)} / ${kwh(verbr)} = ${erg(pr(aut, 1))}`)),
+    T(`Berechnen Sie den jährlichen finanziellen Vorteil${L >= 2 ? " nach Abzug der Betriebskosten" : ""}.`, 4,
+      ek(`Selbst genutzter Strom muss nicht eingekauft werden und wird deshalb mit dem Bezugspreis bewertet. Eingespeister Strom wird mit der Einspeisevergütung bezahlt.${L >= 2 ? " Laufende Betriebskosten mindern den Vorteil." : ""}`) + lw(`vermiedener Strombezug: ${kwh(eig)} × ${z(sp)} ct/kWh = ${eur(vEig)}`, `Einspeisevergütung: ${kwh(einsp)} × ${z(ev, 1)} ct/kWh = ${eur(vEin)}`, ...(L >= 2 ? [`Betriebskosten: ${pr(bk, 1)} × ${eur(inv, 0)} = −${eur(betr)}`] : []), `jährlicher Vorteil = ${erg(eur(vort))}`)),
+    T("Ermitteln Sie die statische Amortisationszeit.", 2, ek(`Investition (Leistung × spezifischer Preis) ÷ jährlicher Vorteil; statisch, also ohne Zinsen und Preissteigerungen.`) + lw(`Investition = ${z(kwp, 1)} kWp × ${eur(ikwp, 0)}/kWp = ${eur(inv, 0)}`, `Amortisation = ${eur(inv, 0)} / ${eur(vort)} = ${erg(z(amort, 1) + " Jahre")}`))
+  ];
+  if (L >= 2) teil.push(T("Warum ist ein hoher Eigenverbrauch wirtschaftlich wichtiger als eine hohe Einspeisung?", 2, ek(`Vergleich der Werte je kWh: vermiedener Bezugspreis gegenüber Einspeisevergütung.`) + lw(`Jede selbst genutzte kWh spart den Bezugspreis von ${z(sp)} ct, jede eingespeiste kWh bringt nur ${z(ev, 1)} ct. Eigenverbrauch ist damit ${z(sp / ev, 1)}-mal so viel wert.`)));
+  if (L >= 3) { const f = rd(rbf(i / 100, nd), 4), kw = rd(vort * f - inv, 0); teil.push(T(`Berechnen Sie den Kapitalwert über ${nd} Jahre (konstante Jahreswerte, ohne Degradation).`, 3, ek(`Gleichbleibende jährliche Vorteile → Barwert mit dem Rentenbarwertfaktor; davon wird die Investition (heute) abgezogen.`) + lw(`RBF(${pr(i, 1)}; ${nd} J.) = ${z(f, 4)}`, `C₀ = ${eur(vort)} × ${z(f, 4)} − ${eur(inv, 0)} = ${erg(eur(kw, 0))}`, kw >= 0 ? "→ vorteilhaft" : "→ nicht vorteilhaft"))); }
+  return {titel: "Photovoltaikanlage auf einem Verwaltungsgebäude", text: `<p>${c.Org} prüft eine PV-Anlage auf dem Flachdach eines Verwaltungsgebäudes.</p>${tab(daten)}`, teil};
+}});
+
+/* ---------- Wärmepumpe ---------- */
+A.push({id: "wp", thema: "wp", name: "Wärmepumpe vs. Gaskessel: JAZ, Kosten, CO₂, COP", gen(r, L, c) {
+  const q = r.step(30000, 160000, 5000), jaz = r.step(2.8, 4.2, 0.1), ps = r.step(22, 30, 1), pg = r.step(9, 13, 0.5), eta = r.step(0.88, 0.95, 0.01),
+    co2s = r.step(340, 420, 10), co2g = 201, tvl = r.step(35, 55, 5), tq = r.step(-5, 5, 1), gg = r.step(0.45, 0.55, 0.05),
+    flaeche = r.step(800, 3000, 100), wm2 = r.step(25, 60, 5), mehr = r.step(30000, 90000, 5000), foe = r.pick([0, 30, 40]);
+  const ws = rd(q / jaz, 0), wg = rd(q / eta, 0), ks = rd(ws * ps / 100, 2), kg = rd(wg * pg / 100, 2);
+  const daten = [["jährlicher Heizwärmebedarf (inkl. Warmwasser)", kwh(q)], ["Jahresarbeitszahl der Wärmepumpe (JAZ)", z(jaz, 1)], ["Wärmepumpen-Stromtarif", ct(ps, 0)],
+    ["Jahresnutzungsgrad Gas-Brennwertkessel", pr(eta * 100, 0)], ["Gaspreis", ct(pg, 1)]];
+  if (L >= 2) daten.push(["CO₂-Faktor Strom / Erdgas", `${z(co2s)} / ${z(co2g)} g/kWh`]);
+  const teil = [
+    T("Wie viel Strom benötigt die Wärmepumpe pro Jahr?", 2, ek(`Die Jahresarbeitszahl ist das Verhältnis von abgegebener Wärme zu aufgenommenem Strom über ein ganzes Jahr: JAZ = Q ÷ W_el. Nach dem Strom umgestellt: W_el = Q ÷ JAZ. Die fehlende Energie stammt kostenlos aus der Umwelt (Luft, Erdreich).`) + lw(`Strom = Wärme / JAZ = ${kwh(q)} / ${z(jaz, 1)} = ${erg(kwh(ws))}`)),
+    T("Wie viel Erdgas benötigt der Brennwertkessel pro Jahr?", 2, ek(`Der Kessel wandelt nicht die gesamte Brennstoffenergie in nutzbare Wärme um. Nutzungsgrad η = Q ÷ E_Gas, umgestellt E_Gas = Q ÷ η. Die Gasmenge ist deshalb größer als der Wärmebedarf.`) + lw(`Gas = Wärme / Nutzungsgrad = ${kwh(q)} / ${z(eta, 2)} = ${erg(kwh(wg))}`)),
+    T("Vergleichen Sie die jährlichen Energiekosten.", 4, ek(`Energiekosten = eingekaufte Energiemenge × Preis je kWh. Verglichen werden Strom- bzw. Gasmenge, nicht die Wärme – die ist bei beiden Anlagen gleich.`) + lw(`Wärmepumpe: ${kwh(ws)} × ${z(ps)} ct/kWh = ${eur(ks)}`, `Gaskessel: ${kwh(wg)} × ${z(pg, 1)} ct/kWh = ${eur(kg)}`, `Differenz: ${erg(eur(Math.abs(kg - ks)) + (ks < kg ? " zugunsten der Wärmepumpe" : " zugunsten des Gaskessels"))}`))
+  ];
+  if (L >= 2) {
+    const cs = rd(ws * co2s / 1e6, 1), cg = rd(wg * co2g / 1e6, 1);
+    teil.push(T("Berechnen Sie die CO₂-Emissionen beider Varianten.", 3, ek(`Emissionen = eingesetzte Energie × Emissionsfaktor des Energieträgers. Der höhere Faktor für Strom wird durch den viel geringeren Energieeinsatz der Wärmepumpe mehr als ausgeglichen.`) + lw(`Wärmepumpe: ${kwh(ws)} × ${z(co2s)} g/kWh = ${erg(z(cs, 1) + " t")}`, `Gaskessel: ${kwh(wg)} × ${z(co2g)} g/kWh = ${erg(z(cg, 1) + " t")}`, `Einsparung: ${z(cg - cs, 1)} t CO₂ pro Jahr (${pr((cg - cs) / cg * 100, 0)})`)));
+    const tk = tvl + 273.15, qk = tq + 273.15, cop = rd(gg * tk / (tk - qk), 2), tk2 = tk - 10, cop2 = rd(gg * tk2 / (tk2 - qk), 2);
+    teil.push(T(`Schätzen Sie die Leistungszahl (COP) bei ${z(tvl)} °C Vorlauf- und ${z(tq)} °C Quellentemperatur mit einem Gütegrad von ${z(gg, 2)}.${L >= 3 ? ` Wie ändert sich der COP, wenn die Vorlauftemperatur um 10 K gesenkt wird?` : ""}`, L >= 3 ? 4 : 3,
+      ek(`Die Carnot-Leistungszahl ist das physikalische Maximum und hängt nur vom Temperaturhub ab: T_warm ÷ (T_warm − T_kalt), Temperaturen in Kelvin (°C + 273,15). Reale Wärmepumpen erreichen nur einen Teil davon – das erfasst der Gütegrad. Je kleiner der Temperaturhub, desto höher der COP.`) + lw(`COP = Gütegrad × T_VL / (T_VL − T_Q)   (Temperaturen in Kelvin)`, `    = ${z(gg, 2)} × ${z(tk, 2)} K / (${z(tk, 2)} K − ${z(qk, 2)} K) = ${erg(z(cop, 2))}`,
+        ...(L >= 3 ? [`bei ${z(tvl - 10)} °C: COP = ${z(gg, 2)} × ${z(tk2, 2)} / (${z(tk2, 2)} − ${z(qk, 2)}) = ${erg(z(cop2, 2))} → ${pr((cop2 / cop - 1) * 100, 0)} besser. Niedrige Vorlauftemperaturen (z. B. Flächenheizung, größere Heizkörper) sind entscheidend für den effizienten Betrieb.`] : []))));
+    teil[teil.length - 1].l += fig(svgLinien([{name: `COP bei ${z(tq)} °C Quelle`, farbe: FB.blau, p: Array.from({length: 7}, (_, k) => { const t = 30 + 5 * k; return [t, gg * (t + 273.15) / (t - tq)]; })}],
+      {xlabel: "Vorlauftemperatur [°C]", ylabel: "COP", ymin: 0, yfmt: v => z(v, 1), marken: [{x: tvl, y: cop, text: `COP ${z(cop, 2)}`, farbe: FB.rot}]}), "Leistungszahl sinkt mit steigender Vorlauftemperatur");
+  } else teil.push(T("Nennen Sie zwei Voraussetzungen für einen effizienten Betrieb einer Wärmepumpe.", 2, ek(`Bewertung: je sachlich richtiger Voraussetzung 1 Punkt. Leitgedanke: möglichst kleiner Temperaturhub zwischen Wärmequelle und Heizsystem.`) + lw("z. B. niedrige Vorlauftemperatur (Flächenheizung, große Heizkörper), gut gedämmte Gebäudehülle, richtige Auslegung/Heizkurve, hydraulischer Abgleich, geeignete Wärmequelle.")));
+  if (L >= 3) {
+    const hl = rd(flaeche * wm2 / 1000, 1), netto = rd(mehr * (1 - foe / 100), 0), ers = rd(kg - ks, 2);
+    teil.push(T(`Die beheizte Fläche beträgt ${z(flaeche)} m² bei einer spezifischen Heizlast von ${z(wm2)} W/m². Die Mehrinvestition gegenüber dem Gaskessel beträgt ${eur(mehr, 0)}, die Förderquote ${pr(foe, 0)}. Bestimmen Sie die Heizlast und die statische Amortisationszeit der Mehrinvestition.`, 4,
+      ek(`Heizlast = Fläche × spezifische Heizlast (W in kW: ÷ 1.000). Für die Amortisation zählt nur die Mehrinvestition gegenüber der Alternative nach Abzug der Förderung; Rückfluss ist die jährliche Energiekostenersparnis aus Teilaufgabe c.`) + lw(`Heizlast = ${z(flaeche)} m² × ${z(wm2)} W/m² = ${erg(z(hl, 1) + " kW")}`, `Mehrinvestition nach Förderung = ${eur(mehr, 0)} × (1 − ${z(foe / 100, 2)}) = ${eur(netto, 0)}`,
+        ers > 0 ? `Amortisation = ${eur(netto, 0)} / ${eur(ers)} = ${erg(z(netto / ers, 1) + " Jahre")}` : `Die Wärmepumpe spart bei diesen Preisen keine Energiekosten → keine Amortisation über die Energiekosten.`)));
+  }
+  return {titel: "Heizungstausch: Wärmepumpe oder Gas-Brennwertkessel", text: `<p>Für eine Liegenschaft ${c.vonDat} soll die Heizung erneuert werden. Zu vergleichen sind eine Luft-Wasser-Wärmepumpe und ein Gas-Brennwertkessel.</p>${tab(daten)}`, teil};
+}});
+
+/* ---------- Lastgang: Kennwerte und Leistungspreis ---------- */
+A.push({id: "lastgang", thema: "last", name: "Lastgang: Arbeit, Höchstlast, Benutzungsdauer, Leistungspreis", gen(r, L, c) {
+  const basis = r.step(40, 120, 5);
+  const werte = Array.from({length: 8}, (_, k) => rd(basis * (1 + 0.25 * Math.sin(k / 2.2)) + r.step(-6, 6, 0.5), 1));
+  const spitze = r.int(2, 6); werte[spitze] = rd(basis * r.step(1.7, 2.3, 0.1), 1);
+  const start = r.pick(["07:00", "08:00", "10:30", "12:00"]); const [hh, mm] = start.split(":").map(Number);
+  const zeit = k => { const m = hh * 60 + mm + 15 * k; return `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`; };
+  const pmax = Math.max(...werte), summe = rd(werte.reduce((a, b) => a + b, 0), 1), arbeit = rd(summe * 0.25, 2), pm = rd(summe / 8, 2);
+  const jahr = rd(pmax * r.step(2600, 4500, 100), -3), lp = r.step(80, 160, 5), grenze = rd(Math.ceil(Math.max(...werte.filter((_, k) => k !== spitze)) / 5) * 5, 0);
+  const bd = rd(jahr / pmax, 0);
+  const tabelle = tab(werte.map((w, k) => [`${zeit(k)} – ${zeit(k + 1)}`, z(w, 1)]), ["Zeitraum (¼ h)", "mittlere Leistung [kW]"]);
+  const teil = [
+    T("Berechnen Sie die bezogene elektrische Arbeit im dargestellten Zeitraum in kWh.", 3, ek(`Jeder Messwert ist die mittlere Leistung einer Viertelstunde. Arbeit = Leistung × Zeit, also je Wert × 0,25 h. Einfacher: erst alle Werte addieren, dann einmal mit 0,25 h multiplizieren.`) + lw(`Arbeit = Σ (Leistung × 0,25 h) = (${werte.map(w => z(w, 1)).join(" + ")}) kW × 0,25 h`, `       = ${z(summe, 1)} kW × 0,25 h = ${erg(kwh(arbeit, 2))}`)),
+    T("Bestimmen Sie die Höchstlast und die mittlere Leistung im Zeitraum.", 2, ek(`Die Höchstlast ist der größte Viertelstundenmittelwert – er ist für den Leistungspreis maßgeblich. Die mittlere Leistung ist das arithmetische Mittel aller Werte (gleichbedeutend: Arbeit ÷ Zeit = ${z(arbeit, 2)} kWh ÷ 2 h).`) + lw(`Höchstlast = ${erg(z(pmax, 1) + " kW")} (${zeit(spitze)}–${zeit(spitze + 1)} Uhr)`, `mittlere Leistung = ${z(summe, 1)} kW / 8 = ${erg(z(pm, 2) + " kW")}`)),
+    T(`Die Jahresarbeit beträgt ${kwh(jahr)}, die gemessene Spitze ist zugleich die Jahreshöchstlast. Berechnen Sie die Benutzungsdauer.`, 2, ek(`Die Benutzungsdauer gibt an, wie viele Stunden die Anlage mit Höchstlast laufen müsste, um die gesamte Jahresarbeit zu beziehen. Je höher sie ist, desto gleichmäßiger ist der Bezug. Beim Netzentgelt entscheidet sie über die Preisstufe (Grenze 2.500 h).`) + lw(`Benutzungsdauer = Jahresarbeit / Jahreshöchstlast = ${kwh(jahr)} / ${z(pmax, 1)} kW = ${erg(z(bd) + " h/a")}`, bd >= 2500 ? "≥ 2.500 h → Netzentgelt mit hohem Leistungs- und niedrigem Arbeitspreis." : "< 2.500 h → Netzentgelt mit niedrigem Leistungs- und höherem Arbeitspreis.")),
+    T(`Der Leistungspreis beträgt ${eur(lp, 0)} je kW und Jahr. Wie hoch sind die jährlichen Leistungskosten?`, 2, ek(`Der Leistungspreis wird auf die höchste gemessene Viertelstundenleistung des Abrechnungsjahres erhoben. Schon eine einzige Spitze bestimmt damit die Leistungskosten für das ganze Jahr.`) + lw(`${z(pmax, 1)} kW × ${eur(lp, 0)}/kW = ${erg(eur(pmax * lp))}`))
+  ];
+  const ueber = werte.map(w => Math.max(0, w - grenze)), eSp = rd(ueber.reduce((a, b) => a + b, 0) * 0.25, 2);
+  teil.push(T(`Durch eine Lastspitzenkappung soll die Leistung auf ${z(grenze)} kW begrenzt werden. Wie viel Leistungspreis wird dadurch jährlich eingespart${L >= 2 ? ", und wie viel Energie muss ein Batteriespeicher in diesem Zeitraum mindestens abgeben" : ""}?`, L >= 2 ? 4 : 2,
+    ek(`Die Ersparnis ergibt sich nur aus der Differenz zwischen alter und neuer Höchstlast. ${L >= 2 ? "Der Speicher muss alle Leistungsanteile oberhalb der Grenze liefern; je Viertelstunde gilt: Energie = (Leistung − Grenze) × 0,25 h." : ""}`) + lw(`Einsparung = (${z(pmax, 1)} − ${z(grenze)}) kW × ${eur(lp, 0)}/kW = ${erg(eur((pmax - grenze) * lp))} pro Jahr`,
+      ...(L >= 2 ? [`Speicherenergie = Σ (P − ${z(grenze)} kW) × 0,25 h für alle Werte über der Grenze`, `             = ${ueber.filter(u => u > 0).map(u => z(u, 1)).join(" + ")} kW × 0,25 h = ${erg(kwh(eSp, 2))}`] : []))));
+  if (L >= 3) teil.push(T("Nennen Sie zwei weitere Maßnahmen, um Lastspitzen zu vermeiden, und eine Voraussetzung für die Speicherlösung.", 3, ek(`Bewertung: je sachlich richtiger Maßnahme bzw. Voraussetzung 1 Punkt.`) + lw("Maßnahmen z. B.: zeitversetztes Einschalten großer Verbraucher (Lüftung, Küche, Ladepunkte), Lastmanagement/Abschaltung, Sanftanlauf, Verschieben von Prozessen.", "Voraussetzung z. B.: Leistungsmessung in Echtzeit und Prognose, Speicherleistung ≥ Spitzenreduktion, ausreichende Nachladezeit zwischen den Spitzen.")));
+  teil[4].l += fig(svgSaeulen(werte.map((_, k) => zeit(k)), werte, {ylabel: "kW", grenze, grenzText: `Kappungsgrenze ${z(grenze)} kW`, farben: werte.map(w => w > grenze ? FB.rot : FB.blau)}), "Viertelstundenwerte mit Kappungsgrenze; rot: Anteil, den der Speicher liefern muss");
+  return {titel: "Auswertung eines Lastgangs", text: `<p>Die registrierende Leistungsmessung (RLM) eines Verwaltungsgebäudes ${c.vonDat} liefert folgende Viertelstundenwerte:</p><div style="display:flex;gap:6mm;align-items:center;flex-wrap:wrap">${tabelle}${fig(svgSaeulen(werte.map((_, k) => zeit(k)), werte, {ylabel: "kW", w: 440, h: 190}), "Lastgang im Zeitraum (Beginn der Viertelstunde)")}</div>`, teil};
+}});
+
+/* ---------- Lastgang: Grundlast ---------- */
+A.push({id: "grundlast", thema: "last", name: "Grundlast und Verbrauch außerhalb der Nutzungszeit", gen(r, L, c) {
+  const nacht = Array.from({length: 4}, () => r.step(14, 40, 0.5)), g = rd(nacht.reduce((a, b) => a + b, 0) / 4, 2);
+  const jahr = r.step(180000, 450000, 10000), tage = 250, von = r.pick([6, 7]), bis = r.pick([17, 18, 19]), preis = r.step(22, 32, 1), red = rd(g * r.step(0.2, 0.4, 0.05), 1);
+  const hNutz = tage * (bis - von), hAus = 8760 - hNutz, eAus = rd(g * hAus, 0), anteil = rd(eAus / jahr * 100, 1), kosten = rd(eAus * preis / 100, 2);
+  const ersp = rd(red * hAus, 0), erspEur = rd(ersp * preis / 100, 2);
+  const daten = [["Messwerte nachts (02:00, 02:15, 02:30, 02:45 Uhr)", nacht.map(v => z(v, 1) + " kW").join(" · ")], ["Jahresstromverbrauch", kwh(jahr)], ["Nutzungszeit", `Montag–Freitag ${von}:00–${bis}:00 Uhr an ${tage} Arbeitstagen`], ["Strompreis", ct(preis, 0)]];
+  const teil = [
+    T("Bestimmen Sie die Grundlast als Mittelwert der Nachtwerte.", 2, ek(`Nachts läuft nur, was dauerhaft eingeschaltet ist. Der Mittelwert mehrerer Nachtwerte gleicht zufällige Schwankungen aus und ergibt die Grundlast.`) + lw(`Grundlast = (${nacht.map(v => z(v, 1)).join(" + ")}) / 4 = ${erg(z(g, 2) + " kW")}`)),
+    T("Wie viele Stunden pro Jahr liegen außerhalb der Nutzungszeit?", 2, ek(`Ein Jahr hat 365 × 24 = 8.760 Stunden. Davon werden die Nutzungsstunden abgezogen (Arbeitstage × tägliche Nutzungsdauer). Wochenenden und Feiertage zählen vollständig als „außerhalb“.`) + lw(`Nutzungsstunden = ${tage} × ${bis - von} h = ${z(hNutz)} h`, `außerhalb = 8.760 h − ${z(hNutz)} h = ${erg(z(hAus) + " h")}`)),
+    T("Wie viel Strom wird außerhalb der Nutzungszeit mindestens verbraucht (nur Grundlast) und welcher Anteil am Jahresverbrauch ist das?", 3, ek(`Arbeit = Leistung × Zeit. Mindestens die Grundlast fällt in allen Stunden außerhalb der Nutzungszeit an. Der Anteil setzt diesen Wert ins Verhältnis zum Jahresverbrauch.`) + lw(`${z(g, 2)} kW × ${z(hAus)} h = ${erg(kwh(eAus))}`, `Anteil = ${kwh(eAus)} / ${kwh(jahr)} = ${erg(pr(anteil, 1))}`)),
+    T("Welche Kosten verursacht dieser Verbrauch pro Jahr?", 2, ek(`Kosten = Energiemenge × Arbeitspreis; Cent in Euro: ÷ 100.`) + lw(`${kwh(eAus)} × ${z(preis)} ct/kWh = ${erg(eur(kosten))}`)),
+    T(`Durch Zeitprogramme für Lüftung und Beleuchtung sinkt die Grundlast außerhalb der Nutzungszeit um ${z(red, 1)} kW. Berechnen Sie die jährliche Einsparung in kWh und €.`, 3, ek(`Die Reduktion wirkt in allen Stunden außerhalb der Nutzungszeit: eingesparte Arbeit = Leistungsreduktion × Stunden außerhalb der Nutzungszeit.`) + lw(`${z(red, 1)} kW × ${z(hAus)} h = ${erg(kwh(ersp))}`, `${kwh(ersp)} × ${z(preis)} ct/kWh = ${erg(eur(erspEur))}`))
+  ];
+  if (L >= 2) teil.push(T("Nennen Sie drei typische Ursachen für eine hohe Grundlast in Verwaltungsgebäuden.", 3, ek(`Bewertung: je sachlich richtiger Ursache 1 Punkt.`) + lw("z. B. Lüftungsanlagen im Dauerbetrieb, Server/Netzwerktechnik, Umwälzpumpen ohne Regelung, Beleuchtung (Flure, Tiefgarage), Kühlgeräte/Kaffeeautomaten, Standby von Arbeitsplatzgeräten, Warmwasserbereitung/Zirkulation.")));
+  return {titel: "Grundlastanalyse", text: `<p>Im Energiecontrolling ${c.vonDat} fällt ein Gebäude mit hohem Nachtverbrauch auf.</p>${tab(daten)}`, teil};
+}});
+
+/* ---------- Vertrag: Stromrechnung ---------- */
+A.push({id: "rechnung", thema: "vert", name: "Stromrechnung: Preisbestandteile netto/brutto", gen(r, L, c) {
+  const v = r.step(40000, 220000, 1000), ap = r.step(12, 20, 0.1), ne = r.step(4, 9, 0.1), gp = r.step(8, 25, 1), st = 2.05, ka = 0.11, um = r.step(1.2, 2.2, 0.01), mw = 19,
+    pm = r.step(40, 140, 1), lp = r.step(70, 150, 1);
+  const k = [
+    ["Energie (Lieferant)", `${kwh(v)} × ${ct(ap, 2)}`, rd(v * ap / 100, 2)],
+    ["Netzentgelt Arbeitspreis", `${kwh(v)} × ${ct(ne, 2)}`, rd(v * ne / 100, 2)],
+    ...(L >= 2 ? [["Netzentgelt Leistungspreis", `${z(pm)} kW × ${eur(lp, 0)}/(kW·a)`, rd(pm * lp, 2)]] : []),
+    ["Grundpreis / Messstellenbetrieb", `12 Monate × ${eur(gp, 0)}`, rd(12 * gp, 2)],
+    ["Konzessionsabgabe", `${kwh(v)} × ${ct(ka, 2)}`, rd(v * ka / 100, 2)],
+    ["Umlagen (gesamt)", `${kwh(v)} × ${ct(um, 2)}`, rd(v * um / 100, 2)],
+    ["Stromsteuer", `${kwh(v)} × ${ct(st, 2)}`, rd(v * st / 100, 2)]
+  ];
+  const netto = rd(k.reduce((a, x) => a + x[2], 0), 2), mwst = rd(netto * mw / 100, 2), brutto = rd(netto + mwst, 2), dp = rd(brutto / v * 100, 2);
+  const daten = [["Jahresverbrauch", kwh(v)], ["Energiepreis Lieferant", ct(ap, 2)], ["Netzentgelt (Arbeitspreis)", ct(ne, 2)], ...(L >= 2 ? [["Netzentgelt (Leistungspreis)", `${eur(lp, 0)} je kW Jahreshöchstlast, Höchstlast ${z(pm)} kW`]] : []),
+    ["Grundpreis inkl. Messstellenbetrieb", eur(gp, 0) + " pro Monat"], ["Konzessionsabgabe (Sondervertrag)", ct(ka, 2)], ["Umlagen (Summe)", ct(um, 2)], ["Stromsteuer", ct(st, 2)], ["Umsatzsteuer", pr(mw, 0)]];
+  const teil = [
+    T("Berechnen Sie alle Preisbestandteile der Jahresrechnung (netto).", L >= 2 ? 7 : 6, ek(`Jeder Bestandteil hat seine eigene Bezugsgröße: mengenabhängig (ct/kWh) × Verbrauch, zeitabhängig (Grundpreis) × Monate${L >= 2 ? ", leistungsabhängig (Leistungspreis) × Jahreshöchstlast" : ""}. Stromsteuer, Konzessionsabgabe und Umlagen sind gesetzlich festgelegt und für alle Lieferanten gleich.`) + lw(...k.map(x => `${x[0].padEnd(32)} ${x[1].padEnd(34)} = ${eur(x[2])}`))),
+    T("Ermitteln Sie den Rechnungsbetrag netto, die Umsatzsteuer und den Bruttobetrag.", 3, ek(`Netto = Summe aller Bestandteile. Die Umsatzsteuer wird auf diese Summe erhoben – also auch auf Stromsteuer und Umlagen („Steuer auf Steuer“).`) + lw(`Netto = ${erg(eur(netto))}`, `USt ${pr(mw, 0)} = ${erg(eur(mwst))}`, `Brutto = ${erg(eur(brutto))}`)),
+    T("Wie hoch ist der durchschnittliche Bruttopreis je kWh?", 2, ek(`Gesamtkosten ÷ Verbrauch ergibt den tatsächlichen Durchschnittspreis. Er ist die richtige Grundlage für Wirtschaftlichkeitsrechnungen (z. B. Einsparmaßnahmen), nicht der reine Energiepreis.`) + lw(`${eur(brutto)} / ${kwh(v)} = ${erg(ct(dp, 2))}`))
+  ];
+  const energieAnteil = rd(k[0][2] / netto * 100, 1);
+  teil.push(T("Welcher Anteil des Nettobetrags entfällt auf die eigentliche Energielieferung? Was folgt daraus für Ausschreibungen?", 2, ek(`Anteil = Teilbetrag ÷ Gesamtbetrag × 100 %.`) + lw(`${eur(k[0][2])} / ${eur(netto)} = ${erg(pr(energieAnteil, 1))}`, "Folgerung: Im Wettbewerb ist nur dieser Teil verhandelbar; Netzentgelte, Steuern, Abgaben und Umlagen sind für alle Lieferanten gleich.")));
+  return {titel: "Prüfung einer Stromrechnung", text: `<p>Sie prüfen die Jahresrechnung für die Stromlieferung an ein Schulzentrum ${c.vonDat}. Alle Preise sind Nettopreise.</p>${tab(daten)}`, teil};
+}});
+
+/* ---------- Vertrag: Angebotsvergleich ---------- */
+A.push({id: "angebote", thema: "vert", name: "Angebotsvergleich zweier Lieferverträge", gen(r, L, c) {
+  const v = r.step(15000, 120000, 1000);
+  const a = {gp: r.step(600, 1800, 60), ap: r.step(22, 27, 0.1)}, b = {gp: r.step(60, 360, 60), ap: rd(a.ap + r.step(0.8, 2.5, 0.1), 1)};
+  const ka = rd(a.gp + v * a.ap / 100, 2), kb = rd(b.gp + v * b.ap / 100, 2), be = rd((a.gp - b.gp) / ((b.ap - a.ap) / 100), 0);
+  const stg = r.step(5, 12, 1);
+  const daten = tab([["Grundpreis pro Jahr", eur(a.gp, 0), eur(b.gp, 0)], ["Arbeitspreis", ct(a.ap, 1), ct(b.ap, 1)], ...(L >= 2 ? [["Preisgarantie", "nur 1 Jahr, danach erwartet +" + pr(stg, 0), "2 Jahre"]] : [])], ["", "Angebot A", "Angebot B"]);
+  const teil = [
+    T(`Berechnen Sie die Jahreskosten beider Angebote bei einem Verbrauch von ${kwh(v)}.`, 4, ek(`Jahreskosten = fester Grundpreis + Verbrauch × Arbeitspreis.`) + lw(`A: ${eur(a.gp, 0)} + ${kwh(v)} × ${z(a.ap, 1)} ct/kWh = ${erg(eur(ka))}`, `B: ${eur(b.gp, 0)} + ${kwh(v)} × ${z(b.ap, 1)} ct/kWh = ${erg(eur(kb))}`)),
+    T("Welches Angebot ist günstiger und um wie viel?", 1, ek(`Differenz der Jahreskosten aus Teilaufgabe a.`) + lw(`${ka < kb ? "Angebot A" : "Angebot B"} ist um ${erg(eur(Math.abs(ka - kb)))} pro Jahr günstiger.`)),
+    T("Ab welchem Jahresverbrauch ist Angebot A günstiger (Break-even)?", 3, ek(`Bei kleinem Verbrauch wirkt der Grundpreis stärker, bei großem der Arbeitspreis. Am Break-even-Punkt sind beide Kostenfunktionen gleich hoch: Gleichung aufstellen, nach x auflösen. Der höhere Grundpreis von A wird durch den niedrigeren Arbeitspreis erst ab dieser Menge ausgeglichen.`) + lw(`Gleichsetzen: ${z(a.gp, 0)} + x × ${z(a.ap / 100, 3)} = ${z(b.gp, 0)} + x × ${z(b.ap / 100, 3)}`, `x = (${z(a.gp, 0)} − ${z(b.gp, 0)}) / (${z(b.ap / 100, 3)} − ${z(a.ap / 100, 3)}) = ${erg(kwh(be))}`, `Ab ${kwh(be)} pro Jahr ist Angebot A günstiger.`))
+  ];
+  if (L >= 2) {
+    const a2 = rd(a.gp * (1 + stg / 100) + v * a.ap * (1 + stg / 100) / 100, 2);
+    teil.push(T("Vergleichen Sie die Gesamtkosten über zwei Jahre unter Berücksichtigung der Preisgarantie.", 3, ek(`Ohne Preisgarantie steigen Grund- und Arbeitspreis im zweiten Jahr. Deshalb werden die Jahre einzeln berechnet und addiert.`) + lw(`A: Jahr 1 = ${eur(ka)}; Jahr 2 = ${eur(ka)} × ${z(1 + stg / 100, 2)} = ${eur(a2)} → Summe ${erg(eur(ka + a2))}`, `B: 2 × ${eur(kb)} = ${erg(eur(2 * kb))}`, `Über zwei Jahre ist ${ka + a2 < 2 * kb ? "Angebot A" : "Angebot B"} günstiger (Differenz ${eur(Math.abs(ka + a2 - 2 * kb))}).`)));
+  }
+  if (L >= 3) teil.push(T("Nennen Sie zwei weitere Kriterien, die neben dem Preis in eine Vergabeentscheidung einfließen können.", 2, ek(`Bewertung: je sachlich richtigem Kriterium 1 Punkt.`) + lw("z. B. Vertragslaufzeit und Kündigungsfristen, Preisgleitklauseln, Ökostromqualität/Herkunftsnachweise, Abrechnungs- und Portalservice, Bonität/Lieferzuverlässigkeit, Toleranzbänder bei Mengenabweichung.")));
+  return {titel: "Vergleich von Stromlieferangeboten", text: `<p>Für eine Kindertageseinrichtung ${c.vonDat} liegen zwei Angebote für die Stromlieferung vor (Nettopreise).</p>${daten}`, teil};
+}});
+
+/* ---------- Vertrag: Laufzeit und Kündigung ---------- */
+const addM = (d, m) => new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + m, d.getUTCDate()));
+const addD = (d, n) => new Date(d.getTime() + n * 864e5);
+A.push({id: "fristen", thema: "vert", name: "Vertragslaufzeit, Kündigungsfrist, Verlängerung", gen(r, L, c) {
+  const jahr = new Date().getUTCFullYear() - r.int(1, 3);
+  const beginn = new Date(Date.UTC(jahr, r.int(0, 11), 1));
+  const lz = r.pick([24, 36, 48]), verl = 12, kf = r.pick([3, 6]);
+  const vertrag = r.pick(["Wartungsvertrag für die Aufzugsanlagen", "Wartungsvertrag für die Lüftungsanlagen", "Reinigungsvertrag", "Vertrag über die Gebäudeleittechnik"]);
+  const ende = addD(addM(beginn, lz), -1);
+  const spaet = addD(addM(addD(ende, 1), -kf), -1);
+  const zugang = addD(spaet, r.int(2, 20));
+  const ende2 = addD(addM(addD(ende, 1), verl), -1);
+  const wv = addD(spaet, -28);
+  const teil = [
+    T("Wann endet die Erstlaufzeit des Vertrags?", 2, ek(`Fristberechnung nach §§ 187, 188 BGB: Beginnt der Vertrag am Ersten eines Monats, endet eine Laufzeit von n Monaten am letzten Tag des Vormonats – Beginn + Laufzeit − 1 Tag.`) + lw(`Beginn ${datumStr(beginn)} + ${lz} Monate − 1 Tag = ${erg(datumStr(ende))}`)),
+    T("Bis wann muss die Kündigung spätestens beim Vertragspartner eingehen, damit der Vertrag zum Ende der Erstlaufzeit endet?", 3, ek(`„${kf} Monate zum Ende der Laufzeit“ bedeutet: Zwischen Zugang und Vertragsende müssen volle ${kf} Monate liegen. Man rechnet vom Tag nach dem Vertragsende ${kf} Monate zurück; der Vortag ist der letzte mögliche Zugangstag. Maßgeblich ist der Zugang beim Empfänger (§ 130 BGB), nicht das Absenden.`) + lw(`Kündigungsfrist ${kf} Monate zum Laufzeitende: ${datumStr(addD(ende, 1))} − ${kf} Monate = ${datumStr(addD(spaet, 1))}`, `→ Zugang spätestens am ${erg(datumStr(spaet))} (entscheidend ist der Zugang, nicht das Absendedatum).`)),
+    T(`Die Kündigung geht erst am ${datumStr(zugang)} ein. Wann endet der Vertrag jetzt?`, 2, ek(`Ist die Frist versäumt, greift die Verlängerungsklausel: Die Kündigung ist nicht unwirksam, sie wirkt aber erst zum Ende der nächsten Verlängerungsperiode.`) + lw(`Frist versäumt → automatische Verlängerung um ${verl} Monate.`, `Neues Ende: ${erg(datumStr(ende2))}`) +
+      fig(svgZeitstrahl([{d: beginn, text: "Beginn"}, {d: spaet, text: "Kündigung spätestens", farbe: FB.rot}, {d: zugang, text: "Zugang", farbe: FB.orange}, {d: ende, text: "Ende Erstlaufzeit"}, {d: ende2, text: "neues Ende", farbe: FB.blau}],
+        {spannen: [{a: addD(spaet, 1), b: ende, farbe: FB.rot, text: `${kf} Monate Kündigungsfrist`}, {a: addD(ende, 1), b: ende2, farbe: FB.blau, text: "Verlängerung"}]}), "Zeitstrahl des Vertrags")),
+    T("Wann sollte eine Wiedervorlage im Vertragsmanagement spätestens gesetzt werden, wenn vier Wochen Vorlauf für Entscheidung und Kündigungsschreiben eingeplant sind?", 1, ek(`Vom letzten Zugangstag rückwärts rechnen und die benötigte Bearbeitungszeit (Entscheidung, Unterschrift, Versand) abziehen.`) + lw(`${datumStr(spaet)} − 28 Tage = ${erg(datumStr(wv))}`))
+  ];
+  if (L >= 2) teil.push(T("Nennen Sie zwei Angaben, die eine Vertragsdatenbank zu jedem Vertrag mindestens enthalten sollte.", 2, ek(`Bewertung: je sachlich richtiger Angabe 1 Punkt.`) + lw("z. B. Vertragspartner, Gegenstand, Beginn, Laufzeit/Ende, Kündigungsfrist und -form, Verlängerungsklausel, Kosten/Preisgleitung, Ansprechpartner, Ablageort, Wiedervorlagedatum.")));
+  if (L >= 3) teil.push(T("Welche Form sollte die Kündigung haben und wie lässt sich der Zugang nachweisen?", 2, ek(`Die Form ergibt sich aus dem Vertrag; entscheidend ist, den Zugang beweisen zu können.`) + lw("Form gemäß Vertrag (meist Schriftform, ggf. Textform); Nachweis z. B. per Einschreiben mit Rückschein, Bote mit Zustellprotokoll oder Empfangsbestätigung des Vertragspartners.")));
+  const daten = [["Vertrag", vertrag], ["Vertragsbeginn", datumStr(beginn)], ["Erstlaufzeit", lz + " Monate"], ["Verlängerung", `um jeweils ${verl} Monate, wenn nicht gekündigt wird`], ["Kündigungsfrist", `${kf} Monate zum Ende der Laufzeit`]];
+  return {titel: "Fristen im Vertragsmanagement", text: `<p>Im Vertragsmanagement ${c.vonDat} ist folgender Vertrag erfasst:</p>${tab(daten)}`, teil};
+}});
+
+/* ---------- Vertrag: Indexierung ---------- */
+A.push({id: "index", thema: "vert", name: "Preisanpassung per Wertsicherungsklausel (VPI)", gen(r, L, c) {
+  const art = r.pick([["Wartungsvertrag", "Wartungspauschale", "monatlich"], ["Mietvertrag (Indexmiete)", "Nettokaltmiete", "monatlich"], ["Hausmeisterdienstleistung", "Vergütung", "monatlich"]]);
+  const preis = r.step(800, 6500, 50), i0 = r.step(110, 120, 0.1), i1 = rd(i0 * r.step(1.03, 1.12, 0.005), 1), schw = r.pick([3, 5]);
+  const delta = rd((i1 / i0 - 1) * 100, 2), neu = rd(preis * i1 / i0, 2), ok = delta >= schw;
+  const teil = [
+    T("Berechnen Sie die prozentuale Veränderung des Verbraucherpreisindex.", 2, ek(`Eine prozentuale Veränderung bezieht sich immer auf den Ausgangswert: (neuer Index ÷ alter Index − 1) × 100. Achtung: Indexpunkte sind keine Prozent – 5 Punkte Anstieg sind bei einem Index von 120 nur rund 4,2 %.`) + lw(`(${z(i1, 1)} / ${z(i0, 1)} − 1) × 100 = ${erg(pr(delta, 2))}`)),
+    T(`Ist die Anpassungsschwelle von ${pr(schw, 0)} erreicht?`, 1, ek(`Die berechnete Veränderung wird mit der vertraglich vereinbarten Schwelle verglichen.`) + lw(ok ? `${pr(delta, 2)} ≥ ${pr(schw, 0)} → ${erg("ja, Anpassung möglich")}` : `${pr(delta, 2)} < ${pr(schw, 0)} → ${erg("nein, keine Anpassung")}`)),
+    T(`Berechnen Sie die neue ${art[1]}${ok ? "" : " für den Fall, dass die Schwelle später überschritten wird (rechnen Sie mit dem gegebenen Index)"}.`, 2, ek(`„Im gleichen Verhältnis“ bedeutet: Der bisherige Betrag wird mit dem Verhältnis der Indexwerte (neu ÷ alt) multipliziert.`) + lw(`${eur(preis, 0)} × ${z(i1, 1)} / ${z(i0, 1)} = ${erg(eur(neu))}`))
+  ];
+  if (L >= 2) teil.push(T("Wie hoch sind die jährlichen Mehrkosten nach der Anpassung?", 1, ek(`Monatliche Differenz × 12 Monate.`) + lw(`(${eur(neu)} − ${eur(preis, 0)}) × 12 = ${erg(eur((neu - preis) * 12))}`)));
+  if (L >= 3) teil.push(T("Warum werden Indexklauseln häufig mit einer Schwelle oder einem Mindestabstand vereinbart?", 2, ek(`Bewertung: sinnvolle Begründung 1 Punkt, Hinweis auf gesetzliche Regelung 1 Punkt.`) + lw("Um häufige Kleinstanpassungen und Verwaltungsaufwand zu vermeiden; Planbarkeit für beide Seiten. Bei Indexmieten (§ 557b BGB) muss die Miete zudem mindestens ein Jahr unverändert bleiben.")));
+  const daten = [["Vertrag", art[0]], [`${art[1]} (${art[2]})`, eur(preis, 0)], ["VPI bei Vertragsschluss (Basis 2020 = 100)", z(i0, 1)], ["VPI aktuell", z(i1, 1)], ["Klausel", `Anpassung im gleichen Verhältnis, sobald sich der Index um mindestens ${pr(schw, 0)} verändert hat`]];
+  return {titel: "Preisanpassung nach Verbraucherpreisindex", text: `<p>${c.Org} hat einen Vertrag mit Wertsicherungsklausel abgeschlossen.</p>${tab(daten)}`, teil};
+}});
+
+
+/* ---------- PV technisch: Aufbau, Schaltplan, Stringauslegung, Leitung ---------- */
+A.push({id: "pvtechnik", thema: "pv", name: "PV-Anlage technisch: Schaltplan, Bauteile, Strang- und Leitungsauslegung", gen(r, L, c) {
+  // Nummerierung je Variante gemischt, damit Nachbarn nicht abschreiben können
+  const ids = PV_BAUTEILE.map(b => b[0]), nummern = r.shuffle(ids.map((_, k) => k + 1));
+  const nr = Object.fromEntries(ids.map((id, k) => [id, nummern[k]]));
+  const sortiert = ids.slice().sort((a, b) => nr[a] - nr[b]);
+  const nAbfrage = L === 1 ? 6 : L === 2 ? 8 : 9;
+  const abfrage = sortiert.filter((_, k) => k < nAbfrage);
+  // Modul- und Wechselrichterdaten
+  const pmod = r.step(400, 460, 5), voc = r.step(37, 50, 0.1), vmpp = rd(voc * r.step(0.82, 0.85, 0.005), 1), isc = r.step(10.5, 14.0, 0.05), impp = rd(isc * r.step(0.93, 0.96, 0.005), 2),
+    beta = r.step(-0.30, -0.25, 0.01), betaMpp = rd(beta - 0.07, 2), umax = r.pick([1000, 1100]), mppMin = r.pick([160, 180, 200]), mppMax = r.pick([800, 850, 900]),
+    tmin = -10, tmax = 70, np = r.int(2, 3);
+  const vocKalt = rd(voc * (1 + beta / 100 * (tmin - 25)), 2), nmax = Math.floor(umax / vocKalt);
+  const vmppHeiss = rd(vmpp * (1 + betaMpp / 100 * (tmax - 25)), 2), nmin = Math.ceil(mppMin / vmppHeiss);
+  const ns = r.int(Math.max(nmin, nmax - 5), Math.min(nmax, Math.floor(mppMax / vmpp)));
+  const pdc = rd(ns * np * pmod / 1000, 2), ustr = rd(ns * vmpp, 1), iges = rd(np * impp, 2);
+  const pac = Math.max(5, Math.round(pdc / r.step(1.05, 1.25, 0.05)));
+  const lDc = r.step(15, 45, 5), aDc = r.pick([4, 6]), kappa = 56;
+  const dU = rd(2 * lDc * impp / (kappa * aDc), 2), dUp = rd(dU / ustr * 100, 2), Rl = rd(2 * lDc / (kappa * aDc), 4), pV = rd(impp * impp * Rl, 1);
+  const daten = [["PV-Modul", `${z(pmod)} Wp · U<sub>oc</sub> = ${z(voc, 1)} V · U<sub>MPP</sub> = ${z(vmpp, 1)} V · I<sub>sc</sub> = ${z(isc, 2)} A · I<sub>MPP</sub> = ${z(impp, 2)} A`],
+    ...(L >= 2 ? [["Temperaturkoeffizient", `U<sub>oc</sub>: ${z(beta, 2)} %/K · U<sub>MPP</sub>: ${z(betaMpp, 2)} %/K (bezogen auf 25 °C)`]] : []),
+    ["Wechselrichter", `${z(pac)} kW AC · max. DC-Eingangsspannung ${z(umax)} V · MPP-Bereich ${z(mppMin)}–${z(mppMax)} V`],
+    ["Verschaltung", `${np} Stränge mit je ${ns} Modulen, parallel am Wechselrichter`],
+    ["DC-Strangleitung (Kupfer, je Strang)", `einfache Länge ${z(lDc)} m · Querschnitt ${z(aDc)} mm² · κ = ${kappa} m/(Ω·mm²)`]];
+  const bank = L === 1 ? `<p style="font-size:9.5pt"><i>Begriffe zur Auswahl:</i> ${r.shuffle(PV_BAUTEILE.filter(b => abfrage.includes(b[0])).map(b => b[1].split(" (")[0].split(" mit ")[0])).join(" · ")}</p>` : "";
+  const teil = [
+    T(`Benennen Sie die im Schaltplan mit ${abfrage.map(id => nr[id]).join(", ")} gekennzeichneten Bauteile${L >= 2 ? " und geben Sie jeweils die Aufgabe an" : ""}.`, L === 1 ? 3 : L === 2 ? 6 : 7,
+      ek(`Den Schaltplan in Richtung des Energieflusses lesen: Erzeugung (DC) → Sammeln und Absichern → Trennen → Umwandeln (DC/AC) → AC-Schutz → Netzschutz → Messen → Übergabe an das Netz. Der Potentialausgleich verbindet alle leitfähigen Gehäuse und Gestelle.`) + lw(...abfrage.map(id => { const b = PV_BAUTEILE.find(x => x[0] === id); return `${nr[id]}: ${b[1]}${L >= 2 ? " – " + b[2] : ""}`; }), L === 1 ? "(je ½ Punkt)" : "(Benennung und Aufgabe je ½ Punkt)"), 5),
+    T("Berechnen Sie die installierte Generatorleistung sowie Spannung und Strom am Wechselrichtereingang im MPP (Standardtestbedingungen).", 3,
+      ek(`Reihenschaltung im Strang: Der Strom ist überall gleich, die Spannungen addieren sich. Parallelschaltung der Stränge: Die Spannung ist gleich, die Ströme addieren sich. Die Generatorleistung ist die Summe aller Modulleistungen (Anzahl Stränge × Module je Strang × Modulleistung).`) + lw(`P = ${np} × ${ns} × ${z(pmod)} Wp = ${erg(z(pdc, 2) + " kWp")}`, `U = ${ns} × ${z(vmpp, 1)} V = ${erg(z(ustr, 1) + " V")}   (Reihenschaltung: Spannungen addieren sich)`, `I = ${np} × ${z(impp, 2)} A = ${erg(z(iges, 2) + " A")}   (Parallelschaltung: Ströme addieren sich)`)),
+    T("Warum darf eine DC-Steckverbindung nicht unter Last getrennt werden?", 2, ek(`Bei Wechselstrom erlischt ein Lichtbogen 100-mal pro Sekunde im Nulldurchgang von selbst – bei Gleichstrom nicht.`) + lw("Gleichstrom hat keinen Nulldurchgang. Beim Trennen unter Last entsteht ein stehender Lichtbogen (Brand- und Verletzungsgefahr). Erst den Wechselrichter bzw. DC-Freischalter abschalten.")),
+  ];
+  if (L >= 2) {
+    teil.push(T(`Prüfen Sie, ob die Strangspannung bei ${tmin} °C Modultemperatur die maximale DC-Eingangsspannung des Wechselrichters einhält. Wie viele Module dürfen höchstens in Reihe geschaltet werden?`, 4,
+      ek(`Die Leerlaufspannung steigt bei Kälte (negativer Temperaturkoeffizient). Kritisch ist ein kalter, klarer Morgen, an dem der Wechselrichter noch nicht einspeist: Dann liegt die volle Leerlaufspannung an und darf die maximale Eingangsspannung nicht überschreiten, sonst wird das Gerät beschädigt. Der Koeffizient gilt je Kelvin Abweichung von 25 °C (STC); bei −10 °C sind das −35 K.`) + lw(`U_oc(${tmin} °C) = U_oc × (1 + β × (${tmin} − 25)) = ${z(voc, 1)} V × (1 + ${z(beta / 100, 4)} × (${tmin - 25})) = ${z(vocKalt, 2)} V`,
+        `Strang: ${ns} × ${z(vocKalt, 2)} V = ${z(ns * vocKalt, 1)} V ${ns * vocKalt <= umax ? "≤" : ">"} ${z(umax)} V → ${ns * vocKalt <= umax ? "zulässig" : "unzulässig"}`,
+        `n_max = ${z(umax)} V / ${z(vocKalt, 2)} V = ${z(umax / vocKalt, 2)} → ${erg(nmax + " Module")} (abrunden)`)));
+    teil.push(T(`Berechnen Sie den Spannungsfall auf der DC-Strangleitung (Strom ${z(impp, 2)} A im MPP) und seinen Anteil an der Strangspannung.`, 3,
+      ek(`Bei Gleichstrom fließt der Strom über Hin- und Rückleiter, daher geht die Leitungslänge doppelt ein (2 × l). Widerstand R = Länge ÷ (κ × A), Spannungsfall ΔU = I × R. Für die PV-DC-Seite gilt als Faustregel ein Spannungsfall von höchstens 1 %.`) + lw(`ΔU = 2 × l × I / (κ × A) = 2 × ${z(lDc)} m × ${z(impp, 2)} A / (${kappa} × ${z(aDc)} mm²) = ${erg(z(dU, 2) + " V")}`, `Anteil = ${z(dU, 2)} V / ${z(ustr, 1)} V = ${erg(pr(dUp, 2))}${dUp <= 1 ? " → unter der üblichen Grenze von 1 %" : " → über der empfohlenen Grenze von 1 %, größeren Querschnitt wählen"}`)));
+    teil.push(T(`Bestimmen Sie das DC/AC-Verhältnis und beurteilen Sie die Dimensionierung des ${z(pac)}-kW-Wechselrichters.`, 2,
+      ek(`Verhältnis aus Modulleistung unter Standardtestbedingungen und Wechselrichter-Nennleistung. Module erreichen ihre Nennleistung im Betrieb selten (hohe Temperatur, geringere Einstrahlung), daher ist eine leichte Überbelegung wirtschaftlich sinnvoll.`) + lw(`DC/AC = ${z(pdc, 2)} kWp / ${z(pac)} kW = ${erg(z(pdc / pac, 2))}`, pdc / pac >= 0.9 && pdc / pac <= 1.3 ? "Üblicher Bereich (ca. 0,9–1,3): Leichte Überbelegung ist sinnvoll, da die Module die Nennleistung selten erreichen; Abregelverluste bleiben gering." : "Außerhalb des üblichen Bereichs (ca. 0,9–1,3): Dimensionierung prüfen.")));
+  }
+  if (L >= 3) {
+    teil.push(T(`Prüfen Sie die Mindestmodulzahl je Strang, damit der Wechselrichter bei ${tmax} °C Modultemperatur noch im MPP-Bereich arbeitet.`, 3,
+      ek(`Bei Hitze sinkt die MPP-Spannung. Der Strang braucht genug Module, damit seine Spannung auch dann über der unteren Grenze des MPP-Bereichs bleibt; sonst kann der Wechselrichter den optimalen Arbeitspunkt nicht mehr einstellen. Hier wird aufgerundet, weil die Mindestzahl nicht unterschritten werden darf.`) + lw(`U_MPP(${tmax} °C) = ${z(vmpp, 1)} V × (1 + ${z(betaMpp / 100, 4)} × ${tmax - 25}) = ${z(vmppHeiss, 2)} V`, `n_min = ${z(mppMin)} V / ${z(vmppHeiss, 2)} V = ${z(mppMin / vmppHeiss, 2)} → ${erg(nmin + " Module")} (aufrunden); gewählt ${ns} → ${ns >= nmin ? "erfüllt" : "nicht erfüllt"}`)));
+    teil.push(T("Berechnen Sie den Leitungswiderstand (Hin- und Rückleiter) und die Verlustleistung der DC-Leitung im MPP für einen Strang.", 3,
+      ek(`Verlustleistung P = I² × R. Der Strom geht quadratisch ein: doppelter Strom → vierfacher Verlust. Deshalb werden PV-Generatoren auf hohe Spannung und kleinen Strom ausgelegt (lange Stränge).`) + lw(`R = 2 × l / (κ × A) = 2 × ${z(lDc)} m / (${kappa} × ${z(aDc)} mm²) = ${z(Rl, 4)} Ω`, `P_V = I² × R = (${z(impp, 2)} A)² × ${z(Rl, 4)} Ω = ${erg(z(pV, 1) + " W")}`)));
+  }
+  const schaltplan = fig(svgPVSchaltplan(nr, {np}), "Abbildung: Übersichtsschaltplan einer netzgekoppelten PV-Anlage (vereinfacht, einpolige Darstellung)");
+  // Lösungsbild: U-I-Kennlinie des Strangs (vereinfachtes Eindiodenmodell)
+  const kenn = [], kennH = []; const iv = (u, uoc, isc_) => Math.max(0, isc_ * (1 - Math.exp((u - uoc) / (uoc * 0.065))) / (1 - Math.exp(-1 / 0.065)));
+  for (let k = 0; k <= 40; k++) { const u = ns * voc * k / 40; kenn.push([u, iv(u, ns * voc, isc)]); const u2 = ns * vocKalt * k / 40; kennH.push([u2, iv(u2, ns * vocKalt, isc * 0.98)]); }
+  if (L >= 2) teil[3].l += fig(svgLinien([{name: "Strang bei 25 °C", farbe: FB.blau, p: kenn}, {name: `bei ${tmin} °C`, farbe: FB.orange, dash: "5 3", p: kennH},
+    {name: "max. DC-Spannung WR", farbe: FB.rot, dash: "2 3", p: [[umax, 0], [umax, isc * 1.05]]}], {xlabel: "Spannung [V]", ylabel: "Strom [A]", xmin: 0, ymin: 0}), "Strang-Kennlinie (vereinfacht): Bei Kälte steigt die Leerlaufspannung.");
+  return {titel: "Aufbau und Auslegung einer PV-Anlage", text: `<p>${c.Org} lässt auf einem Verwaltungsgebäude eine netzgekoppelte PV-Anlage errichten. Der Schaltplan zeigt den Aufbau.</p>${schaltplan}${bank}${tab(daten)}`, teil};
+}});
+
+/* ---------- Nebenkostenabrechnung ---------- */
+A.push({id: "nebenkosten", thema: "nk", name: "Betriebskostenabrechnung für eine Mietwohnung", gen(r, L, c) {
+  const jahr = new Date().getUTCFullYear() - 1, we = r.int(6, 12), flGes = r.step(we * 60, we * 85, 5), flW = r.step(48, 95, 1), persGes = r.int(we + 2, we * 2 + 2), persW = r.int(1, 4);
+  const posten = [
+    ["Grundsteuer", r.step(1800, 4200, 10), "Wohnfläche"],
+    ["Wasserversorgung und Entwässerung", r.step(3500, 8000, 10), "Personen"],
+    ["Müllbeseitigung", r.step(1500, 3600, 10), "Personen"],
+    ["Gebäudereinigung (Treppenhaus)", r.step(1400, 3200, 10), "Wohnfläche"],
+    ["Gartenpflege", r.step(600, 1800, 10), "Wohnfläche"],
+    ["Allgemeinstrom (Treppenhaus, Keller)", r.step(350, 900, 10), "Wohnfläche"],
+    ["Sach- und Haftpflichtversicherung", r.step(1500, 3500, 10), "Wohnfläche"],
+    ["Hauswart", r.step(1800, 4800, 10), "Wohneinheiten"]
+  ];
+  const nicht = r.pick([["Verwaltungskosten der Hausverwaltung", r.step(2000, 4000, 10), "–", "Verwaltungskosten sind nach § 1 Abs. 2 Nr. 1 BetrKV keine Betriebskosten."], ["Reparatur der Dachrinne", r.step(800, 2500, 10), "–", "Instandhaltungs- und Instandsetzungskosten sind nach § 1 Abs. 2 Nr. 2 BetrKV keine Betriebskosten."]]);
+  const alle = r.shuffle([...posten, nicht]);
+  const heiz = r.step(9000, 22000, 10), vAnteil = r.pick([50, 60, 70]), eGes = r.int(800, 1800), eW = rd(eGes * flW / flGes * r.step(0.6, 1.4, 0.05), 0), vz = r.step(150, 320, 5);
+  const schl = {"Wohnfläche": [flW, flGes, "m²"], "Personen": [persW, persGes, "Pers."], "Wohneinheiten": [1, we, "WE"]};
+  const anteile = posten.map(([n, b, k]) => { const [a, g] = schl[k]; return {n, b, k, a, g, w: rd(b * a / g, 2)}; });
+  const sumKalt = rd(anteile.reduce((s, x) => s + x.w, 0), 2);
+  const hGrund = rd(heiz * (100 - vAnteil) / 100 * flW / flGes, 2), hVerb = rd(heiz * vAnteil / 100 * eW / eGes, 2), hW = rd(hGrund + hVerb, 2);
+  const gesamt = rd(sumKalt + hW, 2), vzJahr = rd(12 * vz, 2), saldo = rd(gesamt - vzJahr, 2);
+  const daten = [["Abrechnungszeitraum", `01.01.–31.12.${jahr}`], ["Wohneinheiten im Haus", we], ["Wohnfläche gesamt / Mietwohnung", `${z(flGes)} m² / ${z(flW)} m²`], ["Personen gesamt / Mietwohnung", `${persGes} / ${persW}`],
+    ["Heizkosten gesamt", `${eur(heiz)} – Verteilung ${vAnteil} % nach Verbrauch, ${100 - vAnteil} % nach Wohnfläche`], ["Verbrauchseinheiten (Heizkostenverteiler) gesamt / Wohnung", `${z(eGes)} / ${z(eW)}`], ["Vorauszahlung des Mieters", `${eur(vz)} pro Monat`]];
+  const kosten = tab(alle.map(([n, b, k]) => [n, eur(b), k]), ["Kostenart (Jahresbetrag)", "Betrag", "Umlageschlüssel laut Mietvertrag"]);
+  const teil = [
+    T("Eine der aufgeführten Kostenarten darf nicht auf die Mieter umgelegt werden. Nennen Sie diese und begründen Sie.", 2, ek(`Umlagefähig sind nur Betriebskosten nach § 2 BetrKV: laufend entstehende Kosten aus dem Eigentum und dem bestimmungsgemäßen Gebrauch des Gebäudes. Verwaltungskosten sowie Instandhaltung und Instandsetzung trägt der Vermieter (§ 1 Abs. 2 BetrKV).`) + lw(`${erg(nicht[0])}: ${nicht[3]}`)),
+    T("Berechnen Sie den Anteil der Mietwohnung an den umlagefähigen Betriebskosten (ohne Heizkosten).", L === 1 ? 6 : 5,
+      ek(`Jede Kostenart wird nach dem im Mietvertrag vereinbarten Schlüssel verteilt: Gesamtkosten × Anteil der Wohnung ÷ Summe aller Anteile (Wohnfläche, Personen oder Wohneinheiten). Die nicht umlagefähige Position aus Teilaufgabe a bleibt außen vor.`) + lw(...anteile.map(x => `${x.n.padEnd(38)} ${eur(x.b).padStart(11)} × ${z(x.a)}/${z(x.g)} ${schl[x.k][2].padEnd(5)} = ${eur(x.w).padStart(10)}`), `${"Summe".padEnd(38)} ${"".padStart(11)}   ${"".padEnd(14)}= ${erg(eur(sumKalt))}`)),
+    T("Berechnen Sie den Heizkostenanteil der Wohnung nach Heizkostenverordnung.", 4,
+      ek(`Nach § 7 HeizkostenV werden 50–70 % der Heizkosten nach erfasstem Verbrauch verteilt, der Rest als Grundkosten nach Wohnfläche. Die Grundkosten decken verbrauchsunabhängige Kosten wie Bereitschafts- und Leitungsverluste; der Verbrauchsanteil schafft einen Anreiz zum Sparen.`) + lw(`Grundkosten (${100 - vAnteil} %): ${eur(heiz)} × ${z((100 - vAnteil) / 100, 2)} × ${z(flW)}/${z(flGes)} m² = ${eur(hGrund)}`, `Verbrauchskosten (${vAnteil} %): ${eur(heiz)} × ${z(vAnteil / 100, 2)} × ${z(eW)}/${z(eGes)} Einheiten = ${eur(hVerb)}`, `Heizkosten der Wohnung = ${erg(eur(hW))}`)),
+    T("Ermitteln Sie das Abrechnungsergebnis (Nachzahlung oder Guthaben).", 3,
+      ek(`Summe aller Kostenanteile minus die im Jahr geleisteten Vorauszahlungen: positiv = Nachzahlung des Mieters, negativ = Guthaben.`) + lw(`Betriebskosten gesamt = ${eur(sumKalt)} + ${eur(hW)} = ${eur(gesamt)}`, `Vorauszahlungen = 12 × ${eur(vz)} = ${eur(vzJahr)}`, saldo >= 0 ? `Ergebnis: ${erg("Nachzahlung " + eur(saldo))}` : `Ergebnis: ${erg("Guthaben " + eur(-saldo))}`)),
+    T("Bis zu welchem Datum muss die Abrechnung dem Mieter spätestens zugehen, und was gilt bei Fristversäumnis?", 2, ek(`Die Abrechnungsfrist beträgt 12 Monate nach Ende des Abrechnungszeitraums. Maßgeblich ist der Zugang beim Mieter.`) + lw(`Spätestens ${erg("31.12." + (jahr + 1))} (12 Monate nach Ende des Abrechnungszeitraums, § 556 Abs. 3 BGB).`, "Danach kann der Vermieter keine Nachzahlung mehr verlangen, es sei denn, er hat die Verspätung nicht zu vertreten. Ein Guthaben muss er trotzdem auszahlen."))
+  ];
+  if (L >= 2) { const neu = Math.ceil(gesamt / 12 / 5) * 5; teil.push(T("Schlagen Sie eine angepasste monatliche Vorauszahlung vor (auf volle 5 € aufrunden).", 2, ek(`Die Vorauszahlung soll die voraussichtlichen Kosten decken; Grundlage ist das Ergebnis der letzten Abrechnung: Jahreskosten ÷ 12.`) + lw(`${eur(gesamt)} / 12 = ${eur(gesamt / 12)} → ${erg(eur(neu, 0) + " pro Monat")} (Anpassung nach § 560 Abs. 4 BGB auf angemessene Höhe)`))); }
+  if (L >= 3) teil.push(T("Der Vermieter hat die Heizkosten versehentlich vollständig nach Wohnfläche verteilt. Welches Recht hat der Mieter? Berechnen Sie den Betrag.", 3,
+    ek(`Wird entgegen der HeizkostenV nicht verbrauchsabhängig abgerechnet, darf der Mieter seinen Anteil kürzen. Basis ist der nach Fläche berechnete Anteil an den gesamten Heizkosten.`) + lw(`Kürzungsrecht nach § 12 Abs. 1 HeizkostenV: Der auf den Mieter entfallende Anteil darf um 15 % gekürzt werden.`, `Flächenanteil: ${eur(heiz)} × ${z(flW)}/${z(flGes)} = ${eur(heiz * flW / flGes)}; Kürzung 15 % = ${eur(heiz * flW / flGes * 0.15)} → ${erg(eur(heiz * flW / flGes * 0.85))}`)));
+  teil[3].l += fig(svgAnteile([...anteile.map(x => ({label: x.n.split(" (")[0], v: x.w, text: eur(x.w)})), {label: "Heizkosten", v: hW, text: eur(hW), farbe: FB.orange}]), "Kostenanteile der Wohnung");
+  return {titel: "Betriebskostenabrechnung", text: `<p>Sie erstellen für einen Mieter die Betriebskostenabrechnung des Jahres ${jahr}. Der Mietvertrag sieht die Umlage der Betriebskosten nach BetrKV vor.</p>${tab(daten)}${kosten}`, teil};
+}});
+
+/* =============================================================================
+   Zielgruppen
+   ============================================================================= */
+const GRUPPEN = {
+  immo: {name: "Auszubildende Immobilienkaufleute", niveau: 1, themen: ["wirt", "vert", "nk", "pv", "last"], hilfs: "Taschenrechner (nicht programmierbar)"},
+  verw: {name: "Auszubildende Verwaltung (z. B. VFA)", niveau: 1, themen: ["vert", "nk", "wirt", "last"], hilfs: "Taschenrechner (nicht programmierbar)"},
+  tech: {name: "Auszubildende technisch (z. B. Elektronik, SHK)", niveau: 2, themen: ["wp", "pv", "last", "wirt"], hilfs: "Taschenrechner, Formelsammlung"},
+  stud: {name: "Studierende (Bachelor/Master)", niveau: 3, themen: ["wirt", "pv", "wp", "last", "vert", "nk"], hilfs: "Taschenrechner, eigene Formelsammlung (1 Seite A4)"}
+};
+const NIVEAU = {1: "Grundlagen – Formeln teils vorgegeben, Fokus auf Rechnen und Beurteilen", 2: "Fortgeschritten – zusätzlich CO₂, COP, kritische Mengen, Speicher", 3: "Vertieft – zusätzlich dynamische Verfahren, Interpolation, Begründungen"};
+const NOTEN = [[92, "sehr gut (1)"], [81, "gut (2)"], [67, "befriedigend (3)"], [50, "ausreichend (4)"], [30, "mangelhaft (5)"], [0, "ungenügend (6)"]];
+
+/* =============================================================================
+   Zustand, Rendering
+   ============================================================================= */
+const ST = {titel: "Übungsaufgaben Energie- und Gebäudemanagement", gruppe: "immo", niveau: "auto", org: "die Kreisverwaltung", datum: "", zeit: "", hilfs: "",
+  typen: Object.fromEntries(A.map(a => [a.id, true])), themen: {wirt: true, pv: true, wp: true, last: true, vert: true, nk: true},
+  anzahl: 4, varianten: 1, seed: 1, mischen: false, oLoes: true, oPlatz: true, oNoten: true, oName: true};
+
+function niveau() { return ST.niveau === "auto" ? GRUPPEN[ST.gruppe].niveau : +ST.niveau; }
+/* Organisation mit Artikel im Nominativ, z. B. "die Kreisverwaltung", "der Landkreis", "das Amt" */
+function orgCtx() {
+  const o = (ST.org || "").trim() || "die Kreisverwaltung";
+  const m = o.match(/^(die|der|das)\s+(.+)$/i);
+  const dat = m ? ({die: "der", der: "dem", das: "dem"}[m[1].toLowerCase()] + " " + m[2]) : o;
+  return {org: o, Org: o.charAt(0).toUpperCase() + o.slice(1), vonDat: m ? (dat.startsWith("dem ") ? "vom " + m[2] : "von " + dat) : "von " + o};
+}
+
+/* Aufgabenauswahl: verteilt über die gewählten Themen, reproduzierbar */
+function auswahl(seed) {
+  const r = RNG(seed * 7 + 3);
+  const pool = A.filter(a => ST.themen[a.thema] && ST.typen[a.id]);
+  if (!pool.length) return [];
+  const nachThema = {}; pool.forEach(a => (nachThema[a.thema] = nachThema[a.thema] || []).push(a));
+  Object.keys(nachThema).forEach(k => nachThema[k] = r.shuffle(nachThema[k]));
+  const themen = r.shuffle(Object.keys(nachThema)), out = [];
+  let k = 0;
+  while (out.length < Math.min(ST.anzahl, pool.length)) {
+    const t = themen[k % themen.length], liste = nachThema[t];
+    if (liste.length) out.push(liste.shift());
+    k++;
+    if (k > 200) break;
+  }
+  // feste Reihenfolge nach Themen, außer "mischen"
+  const ord = Object.keys(THEMEN);
+  return out.sort((a, b) => ord.indexOf(a.thema) - ord.indexOf(b.thema));
+}
+
+function erzeuge(v) {
+  const L = niveau(), typen = auswahl(ST.seed);
+  const r0 = RNG(ST.seed * 1000 + v * 7919 + 17);
+  const reihe = ST.mischen && v > 0 ? r0.shuffle(typen) : typen;
+  const ctx = orgCtx();
+  return reihe.map((a, k) => {
+    const r = RNG(ST.seed * 100003 + v * 7919 + A.indexOf(a) * 131 + 1);
+    const g = a.gen(r, L, ctx);
+    g.thema = a.thema; g.id = a.id; g.punkte = g.teil.reduce((s, t) => s + t.p, 0);
+    return g;
+  });
+}
+
+function kopf(v, aufg, loes) {
+  const p = aufg.reduce((s, a) => s + a.punkte, 0), zeit = ST.zeit ? +ST.zeit : Math.max(15, Math.round(p * 1.5 / 5) * 5);
+  const d = ST.datum ? datumStr(new Date(ST.datum + "T00:00:00Z")) : "";
+  return `<h1>${esc(ST.titel)}${loes ? " – Lösung" : ""}</h1>
+  <div class="meta"><span><b>Zielgruppe:</b> ${esc(GRUPPEN[ST.gruppe].name)}</span><span><b>Variante:</b> ${v + 1}${ST.varianten > 1 ? ` von ${ST.varianten}` : ""}</span>
+  <span><b>Bearbeitungszeit:</b> ${zeit} Minuten</span><span><b>Punkte:</b> ${p}</span>
+  <span><b>Hilfsmittel:</b> ${esc(ST.hilfs || GRUPPEN[ST.gruppe].hilfs)}</span><span>${d ? `<b>Datum:</b> ${d}` : ""}</span></div>
+  ${!loes && ST.oName ? `<div class="namen"><div>Name, Vorname</div><div>Prüflingsnummer</div></div>` : ""}
+  ${!loes ? `<p style="font-size:9.5pt;margin:0 0 2mm">Bitte geben Sie bei allen Rechenaufgaben den Rechenweg an. Runden Sie Geldbeträge auf zwei Nachkommastellen; Rundungsdifferenzen werden toleriert.</p>` : ""}
+  <table class="punkte"><tr><th>Aufgabe</th>${aufg.map((_, k) => `<th>${k + 1}</th>`).join("")}<th>Summe</th></tr>
+  <tr><td>max. Punkte</td>${aufg.map(a => `<td>${a.punkte}</td>`).join("")}<td><b>${p}</b></td></tr>
+  ${!loes ? `<tr><td>erreicht</td>${aufg.map(() => "<td></td>").join("")}<td></td></tr>` : ""}</table>`;
+}
+
+function blattAufgaben(v, aufg) {
+  return `<section class="sheet">${kopf(v, aufg, false)}${aufg.map((a, k) => `<div class="aufg"><div class="kopf"><h2>Aufgabe ${k + 1}: ${esc(a.titel)}<span class="tag">${THEMEN[a.thema]}</span></h2><span>${a.punkte} Punkte</span></div>
+    ${a.text}<ol class="teil" type="a">${a.teil.map(t => `<li><span class="pk">${t.p} P.</span>${t.f}${ST.oPlatz ? `<div class="platz" style="height:${Math.max(13, t.p * 6.5)}mm"></div>` : ""}</li>`).join("")}</ol></div>`).join("")}
+    <div class="fuss">${esc(ST.titel)} · Variante ${v + 1} · Startwert ${ST.seed}</div></section>`;
+}
+function blattLoesung(v, aufg) {
+  const p = aufg.reduce((s, a) => s + a.punkte, 0);
+  const noten = ST.oNoten ? `<h2>Notenschlüssel (IHK)</h2><table class="punkte"><tr><th>Note</th><th>Prozent</th><th>Punkte ab</th></tr>${NOTEN.map(([g, n], k) => `<tr><td>${n}</td><td>${k ? `${g} – ${NOTEN[k - 1][0] - 1}` : `${g} – 100`} %</td><td>${Math.ceil(p * g / 100)}</td></tr>`).join("")}</table>` : "";
+  return `<section class="sheet loes">${kopf(v, aufg, true)}${aufg.map((a, k) => `<div class="aufg"><div class="kopf"><h2>Aufgabe ${k + 1}: ${esc(a.titel)}</h2><span>${a.punkte} Punkte</span></div>
+    <ol class="teil" type="a">${a.teil.map(t => `<li><span class="pk">${t.p} P.</span>${t.f}${t.l}</li>`).join("")}</ol></div>`).join("")}${noten}
+    <div class="fuss">Musterlösung · Variante ${v + 1} · Startwert ${ST.seed} · Alternative, sachlich richtige Lösungswege und Folgefehler sind angemessen zu bewerten.</div></section>`;
+}
+
+let nurLoesung = false;
+function rendern() {
+  const html = [], loes = [];
+  for (let v = 0; v < ST.varianten; v++) {
+    const aufg = erzeuge(v);
+    if (!aufg.length) { $("#blaetter").innerHTML = `<section class="sheet"><p>Bitte mindestens ein Thema und einen Aufgabentyp auswählen.</p></section>`; return; }
+    if (!nurLoesung) html.push(blattAufgaben(v, aufg));
+    if (ST.oLoes || nurLoesung) loes.push(blattLoesung(v, aufg));
+  }
+  $("#blaetter").innerHTML = html.join("") + loes.join("");
+}
+
+/* ---------------------------------------------------------------- Einstellungen */
+function speichern() { try { localStorage.setItem(KEY, JSON.stringify(ST)); } catch (e) {} }
+function laden() { try { const s = JSON.parse(localStorage.getItem(KEY) || "null"); if (s) { Object.assign(ST, s, {typen: {...ST.typen, ...(s.typen || {})}, themen: {...ST.themen, ...(s.themen || {})}}); } } catch (e) {} }
+function themenUI() {
+  $("#themen").innerHTML = Object.entries(THEMEN).map(([k, n]) => `<div class="thema"><label class="chk"><input type="checkbox" data-thema="${k}" ${ST.themen[k] ? "checked" : ""}> ${n}</label>
+    <div class="typen">${A.filter(a => a.thema === k).map(a => `<label class="chk"><input type="checkbox" data-typ="${a.id}" ${ST.typen[a.id] ? "checked" : ""} ${ST.themen[k] ? "" : "disabled"}> ${esc(a.name)}</label>`).join("")}</div></div>`).join("");
+}
+function felderSetzen() {
+  $("#gruppe").innerHTML = Object.entries(GRUPPEN).map(([k, g]) => `<option value="${k}">${esc(g.name)}</option>`).join("");
+  $("#titel").value = ST.titel; $("#gruppe").value = ST.gruppe; $("#niveau").value = ST.niveau; $("#org").value = ST.org; $("#datum").value = ST.datum;
+  $("#zeit").value = ST.zeit; $("#hilfs").value = ST.hilfs; $("#hilfs").placeholder = GRUPPEN[ST.gruppe].hilfs;
+  $("#anzahl").value = ST.anzahl; $("#varianten").value = ST.varianten; $("#seed").value = ST.seed; $("#mischen").checked = ST.mischen;
+  ["oLoes", "oPlatz", "oNoten", "oName"].forEach(k => $("#" + k).checked = ST[k]);
+  $("#lvlInfo").textContent = `Niveau ${niveau()}: ${NIVEAU[niveau()]}`;
+  themenUI();
+}
+function update() { $("#lvlInfo").textContent = `Niveau ${niveau()}: ${NIVEAU[niveau()]}`; speichern(); rendern(); }
+
+function init() {
+  laden();
+  if (!ST.datum) ST.datum = new Date().toISOString().slice(0, 10);
+  felderSetzen();
+  const txt = (id, k) => $("#" + id).addEventListener("input", ev => { ST[k] = ev.target.value; update(); });
+  txt("titel", "titel"); txt("org", "org"); txt("datum", "datum"); txt("zeit", "zeit"); txt("hilfs", "hilfs");
+  const num = (id, k, lo, hi) => $("#" + id).addEventListener("input", ev => { const v = parseInt(ev.target.value, 10); if (v >= lo && v <= hi) { ST[k] = v; update(); } });
+  num("anzahl", "anzahl", 1, 12); num("varianten", "varianten", 1, 40); num("seed", "seed", 1, 1e9);
+  $("#gruppe").addEventListener("change", ev => {
+    ST.gruppe = ev.target.value; const g = GRUPPEN[ST.gruppe];
+    Object.keys(ST.themen).forEach(k => ST.themen[k] = g.themen.includes(k));
+    $("#hilfs").placeholder = g.hilfs; themenUI(); update();
+  });
+  $("#niveau").addEventListener("change", ev => { ST.niveau = ev.target.value; update(); });
+  $("#mischen").addEventListener("change", ev => { ST.mischen = ev.target.checked; update(); });
+  ["oLoes", "oPlatz", "oNoten", "oName"].forEach(k => $("#" + k).addEventListener("change", ev => { ST[k] = ev.target.checked; update(); }));
+  $("#themen").addEventListener("change", ev => {
+    const el = ev.target;
+    if (el.dataset.thema) { ST.themen[el.dataset.thema] = el.checked; themenUI(); }
+    if (el.dataset.typ) ST.typen[el.dataset.typ] = el.checked;
+    update();
+  });
+  $("#bNeu").onclick = () => { ST.seed = Math.floor(Math.random() * 99999) + 1; $("#seed").value = ST.seed; update(); };
+  $("#bDruck").onclick = () => { nurLoesung = false; rendern(); window.print(); };
+  $("#bLoes").onclick = () => { nurLoesung = true; rendern(); window.print(); };
+  window.addEventListener("afterprint", () => { if (nurLoesung) { nurLoesung = false; rendern(); } });
+  rendern();
+}
+
+/* Testschnittstelle */
+window.__PA = {A, RNG, GRUPPEN, ST, erzeuge, rendern};
+document.addEventListener("DOMContentLoaded", init);
+</script>
+<script src="../../assets/js/toolbar.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,785 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Einsparmaßnahmen · ATools</title>
+<link rel="icon" href="../../assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<!-- Chart.js: lokal aus vendor/, Fallback auf CDN -->
+<script src="../../vendor/chart.umd.min.js"></script>
+<script>window.Chart||document.write('<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"><\/script>')</script>
+<script>if (window.Chart) Chart.defaults.locale = "de-DE";</script>
+<style>
+/* Layout: Datenblatt-Werkzeug. Links Parameterspalte, rechts Ergebnis-Reiter. Zellenblau + Sonnenbernstein. */
+:root{
+  --bg:#e9edf1; --panel:#ffffff; --panel2:#f4f6f9; --ink:#132130; --muted:#586777; --line:#d3dbe3;
+  --cell:#2c7d48; --cell-soft:#dcefe2; --sun:#c7780a; --sun-soft:#fbecd2;
+  --teal:#23807d; --rose:#b3412f; --grey:#8a97a5; --good:#2c7d48; --warn:#a8670b; --bad:#b3412f;
+  --b8:#d97f0c; --b7:#e8a442; --b6:#f1c27d; --b5:#f4dcb3; --b4:#dde2e7; --b3:#b9c6d2; --b2:#90a6ba; --b1:#6884a0; --b0:#445f7d;
+  --s1:#1d63a8; --s2:#d9730d; --s3:#2a8a5e; --s4:#b8336a; --s5:#6f4fb8; --s6:#0f8b9c; --s7:#8d6b12; --s8:#c23b22;
+  --roof:#dfe5eb; --roofline:#7b8896;
+  --f-disp:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0d141b; --panel:#141e28; --panel2:#18242f; --ink:#e3e9ef; --muted:#93a2b1; --line:#283746;
+  --cell:#5bbf7c; --cell-soft:#18301f; --sun:#f0a53a; --sun-soft:#3a2a12;
+  --teal:#4fb7b2; --rose:#e2735f; --grey:#7f8d9b; --good:#5bbf7c; --warn:#e5a443; --bad:#e2735f;
+  --b8:#f0a032; --b7:#d88a2a; --b6:#b5762e; --b5:#8a6638; --b4:#4c5866; --b3:#3d5268; --b2:#33495f; --b1:#2a3e53; --b0:#213244;
+  --s1:#6ea8e6; --s2:#f29b45; --s3:#5cc08f; --s4:#e277a4; --s5:#a68be8; --s6:#4cc3d1; --s7:#d1ac4a; --s8:#ef7158;
+  --roof:#1f2b37; --roofline:#6b7a8a;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d141b; --panel:#141e28; --panel2:#18242f; --ink:#e3e9ef; --muted:#93a2b1; --line:#283746;
+  --cell:#5bbf7c; --cell-soft:#18301f; --sun:#f0a53a; --sun-soft:#3a2a12;
+  --teal:#4fb7b2; --rose:#e2735f; --grey:#7f8d9b; --good:#5bbf7c; --warn:#e5a443; --bad:#e2735f;
+  --b8:#f0a032; --b7:#d88a2a; --b6:#b5762e; --b5:#8a6638; --b4:#4c5866; --b3:#3d5268; --b2:#33495f; --b1:#2a3e53; --b0:#213244;
+  --s1:#6ea8e6; --s2:#f29b45; --s3:#5cc08f; --s4:#e277a4; --s5:#a68be8; --s6:#4cc3d1; --s7:#d1ac4a; --s8:#ef7158;
+  --roof:#1f2b37; --roofline:#6b7a8a;
+  color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.45;margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+h1,h2,h3{font-family:var(--f-disp);font-weight:600;letter-spacing:.01em;text-wrap:balance;margin:0}
+.num,td.n,th.n{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+header.top{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;padding-block:14px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));background:var(--panel);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:baseline;gap:12px;min-width:0;flex-wrap:wrap}
+.brand h1{font-size:28px;line-height:1}
+.brand .sub{color:var(--muted);font-size:12.5px}
+.mark{width:26px;height:26px;flex:none;align-self:center}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-left:auto;min-width:0;max-width:100%}
+.btn{border:1px solid var(--line);background:var(--panel2);border-radius:6px;padding:7px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--cell)}
+.btn.pri{background:var(--cell);border-color:var(--cell);color:var(--panel)}
+.btn.sm{padding:4px 9px;font-size:12px}
+.btn:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible,[role=tab]:focus-visible{outline:2px solid var(--sun);outline-offset:1px}
+.status{font-size:12px;color:var(--muted);font-family:var(--f-mono)}
+select.preset{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:7px 8px;max-width:100%;min-width:0}
+
+.app{display:grid;grid-template-columns:minmax(330px,390px) minmax(0,1fr);gap:16px;padding-block:16px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));align-items:start}
+@media (max-width:900px){.app{grid-template-columns:minmax(0,1fr)}}
+aside.inputs{display:flex;flex-direction:column;gap:8px;min-width:0}
+@media (min-width:901px){aside.inputs{position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto;padding-right:4px}}
+details.sec{background:var(--panel);border:1px solid var(--line);border-radius:8px}
+details.sec>summary{cursor:pointer;list-style:none;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;font-family:var(--f-disp);font-size:18px;font-weight:600}
+details.sec>summary::-webkit-details-marker{display:none}
+details.sec>summary::after{content:"+";font-family:var(--f-mono);color:var(--muted);font-size:16px}
+details.sec[open]>summary::after{content:"–"}
+details.sec>summary small{font-family:var(--f-body);font-size:11.5px;color:var(--muted);font-weight:400;margin-left:8px;margin-right:auto}
+.secbody{padding:4px 14px 14px;display:flex;flex-direction:column;gap:8px}
+.fld{display:grid;grid-template-columns:minmax(0,1fr) 150px;gap:4px 10px;align-items:center}
+.fld .lab{font-size:13px;min-width:0}
+.fld small{grid-column:1/-1;color:var(--muted);font-size:11.5px;margin-top:-2px}
+.ctl{display:flex;align-items:center;gap:6px;min-width:0}
+.ctl input[type=number],.ctl select{width:100%;min-width:0;border:1px solid var(--line);background:var(--panel2);border-radius:5px;padding:5px 7px;font-family:var(--f-mono);font-size:13px;text-align:right}
+.ctl select{text-align:left;font-family:var(--f-body)}
+.ctl .unit{font-size:11px;color:var(--muted);font-family:var(--f-mono);white-space:nowrap;min-width:46px}
+.fld.wide{grid-template-columns:minmax(0,1fr)}
+.fld.wide .ctl select{width:100%}
+textarea{width:100%;border:1px solid var(--line);background:var(--panel2);border-radius:5px;padding:6px;font-family:var(--f-mono);font-size:12px;resize:vertical}
+.hgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.hgrid label{display:flex;flex-direction:column;gap:2px;font-size:11px;color:var(--muted);font-family:var(--f-mono)}
+.hgrid input{border:1px solid var(--line);background:var(--panel2);border-radius:5px;padding:4px 6px;font-family:var(--f-mono);font-size:13px;text-align:right;width:100%}
+.dim{opacity:.45}
+.surf{border:1px solid var(--line);border-radius:6px;padding:10px;display:flex;flex-direction:column;gap:7px;background:var(--panel2)}
+.surf.tpl{background:var(--cell-soft);border-color:transparent}
+.surf.tpl .ttl{font-weight:600;font-size:13px}
+.surf .sh{display:flex;gap:8px;align-items:center}
+.surf .sh input{flex:1;min-width:0;border:1px solid var(--line);background:var(--panel);border-radius:5px;padding:5px 7px;font-weight:600}
+.surf .info{font-family:var(--f-mono);font-size:11.5px;color:var(--cell)}
+.xbtn{border:1px solid var(--line);background:var(--panel);border-radius:5px;padding:4px 8px;cursor:pointer;font-size:12px}
+
+section.results{min-width:0;display:flex;flex-direction:column;gap:12px}
+nav.tabs{display:flex;gap:2px;overflow-x:auto;border-bottom:2px solid var(--line);scrollbar-width:thin}
+nav.tabs button{border:0;background:none;padding:9px 14px;cursor:pointer;font-family:var(--f-disp);font-size:17px;font-weight:600;color:var(--muted);white-space:nowrap;border-bottom:3px solid transparent;margin-bottom:-2px}
+nav.tabs button[aria-selected=true]{color:var(--ink);border-bottom-color:var(--sun)}
+.panel{display:flex;flex-direction:column;gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px;min-width:0}
+.card h2{font-size:20px;margin-bottom:8px}
+.card h3{font-size:16px;margin-bottom:6px}
+.card p.note{color:var(--muted);font-size:12.5px;margin:6px 0 0;max-width:90ch}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+@media (max-width:1150px){.grid2{grid-template-columns:minmax(0,1fr)}}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+@media (max-width:1100px){.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:620px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kpi{background:var(--panel);padding:12px 14px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.kpi .k{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.kpi .v{font-family:var(--f-disp);font-size:30px;font-weight:600;line-height:1.05;font-variant-numeric:tabular-nums}
+.kpi .v small{font-size:15px;color:var(--muted);font-weight:500;margin-left:3px}
+.kpi .s{font-size:12px;color:var(--muted);font-family:var(--f-mono)}
+.kpi.pos .v{color:var(--good)} .kpi.neg .v{color:var(--bad)}
+.chartbox{position:relative;height:300px;width:100%}
+.chartbox.tall{height:380px}.chartbox.short{height:230px}
+.flowbar{display:flex;height:22px;border-radius:4px;overflow:hidden;background:var(--panel2)}
+.flowbar>div{height:100%;min-width:0}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:6px;font-size:12.5px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:11px;height:11px;border-radius:2px;display:inline-block}
+.flowrow{display:flex;flex-direction:column;gap:4px;margin-top:12px}
+.flowrow .t{display:flex;justify-content:space-between;font-size:13px}
+.tablewrap,.svgwrap{overflow-x:auto}
+.svgwrap svg{display:block;min-width:720px;width:100%;height:auto}
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+th,td{padding:5px 8px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+th{font-weight:600;color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:.04em}
+td.n,th.n{text-align:right}
+td.okc{color:var(--good)} td.warnc{color:var(--warn);font-weight:600} td.badc{color:var(--bad);font-weight:600}
+tr.sum td{font-weight:600;border-top:2px solid var(--ink)}
+tr.hl td{background:var(--sun-soft)}
+.warns{display:flex;flex-direction:column;gap:6px;margin:0;padding:0;list-style:none}
+.warns li{display:flex;gap:10px;align-items:flex-start;font-size:13px}
+.chip{flex:none;font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;padding:2px 7px;border-radius:10px;border:1px solid currentColor;margin-top:1px}
+.chip.bad{color:var(--bad)} .chip.warn{color:var(--warn)} .chip.ok{color:var(--good)} .chip.info{color:var(--cell)}
+.casc td.bar{width:42%}
+.casc .bb{height:12px;background:var(--cell);border-radius:2px}
+.casc .bb.loss{background:var(--rose)} .casc .bb.gain{background:var(--sun)}
+.casc tr.lvl td{font-weight:600;background:var(--panel2)}
+.rec{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:700px){.rec{grid-template-columns:minmax(0,1fr)}}
+.recbox{border:1px solid var(--line);border-radius:6px;padding:10px 12px;background:var(--panel2);display:flex;flex-direction:column;gap:5px;min-width:0}
+.recbox .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);display:flex;justify-content:space-between;gap:8px}
+.recbox .big{font-family:var(--f-disp);font-size:24px;font-weight:600;line-height:1.1}
+.recbox .det{font-size:12.5px;color:var(--muted)}
+.recbox .det b{color:var(--ink);font-weight:500}
+.planlist{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:14px}
+.roofsvg{width:100%;height:auto;max-height:540px;display:block}
+.strleg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;font-family:var(--f-mono);margin-top:8px}
+.strleg span{display:inline-flex;gap:6px;align-items:center}
+.strleg i{width:14px;height:10px;border-radius:2px;display:inline-block}
+.fanwrap{display:grid;grid-template-columns:minmax(0,560px) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:1150px){.fanwrap{grid-template-columns:minmax(0,1fr)}}
+.fan{position:relative;width:100%;max-width:560px;aspect-ratio:1/1}
+.fan canvas{width:100%;height:100%;cursor:crosshair;display:block}
+.fanleg{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+.fanleg span{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-family:var(--f-mono);padding-right:6px}
+.fanleg i{width:16px;height:12px;display:inline-block;border-radius:2px}
+.tip{position:absolute;pointer-events:none;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:6px 9px;font-size:12px;font-family:var(--f-mono);box-shadow:0 4px 14px rgba(0,0,0,.15);white-space:nowrap}
+.sel-info{font-family:var(--f-mono);font-size:13px;display:grid;grid-template-columns:auto auto;gap:3px 14px;justify-content:start}
+.rangebar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px}
+.rangebar input[type=range]{flex:1;min-width:160px;accent-color:var(--sun)}
+.statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.stat{border-left:3px solid var(--cell);padding:2px 10px}
+.stat .k{font-size:11.5px;color:var(--muted)} .stat .v{font-family:var(--f-mono);font-size:16px}
+.docs{font-size:13px;max-width:95ch}
+.docs h3{margin-top:14px}
+.docs ul{padding-left:18px;margin:6px 0}
+.docs li{margin:3px 0}
+.overlay{position:fixed;inset:0;background:rgba(10,16,22,.5);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}
+.dialog{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;width:min(640px,100%);display:flex;flex-direction:column;gap:10px}
+.dialog textarea{min-height:220px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--panel);padding:8px 14px;border-radius:6px;font-size:13px;z-index:60}
+
+.tipi{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;border:1px solid var(--muted);color:var(--muted);font:600 10px/1 var(--f-body);font-style:normal;margin-left:6px;cursor:help;vertical-align:1px;text-transform:none;letter-spacing:0;flex:none}
+.tipi:hover,.tipi:focus-visible{border-color:var(--cell);color:var(--cell);outline:none}
+#tipbox{position:fixed;z-index:70;max-width:min(330px,calc(100vw - 24px));background:var(--ink);color:var(--panel);font-size:12.5px;line-height:1.45;padding:8px 11px;border-radius:6px;pointer-events:none;box-shadow:0 6px 18px rgba(0,0,0,.22);text-transform:none;letter-spacing:0;font-weight:400}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+td.wrap{white-space:normal;min-width:260px}
+#massTable td{vertical-align:top}
+#massTable tr.sel td{background:var(--cell-soft)}
+#massTable input.inv{width:84px;border:1px solid var(--line);background:var(--panel2);border-radius:5px;padding:3px 6px;font-family:var(--f-mono);font-size:12.5px;text-align:right}
+.cat{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:7px;vertical-align:1px}
+.more{border:0;background:none;cursor:pointer;color:var(--muted);font-size:12px;padding:0 4px}
+.det{font-size:12.5px;color:var(--ink);margin-top:4px;max-width:70ch}
+.det p{margin:3px 0}.det .calc{color:var(--muted);font-family:var(--f-body)}
+tbody.na td{color:var(--muted)} td.nah{font-weight:600;padding-top:14px}
+td.muted{white-space:normal}
+.catbar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:10px}
+.catbar .sp{flex:1}
+.chipbtn{border:1px solid var(--line);background:var(--panel2);border-radius:14px;padding:4px 11px;cursor:pointer;font-size:12.5px}
+.chipbtn.on{background:var(--cell);border-color:var(--cell);color:var(--panel)}
+.macsvg{display:block;width:100%;min-width:700px;height:auto}
+.maclist{columns:2;font-size:12px;margin:8px 0 0;padding-left:22px}.maclist i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px}
+@media (max-width:900px){.maclist{columns:1}}
+.okc{color:var(--good)} .badc{color:var(--bad);font-weight:600}
+@media print{header.top .toolbar,aside.inputs,nav.tabs,.catbar,.more{display:none!important}.app{display:block}.panel{display:flex!important;break-before:page}.card{break-inside:avoid}body{background:#fff}}
+
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <svg class="mark" viewBox="0 0 26 26" aria-hidden="true"><path d="M13 2C7 7 5 11 5 15a8 8 0 0 0 16 0c0-4-2-8-8-13z" fill="var(--cell)"/><path d="M13 22V11M13 15l-3.5-3M13 18l4-4" stroke="var(--panel)" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>
+    <h1>Einsparmaßnahmen</h1>
+    <span class="sub">Bestandsgebäude · Energie, Kosten, CO₂ · Amortisation</span>
+  </div>
+  <div class="toolbar">
+    <select class="preset" id="scenario" aria-label="Beispiel laden"></select>
+    <button class="btn" id="btnCsv" type="button">Maßnahmen als CSV</button>
+    <button class="btn" id="btnPrint" type="button">Drucken / PDF</button>
+    <button class="btn" id="btnReset" type="button">Zurücksetzen</button>
+    <span class="status" id="status">–</span>
+  </div>
+</header>
+<main class="app">
+  <aside class="inputs" id="inputs"></aside>
+  <section class="results">
+    <nav class="tabs" role="tablist" id="tabs">
+      <button role="tab" data-tab="mass" aria-selected="true">Maßnahmen</button>
+      <button role="tab" data-tab="ov" aria-selected="false">Übersicht</button>
+      <button role="tab" data-tab="verb" aria-selected="false">Verbrauch</button>
+      <button role="tab" data-tab="econ" aria-selected="false">Wirtschaftlichkeit</button>
+      <button role="tab" data-tab="docs" aria-selected="false">Methodik</button>
+    </nav>
+    <div class="panel" data-panel="mass">
+      <div class="kpis" id="kpis1"></div>
+      <div class="card" id="massWrap"><h2>Maßnahmenkatalog</h2><div class="catbar" id="catBar"></div><div class="tablewrap"><table id="massTable"></table></div>
+        <p class="note">Vorausgewählt sind Maßnahmen, die sich innerhalb ihrer Nutzungsdauer amortisieren. Häkchen setzen oder entfernen, Investition bei vorliegendem Angebot überschreiben. ▸ zeigt Beschreibung und Rechenweg. Werte je Zeile gelten für die Maßnahme allein; im Paket werden Wechselwirkungen berücksichtigt.</p></div>
+    </div>
+    <div class="panel" data-panel="ov" hidden>
+      <div class="kpis" id="kpis2"></div>
+      <div class="grid2">
+        <div class="card"><h2>Strom nach Anwendung</h2><div class="chartbox short"><canvas id="chEl"></canvas></div></div>
+        <div class="card"><h2>Wärme nach Anwendung</h2><div class="chartbox short"><canvas id="chTh"></canvas></div></div>
+      </div>
+      <div class="card"><h2>Einsparung je Maßnahme</h2><div class="chartbox" id="chMeasBox"><canvas id="chMeas"></canvas></div></div>
+      <div class="card"><h2>Schnell umsetzbar</h2><ul class="warns" id="quick"></ul></div>
+    </div>
+    <div class="panel" data-panel="verb" hidden>
+      <div class="card"><h2>Kennwerte</h2><div class="tablewrap"><table id="kennTable"></table></div><p class="note" id="kennNote"></p></div>
+      <div class="card"><h2>Strom nach Anwendung</h2><div class="tablewrap"><table id="poolEl"></table></div></div>
+      <div class="card"><h2>Wärme nach Anwendung</h2><div class="tablewrap"><table id="poolTh"></table></div></div>
+    </div>
+    <div class="panel" data-panel="econ" hidden>
+      <div class="card"><h2>Kapitalrückfluss des Maßnahmenpakets</h2><div class="chartbox tall"><canvas id="chCash"></canvas></div></div>
+      <div class="card"><h2>Investition und Einsparung</h2><div class="chartbox tall"><canvas id="chScatter"></canvas></div><p class="note">Je weiter links oben, desto wirtschaftlicher. Kreisgröße = CO₂-Minderung. Alle zutreffenden Maßnahmen, auch nicht ausgewählte.</p></div>
+      <div class="card"><h2>CO₂-Vermeidungskosten</h2><div class="svgwrap" id="mac"></div><p class="note">Balkenbreite = vermiedene Tonnen CO₂ je Jahr, Höhe = Kosten je Tonne (Annuität der Investition + Betriebskosten − Energiekosteneinsparung). Balken unter null sparen Geld und CO₂ zugleich.</p></div>
+      <div class="card"><h2>Kennzahlen der ausgewählten Maßnahmen (im Paket)</h2><div class="tablewrap"><table id="econTable"></table></div></div>
+    </div>
+    <div class="panel" data-panel="docs" hidden>
+      <div class="card docs">
+        <h2>So rechnet das Tool</h2>
+        <ul>
+          <li><b>Verbrauch nach Anwendungen:</b> Der Strom wird aufgeteilt in Beleuchtung (Fläche × installierte Leistung × Volllaststunden × Steuerungsfaktor, angelehnt an DIN V 18599-4), Serverraum (IT-Last × PUE) und die übrigen Anwendungen nach typischen Anteilen der Nutzung. Die Wärme in Raumheizung, Warmwasser sowie Verteil- und Speicherverluste. Bekannte Jahresverbräuche aus Abrechnungen machen das Ergebnis deutlich genauer.</li>
+          <li><b>Maßnahmen:</b> Jede Maßnahme wird aus den Gebäudeangaben bottom-up berechnet (Rechenweg in der Liste) und auf ihren Anwendungsanteil begrenzt. Bauteilmaßnahmen: Fläche × U-Wert-Verbesserung × Heizgradstunden (72 kKh/a) × Temperaturfaktor.</li>
+          <li><b>Paket:</b> Maßnahmen wirken nacheinander auf den jeweils verbleibenden Verbrauch (z. B. senkt die LED-Umrüstung die Basis für Präsenzmelder). Reihenfolge nach Amortisationszeit.</li>
+          <li><b>Wirtschaftlichkeit:</b> Kapitalwertmethode (VDI 2067 / VDI 6025) über die Nutzungsdauer mit Energiepreissteigerung; Betriebskosten +2 %/a. Statische und dynamische Amortisation, Kosten der eingesparten kWh (Annuität ÷ eingesparte Energie) und CO₂-Vermeidungskosten.</li>
+          <li><b>Investitionen:</b> Richtwerte brutto inkl. Montage (Stand 2026) – durch Angebote ersetzen. Fördermittel (BEG, Kommunalrichtlinie) sind nicht abgezogen.</li>
+        </ul>
+        <h2>Rechtlicher Rahmen und Hinweise</h2>
+        <ul>
+          <li><b>GModG (ehemals GEG):</b> Nachrüstpflichten u. a. für die Dämmung oberster Geschossdecken und zugänglicher Rohrleitungen in unbeheizten Räumen; Betreiberpflichten für Heizungsanlagen (Heizungsprüfung, hydraulischer Abgleich bei größeren Anlagen).</li>
+          <li><b>Arbeitsstätten:</b> ASR A3.5 (Raumtemperatur, 20 °C bei leichter Sitztätigkeit, 26 °C als Obergrenze bei Kühlung), ASR A3.4 (Beleuchtung) – Einsparmaßnahmen dürfen diese Mindestanforderungen nicht unterschreiten.</li>
+          <li><b>Trinkwasserhygiene:</b> Zirkulationsunterbrechung höchstens 8 h je Tag, 60 °C am Speicheraustritt, 55 °C im Rücklauf (DVGW W 551, TrinkwV). Stilllegung von Warmwasser an Handwaschbecken mit Nutzern abstimmen.</li>
+          <li><b>Energieeffizienzgesetz (EnEfG):</b> Öffentliche Stellen mit hohem Energieverbrauch müssen Einsparmaßnahmen umsetzen und Energiemanagementsysteme einführen – dieses Tool unterstützt die Maßnahmenauswahl.</li>
+          <li><b>Förderung:</b> BEG-Einzelmaßnahmen (Heizungsoptimierung, Hülle), Kommunalrichtlinie (Beleuchtung, Energiemanagement) und Landesprogramme – Konditionen vor der Beauftragung prüfen.</li>
+        </ul>
+        <p class="note">Orientierende Abschätzung für Energieberatung und Haushaltsplanung; ersetzt keine Detailplanung, Energieaudit nach DIN EN 16247 oder Fachplanung.</p>
+      </div>
+    </div>
+  </section>
+</main>
+<script>
+"use strict";
+/* ===================== Stammdaten ===================== */
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const sum=a=>a.reduce((s,v)=>s+v,0);
+/* Nutzungsprofile: Vergleichswerte Wärme/Strom kWh/(m²·a) (Orientierung an den Vergleichswerten für Nichtwohngebäude, BMWi/BMUB 2015, und VDI 3807),
+   Nutzungszeit, Volllaststunden Beleuchtung, Aufteilung des Stroms nach Anwendungen (ohne Beleuchtung/Server, die bottom-up berechnet werden). */
+const PROF={
+  buero:{l:'Büro / Verwaltung',heat:95,el:40,days:250,hours:11,lh:1500,ap:20,wc:120,neben:250,
+    es:{it:0.42,lueft:0.14,kaelte:0.10,pumpen:0.08,ww:0.05,aufzug:0.05,kueche:0.04,druckluft:0,sonst:0.12},th:{heiz:0.86,ww:0.04,verl:0.10},water:0.12},
+  schule:{l:'Schule',heat:105,el:15,days:200,hours:9,lh:1000,ap:60,wc:150,neben:400,
+    es:{it:0.30,lueft:0.18,kaelte:0.02,pumpen:0.14,ww:0.08,aufzug:0.03,kueche:0.10,druckluft:0,sonst:0.15},th:{heiz:0.88,ww:0.04,verl:0.08},water:0.10},
+  kita:{l:'Kindertagesstätte',heat:110,el:25,days:235,hours:10,lh:1400,ap:80,wc:80,neben:200,
+    es:{it:0.20,lueft:0.10,kaelte:0.02,pumpen:0.12,ww:0.12,aufzug:0,kueche:0.30,druckluft:0,sonst:0.14},th:{heiz:0.78,ww:0.12,verl:0.10},water:0.35},
+  sport:{l:'Sporthalle',heat:125,el:30,days:280,hours:14,lh:1800,ap:300,wc:250,neben:500,
+    es:{it:0.05,lueft:0.35,kaelte:0,pumpen:0.20,ww:0.05,aufzug:0,kueche:0,druckluft:0,sonst:0.35},th:{heiz:0.62,ww:0.28,verl:0.10},water:0.55},
+  handel:{l:'Einzelhandel',heat:85,el:100,days:300,hours:12,lh:3000,ap:100,wc:600,neben:300,
+    es:{it:0.12,lueft:0.25,kaelte:0.40,pumpen:0.05,ww:0.02,aufzug:0.03,kueche:0,druckluft:0,sonst:0.13},th:{heiz:0.88,ww:0.02,verl:0.10},water:0.05},
+  werk:{l:'Werkstatt / Bauhof',heat:100,el:35,days:250,hours:9,lh:1600,ap:80,wc:300,neben:300,
+    es:{it:0.30,lueft:0.12,kaelte:0,pumpen:0.08,ww:0.05,aufzug:0,kueche:0,druckluft:0.20,sonst:0.25},th:{heiz:0.88,ww:0.04,verl:0.08},water:0.15},
+  pflege:{l:'Pflegeheim / Krankenhaus',heat:165,el:50,days:365,hours:24,lh:2800,ap:50,wc:40,neben:150,
+    es:{it:0.30,lueft:0.18,kaelte:0.08,pumpen:0.10,ww:0.04,aufzug:0.05,kueche:0.15,druckluft:0,sonst:0.10},th:{heiz:0.70,ww:0.22,verl:0.08},water:0.30},
+  mfh:{l:'Mehrfamilienhaus (Allgemeinstrom, Heizung)',heat:130,el:6,days:365,hours:24,lh:1500,ap:9999,wc:9999,neben:400,
+    es:{it:0,lueft:0.05,kaelte:0,pumpen:0.40,ww:0,aufzug:0.30,kueche:0,druckluft:0,sonst:0.25},th:{heiz:0.72,ww:0.18,verl:0.10},water:1.2}};
+const BJ={'bis 1977':{f:1.35,u:[1.2,0.9,1.0]},'1978–1994':{f:1.15,u:[0.8,0.5,0.8]},'1995–2009':{f:0.9,u:[0.45,0.3,0.45]},'ab 2010':{f:0.65,u:[0.25,0.2,0.3]}};
+const LIGHT={led:{l:'LED',w:6},t5:{l:'Leuchtstoff T5 (EVG)',w:9},t8:{l:'Leuchtstoff T8 (KVG/VVG)',w:13},mix:{l:'Mischbestand',w:10},halo:{l:'Halogen / Glühlampen',w:22}};
+const CARRIER={gas:{l:'Erdgas',p:11,co2:240},oel:{l:'Heizöl',p:10.5,co2:310},fw:{l:'Fernwärme',p:14,co2:180},pellet:{l:'Holzpellets',p:7.5,co2:20},wp:{l:'Wärmepumpe (Strom)',p:0,co2:0}};
+const POOL_EL={licht:'Beleuchtung',it:'Arbeitshilfen / IT',server:'Serverraum',lueft:'Lüftung',kaelte:'Kälte / Klima',pumpen:'Pumpen / Hilfsenergie',ww:'Warmwasser elektrisch',aufzug:'Aufzüge',kueche:'Küche',druckluft:'Druckluft',sonst:'Sonstiges'};
+const POOL_TH={heiz:'Raumheizung',ww:'Warmwasser',verl:'Verteil- und Speicherverluste'};
+const CAT={licht:['Beleuchtung','--s2'],geraete:['Geräte & IT','--s1'],technik:['Haustechnik (Strom)','--s6'],heizung:['Heizung','--s8'],huelle:['Gebäudehülle','--s7'],wasser:['Wasser','--s3'],org:['Organisation','--s5']};
+const HGS=72;   // Heizgradstunden kKh/a (Deutschland, 20/15 °C) für Bauteilmaßnahmen
+
+/* ===================== Gebäudemodell ===================== */
+function building(P){
+  const pr=PROF[P.prof]||PROF.buero,bj=BJ[P.bj]||BJ['1978–1994'],A=Math.max(50,P.area),res=P.prof==='mfh';
+  const days=P.days>0?P.days:pr.days,hours=P.hours>0?P.hours:pr.hours,use=days*hours,off=8760-use;
+  const elKnown=P.elKwh>0,thKnown=P.thKwh>0;
+  const EL=elKnown?P.elKwh:pr.el*A,TH=thKnown?P.thKwh:pr.heat*bj.f*A*(P.carrier==='wp'?0.3:1);
+  // Beleuchtung bottom-up: W/m² × Volllaststunden; Steuerung reduziert die Laufzeit
+  const W=LIGHT[P.light].w,ctrl={schalter:1,zeit:0.9,praesenz:0.78,dali:0.65}[P.lightCtrl]||1;
+  const aLit=res?A*0.12:A;
+  let licht=aLit*W*pr.lh*ctrl/1000+P.outKw*4100;
+  let server=P.srvKw>0?P.srvKw*8760*P.pue:0;
+  // Bottom-up-Anteile höchstens 75 % des Stroms (Rest für die übrigen Anwendungen); sonst anteilig kürzen
+  const bu=licht+server;if(bu>EL*0.75){const k=EL*0.75/bu;licht*=k;server*=k}
+  const rest=Math.max(0,EL-licht-server);
+  const el={licht,server};
+  const sh=pr.es,ss=sum(Object.values(sh));for(const k in sh)el[k]=rest*sh[k]/ss;
+  if(P.ww==='zentral')el.ww=0;
+  // Wärmepumpe: Wärmebedarf in Strom umrechnen (JAZ)
+  const jaz=P.carrier==='wp'?Math.max(1.5,P.jaz):1;
+  const heat=P.carrier==='wp'?TH*jaz:TH;      // Nutzwärme bei WP (TH ist dann Strom)
+  const th={};for(const k in pr.th)th[k]=heat*pr.th[k];
+  if(P.ww!=='zentral'){th.heiz+=th.ww;th.ww=0}
+  const pers=P.pers>0?P.pers:Math.round(A/pr.ap)||1;
+  const water=P.waterM3>0?P.waterM3:Math.round(pr.water*A);
+    const p={el:P.priceEl/100,th:P.priceTh/100,w:P.priceW,co2el:P.co2El/1e6,co2th:P.co2Th/1e6};
+  const floors=Math.max(1,P.floors),roof=A/floors,win=P.windows>0?P.windows:Math.round(A/12),rads=Math.round(A/18);
+  return {pr,bj,A,res,days,hours,use,off,EL,TH,heat,el,th,W,ctrl,aLit,pers,water,p,jaz,floors,roof,win,rads,elKnown,thKnown};
+}
+
+/* ===================== Maßnahmenkatalog =====================
+   Jede Maßnahme liefert Einsparungen je Anwendung (Strom: el.<pool>, Wärme: th.<pool> als Nutzwärme), Wasser m³, Investition, Betriebskostenänderung,
+   Nutzungsdauer und den Rechenweg. Einsparungen werden auf den jeweiligen Anwendungsanteil begrenzt; im Paket wirken sie nacheinander auf den Rest. */
+const r0=v=>Math.round(v);
+const M=[
+ {id:'led',cat:'licht',n:'LED-Umrüstung der Beleuchtung',d:'Leuchten bzw. Leuchtmittel durch LED ersetzen. Gleiche Beleuchtungsstärke mit deutlich weniger Leistung, kaum Wartung.',
+  ok:(P)=>P.light!=='led'||'Beleuchtung ist bereits LED',
+  f:(P,b)=>{const fr=1-LIGHT.led.w/b.W,s=b.el.licht*fr*0.97;return {el:{licht:s},inv:b.aLit*P.ledEur,opex:-b.aLit*0.25,life:20,
+    basis:`${LIGHT[P.light].l} ${b.W} W/m² → LED ${LIGHT.led.w} W/m²: −${Math.round(fr*100)} % der Beleuchtungsleistung auf ${r0(b.aLit)} m²; Investition ${P.ledEur} €/m² (Leuchtentausch inkl. Montage), weniger Leuchtmittelwechsel.`}}},
+ {id:'wc',cat:'licht',n:'Präsenzmelder in WC- und Sanitärräumen',d:'Statt Lichtschalter schaltet ein Präsenz-/Bewegungsmelder das Licht nur bei Anwesenheit; in Sanitärräumen brennt das Licht sonst oft den ganzen Tag.',
+  ok:(P,b)=>!b.res&&P.lightCtrl!=='praesenz'&&P.lightCtrl!=='dali'||'Präsenzmelder bereits vorhanden',
+  f:(P,b)=>{const n=P.nWc>0?P.nWc:Math.max(1,Math.round(b.A/b.pr.wc)),w=12*b.W*(P.light==='led'?1:1),h=b.days*b.hours,s=n*w*h*0.65/1000;
+    return {el:{licht:s},inv:n*160,life:15,basis:`${n} Räume × ${r0(w)} W (12 m² × ${b.W} W/m²) × ${r0(h)} h Licht an (Nutzungszeit) × 65 % weniger Brenndauer; 160 € je Raum (Melder + Montage).`}}},
+ {id:'neben',cat:'licht',n:'Bewegungsmelder in Druckerräumen, Teeküchen, Lager und Archiv',d:'Nebenräume werden nur kurz betreten, das Licht bleibt aber häufig an. Bewegungsmelder mit kurzer Nachlaufzeit (2–5 min).',
+  ok:(P,b)=>P.lightCtrl!=='praesenz'&&P.lightCtrl!=='dali'||'Präsenzmelder bereits vorhanden',
+  f:(P,b)=>{const n=P.nNeben>0?P.nNeben:Math.max(1,Math.round(b.A/b.pr.neben)),w=10*b.W,h=b.days*b.hours,s=n*w*h*0.7/1000;
+    return {el:{licht:s},inv:n*140,life:15,basis:`${n} Räume × ${r0(w)} W × ${r0(h)} h × 70 % kürzere Brenndauer; 140 € je Raum.`}}},
+ {id:'flur',cat:'licht',n:'Präsenzmelder in Fluren und Treppenhäusern',d:'Verkehrsflächen nur bei Bedarf beleuchten, außerhalb der Kernzeit mit Grundhelligkeit (Korridorfunktion).',
+  ok:(P,b)=>P.lightCtrl!=='praesenz'&&P.lightCtrl!=='dali'||'Präsenzmelder bereits vorhanden',
+  f:(P,b)=>{const a=b.aLit*(b.res?0.9:0.15),s=a*b.W*b.pr.lh*b.ctrl*0.35/1000;return {el:{licht:s},inv:a*6,life:15,basis:`${r0(a)} m² Verkehrsfläche × ${b.W} W/m² × ${r0(b.pr.lh)} h × 35 % Einsparung; 6 €/m².`}}},
+ {id:'tageslicht',cat:'licht',n:'Tageslichtabhängige Regelung in Büros / Klassenräumen',d:'Konstantlichtregelung dimmt die Leuchten bei ausreichendem Tageslicht (DALI). Setzt dimmbare LED-Leuchten voraus.',
+  ok:(P,b)=>!b.res&&P.lightCtrl!=='dali'||'nicht zutreffend',
+  f:(P,b)=>{const a=b.aLit*0.55,s=a*LIGHT.led.w*b.pr.lh*0.28/1000*(P.light==='led'?1:1);return {el:{licht:s},inv:a*14,life:15,
+    basis:`${r0(a)} m² fensternahe Nutzfläche × ${LIGHT.led.w} W/m² (LED) × ${r0(b.pr.lh)} h × 28 % Tageslichtnutzung; 14 €/m² (Sensorik, DALI). ${P.light!=='led'?'Nur zusammen mit der LED-Umrüstung sinnvoll.':''}`}}},
+ {id:'aussen',cat:'licht',n:'Außenbeleuchtung: Nachtabschaltung und Dämmerungsschalter',d:'Außen- und Parkplatzbeleuchtung zwischen ca. 22 und 5 Uhr abschalten oder absenken, Einschalten über Dämmerungssensor statt Zeituhr.',
+  ok:(P)=>P.outKw>0||'keine Außenbeleuchtung angegeben',
+  f:(P,b)=>{const s=P.outKw*4100*0.40;return {el:{licht:s},inv:450,life:15,basis:`${P.outKw} kW × 4.100 h (Dunkelstunden) × 40 % Nachtabschaltung; 450 € (Uhr, Sensor, Programmierung).`}}},
+ {id:'stecker',cat:'geraete',n:'Schaltbare Steckdosenleisten / Arbeitsplatz-Abschaltung',d:'Monitore, Dockingstationen, Lautsprecher und Netzteile verbrauchen nachts und am Wochenende im Stand-by. Master-Slave- oder zeitgesteuerte Leisten schalten sie ab.',
+  ok:(P,b)=>(P.pcs>0||!b.res)||'keine Arbeitsplätze',
+  f:(P,b)=>{const n=P.pcs>0?P.pcs:b.pers,s=n*7*b.off*0.8/1000;return {el:{it:s},inv:n*22,life:8,basis:`${n} Arbeitsplätze × 7 W Stand-by × ${r0(b.off)} h außerhalb der Nutzungszeit × 80 %; 22 € je Leiste.`}}},
+ {id:'drucker',cat:'geraete',n:'Drucker und Kopierer: Energiesparmodus und Zeitschaltung',d:'Ältere Multifunktionsgeräte stehen nachts im Bereitschaftsbetrieb (30–80 W). Ruhemodus nach 5–15 min aktivieren, nachts/Wochenende per Zeitschaltuhr bzw. Druckermanagement abschalten.',
+  ok:(P,b)=>P.printers>0||'keine Drucker angegeben',
+  f:(P,b)=>{const s=P.printers*35*b.off*0.85/1000;return {el:{it:s},inv:P.printers*25,life:8,basis:`${P.printers} Geräte × 35 W Bereitschaft × ${r0(b.off)} h × 85 %; 25 € je Gerät (Zeitschaltuhr, Einstellung).`}}},
+ {id:'server',cat:'geraete',n:'Serverraum: Kühlung optimieren (Sollwert, Kaltgang, Freie Kühlung)',d:'Zulufttemperatur nach ASHRAE auf 24–27 °C anheben, Kalt-/Warmgang trennen, Blindbleche setzen, Klimagerät mit freier Kühlung – senkt den PUE-Wert.',
+  ok:(P)=>P.srvKw>0&&P.pue>1.45||'kein Serverraum bzw. bereits effizient',
+  f:(P,b)=>{const t=Math.max(1.3,Math.min(P.pue-0.1,1.45)),s=Math.min(b.el.server,P.srvKw*8760*(P.pue-t));return {el:{server:s},inv:2500+800*P.srvKw,life:12,
+    basis:`${P.srvKw} kW IT-Last × 8.760 h × (PUE ${P.pue} → ${t.toFixed(2)}); 2.500 € + 800 €/kW IT (Einhausung, Regelung).`}}},
+ {id:'automat',cat:'geraete',n:'Getränke- und Snackautomaten: Zeitschaltung und LED',d:'Beleuchtung und Kühlung außerhalb der Nutzungszeit abschalten bzw. absenken (Energiesparmodul), Werbebeleuchtung auf LED.',
+  ok:(P)=>P.automats>0||'keine Automaten angegeben',
+  f:(P,b)=>{const s=P.automats*2400*0.33;return {el:{sonst:s},inv:P.automats*90,life:8,basis:`${P.automats} Automaten × 2.400 kWh/a × 33 % Einsparung; 90 € je Gerät.`}}},
+ {id:'kuehl',cat:'geraete',n:'Alte Kühl- und Gefriergeräte ersetzen',d:'Teeküchen-Kühlschränke älter als 15 Jahre verbrauchen oft das Drei- bis Vierfache heutiger Geräte. Außerdem: Geräte zusammenlegen, nicht benötigte stilllegen.',
+  ok:(P)=>P.fridges>0||'keine alten Kühlgeräte angegeben',
+  f:(P,b)=>{const s=P.fridges*(380-110);return {el:{kueche:s},inv:P.fridges*480,life:12,basis:`${P.fridges} Geräte × (380 − 110) kWh/a; 480 € je Neugerät (Effizienzklasse C oder besser).`}}},
+ {id:'pumpe',cat:'technik',n:'Hocheffizienzpumpen für Heizkreise',d:'Ungeregelte Heizungsumwälzpumpen durch drehzahlgeregelte Hocheffizienzpumpen ersetzen (Förderung über die BEG Heizungsoptimierung möglich).',
+  ok:(P)=>P.oldPumps>0||'keine ungeregelten Pumpen angegeben',
+  f:(P,b)=>{const s=Math.min(b.el.pumpen*0.9,P.oldPumps*P.pumpW*5600*0.75/1000);return {el:{pumpen:s},inv:P.oldPumps*700,life:15,basis:`${P.oldPumps} Pumpen × ${P.pumpW} W × 5.600 h Heizzeit × 75 %; 700 € je Pumpe inkl. Einbau.`}}},
+ {id:'zirk',cat:'technik',n:'Warmwasserzirkulation: Zeitprogramm und Hocheffizienzpumpe',d:'Zirkulation außerhalb der Nutzungszeit unterbrechen (max. 8 h je Tag nach DVGW W 551, Temperatur 60/55 °C halten). Spart Pumpenstrom und Wärmeverluste der Leitungen.',
+  ok:(P,b)=>P.ww==='zentral'&&P.circ==='24h'||'keine dauerlaufende Zirkulation',
+  f:(P,b)=>{const offShare=Math.min(8*365,b.off)/8760,sEl=50*8760*offShare/1000+40*8760*0.6/1000,sTh=b.th.verl*0.35*offShare*1.6;
+    return {el:{pumpen:sEl},th:{verl:sTh},inv:650,life:15,basis:`Unterbrechung ${r0(offShare*100)} % der Zeit: Zirkulationsverluste (Anteil an Verteilverlusten 35 %) und 50-W-Pumpe; neue HE-Pumpe 10 W statt 50 W; 650 €.`}}},
+ {id:'lueftzeit',cat:'technik',n:'Lüftungsanlage: Betriebszeiten an die Nutzung anpassen',d:'Viele Anlagen laufen rund um die Uhr. Zeitprogramm auf Nutzungszeit + 1 h Vor- und Nachlauf, am Wochenende aus. Spart Ventilatorstrom und Lüftungswärme.',
+  ok:(P)=>P.fanKw>0&&P.ventMode==='24h'||'keine dauerlaufende Lüftungsanlage',
+  f:(P,b)=>{const run=Math.min(8760,b.days*(b.hours+2)),sh=1-run/8760,sEl=P.fanKw*8760*sh*0.9,sTh=b.th.heiz*0.08*sh*(P.wrg?0.4:1);
+    return {el:{lueft:sEl},th:{heiz:sTh},inv:900,life:10,basis:`${P.fanKw} kW Ventilatoren: Laufzeit 8.760 h → ${r0(run)} h; Lüftungswärme ca. 8 % der Heizwärme${P.wrg?' (mit WRG nur 40 %)':''}; 900 € (Programmierung GLT).`}}},
+ {id:'lueftbed',cat:'technik',n:'Bedarfsgeführte Lüftung (CO₂-/Präsenzregelung) und EC-Ventilatoren',d:'Volumenstrom nach Raumluftqualität regeln statt konstant; alte Riemenantriebe durch EC-Ventilatoren oder Frequenzumrichter ersetzen.',
+  ok:(P)=>P.fanKw>0||'keine Lüftungsanlage angegeben',
+  f:(P,b)=>{const sEl=b.el.lueft*0.35,sTh=b.th.heiz*0.08*0.25*(P.wrg?0.4:1);return {el:{lueft:sEl},th:{heiz:sTh},inv:4000+1800*P.fanKw,life:15,
+    basis:`35 % des Lüftungsstroms (Volumenstrom ↓ → Leistung ↓ mit der 3. Potenz), 25 % der Lüftungswärme; 4.000 € + 1.800 €/kW Ventilatorleistung.`}}},
+ {id:'fenster_klima',cat:'technik',n:'Fensterkontakte schalten Klimageräte ab',d:'Ist das Fenster offen, schaltet ein Fensterkontakt das Split-/Klimagerät bzw. die Kühldecke ab. Verhindert „Kühlen gegen offenes Fenster“; mit Heizungsventil kombinierbar.',
+  ok:(P)=>P.acUnits>0||'keine Klimageräte angegeben',
+  f:(P,b)=>{const s=b.el.kaelte*0.15;return {el:{kaelte:s},inv:P.acUnits*190,life:15,basis:`15 % des Kältestroms (${r0(b.el.kaelte)} kWh/a) – typischer Anteil des Kühlbetriebs bei geöffnetem Fenster; 190 € je Raum (Kontakt + Schaltmodul).`}}},
+ {id:'klimasoll',cat:'technik',n:'Kühl-Sollwert anheben (26 °C) und Kühlung nur bei Anwesenheit',d:'Je Kelvin höherer Solltemperatur sinkt der Kältebedarf um ca. 5–7 %. ASR A3.5 nennt 26 °C als Obergrenze bei normaler Nutzung; Zeitprogramme verhindern Kühlung leerer Räume.',
+  ok:(P)=>P.acUnits>0||'keine Klimageräte angegeben',
+  f:(P,b)=>{const s=b.el.kaelte*0.18;return {el:{kaelte:s},inv:200,life:5,basis:`3 K höherer Sollwert × 6 %/K = 18 % des Kältestroms; 200 € (Einstellung, Information).`}}},
+ {id:'aufzug',cat:'technik',n:'Aufzüge: Stand-by-Modus und LED-Kabinenlicht',d:'Kabinenlicht und Lüfter abschalten, wenn der Aufzug nicht genutzt wird; Steuerung in den Energiesparmodus (VDI 4707).',
+  ok:(P)=>P.lifts>0||'keine Aufzüge angegeben',
+  f:(P,b)=>{const s=Math.min(b.el.aufzug*0.6,P.lifts*650);return {el:{aufzug:s},inv:P.lifts*900,life:15,basis:`${P.lifts} Aufzüge × 650 kWh/a Stand-by-Einsparung; 900 € je Anlage.`}}},
+ {id:'kleinsp',cat:'technik',n:'Elektro-Kleinspeicher: Zeitschaltung, Temperatur senken oder stilllegen',d:'5–10-l-Untertischspeicher halten rund um die Uhr warm (0,3–0,5 kWh/Tag Stand-by). Zeitschaltuhr oder Stilllegung an Handwaschbecken (Kaltwasser genügt dort meist).',
+  ok:(P)=>P.boilers>0||'keine Kleinspeicher angegeben',
+  f:(P,b)=>{const s=Math.min(b.el.ww*0.8+P.boilers*80,P.boilers*0.38*365*(1-b.use/8760*0.9));return {el:{ww:s},inv:P.boilers*35,life:10,basis:`${P.boilers} Geräte × 0,38 kWh/d Stand-by × Anteil außerhalb der Nutzung; 35 € je Gerät (Zeitschaltuhr).`}}},
+ {id:'druckluft',cat:'technik',n:'Druckluft: Leckagen beseitigen und Druck absenken',d:'In Druckluftnetzen gehen typisch 20–30 % durch Leckagen verloren. Ultraschall-Ortung, Abdichten, Netzdruck um 1 bar senken (≈ 6–8 % weniger Strom), nachts abschalten.',
+  ok:(P)=>P.compKw>0||'kein Kompressor angegeben',
+  f:(P,b)=>{const s=Math.max(b.el.druckluft,P.compKw*b.use*0.7)*0.25;return {el:{druckluft:s},inv:1800,life:5,basis:`${P.compKw} kW Kompressor × ${r0(b.use)} h × 70 % Auslastung × 25 % Einsparung; 1.800 € (Ortung, Reparatur).`}}},
+ {id:'abgleich',cat:'heizung',n:'Hydraulischer Abgleich und Heizkurve optimieren',d:'Jeder Heizkörper erhält die richtige Wassermenge; danach Heizkurve und Pumpendruck absenken. Beseitigt Über- und Unterversorgung (Förderung BEG).',
+  ok:(P)=>P.abgleich==='nein'||'Abgleich bereits durchgeführt',
+  f:(P,b)=>{const s=b.th.heiz*0.08;return {th:{heiz:s},el:{pumpen:b.el.pumpen*0.1},inv:Math.max(2000,b.A*3.5),life:20,basis:`8 % der Heizwärme, 10 % Pumpenstrom; ${r0(b.rads)} Heizkörper, 3,50 €/m² (mind. 2.000 €).`}}},
+ {id:'absenk',cat:'heizung',n:'Heizzeiten an die Nutzung anpassen (Nacht-, Wochenend- und Ferienabsenkung)',d:'Heizbetrieb nur zur Nutzungszeit plus Aufheizphase; Absenkung nachts, am Wochenende und in Ferien. Bei Schulen besonders wirksam.',
+  ok:(P,b)=>P.setback!=='ja'||'Absenkung bereits optimiert',
+  f:(P,b)=>{const f=P.setback==='nein'?(b.res?0.06:0.13):(b.res?0.03:0.06),s=b.th.heiz*f*(b.off/8760/0.7);return {th:{heiz:s},inv:900,life:10,basis:`${r0(f*100)} % der Heizwärme (gewichtet mit ${r0(b.off/8760*100)} % Zeit außerhalb der Nutzung); 900 € (Regelung, GLT).`}}},
+ {id:'raumtemp',cat:'heizung',n:'Raumtemperatur auf 20 °C begrenzen',d:'Je Kelvin weniger Raumtemperatur sinkt der Heizwärmebedarf um ca. 6 %. ASR A3.5: 20 °C für Büro- und Sitztätigkeit; Thermostatköpfe begrenzen.',
+  ok:(P)=>P.troom>20.4||'Raumtemperatur bereits ≤ 20 °C',
+  f:(P,b)=>{const k=P.troom-20,s=b.th.heiz*0.06*k;return {th:{heiz:s},inv:b.rads*6,life:10,basis:`${k.toFixed(1)} K × 6 %/K der Heizwärme; Begrenzung der Thermostatköpfe ${r0(b.rads)} × 6 €.`}}},
+ {id:'erg',cat:'heizung',n:'Einzelraumregelung mit programmierbaren Thermostaten und Fensterkontakt',d:'Elektronische Heizkörperthermostate heizen jeden Raum nach Belegungsplan (Besprechung, Klassenraum, Turnhalle) und schließen bei geöffnetem Fenster.',
+  ok:(P,b)=>!b.res||'bei Wohngebäuden Sache der Bewohner',
+  f:(P,b)=>{const s=b.th.heiz*(P.setback==='ja'?0.07:0.10);return {th:{heiz:s},inv:b.rads*130+1500,opex:b.rads*1.5,life:12,basis:`${P.setback==='ja'?7:10} % der Heizwärme; ${r0(b.rads)} Heizkörper × 130 € + 1.500 € Zentrale; Batterien 1,50 €/a je Thermostat.`}}},
+ {id:'rohr',cat:'heizung',n:'Heizungs- und Warmwasserleitungen in unbeheizten Räumen dämmen',d:'Ungedämmte Rohre und Armaturen im Keller geben ca. 30–60 W je Meter ab. Dämmung nach GEG Anlage 8 – Nachrüstpflicht für zugängliche Leitungen (§ 71 GEG/GModG).',
+  ok:(P)=>P.pipeM>0||'keine ungedämmten Leitungen angegeben',
+  f:(P,b)=>{const s=Math.min(b.th.verl*0.8,P.pipeM*40*5800/1000*0.8);return {th:{verl:s},inv:P.pipeM*24,life:30,basis:`${P.pipeM} m × 40 W/m × 5.800 h × 80 % Verlustminderung; 24 €/m inkl. Armaturenkappen.`}}},
+ {id:'dichtung',cat:'huelle',n:'Fenster- und Türdichtungen erneuern, Fenster einstellen',d:'Spröde Dichtungen und verzogene Flügel führen zu Zugluft und unkontrolliertem Luftwechsel. Dichtungen tauschen, Beschläge einstellen; Außentüren mit Türschließer.',
+  ok:(P)=>P.bj!=='ab 2010'||'neuere Fenster',
+  f:(P,b)=>{const s=b.th.heiz*(P.bj==='bis 1977'?0.05:0.03);return {th:{heiz:s},inv:b.win*55,life:10,basis:`${P.bj==='bis 1977'?5:3} % der Heizwärme (Infiltration); ${r0(b.win)} Fenster × 55 €.`}}},
+ {id:'ogd',cat:'huelle',n:'Oberste Geschossdecke dämmen',d:'Begehbare Dämmung der obersten Geschossdecke zum unbeheizten Dachraum – eine der wirtschaftlichsten Hüllmaßnahmen (Pflicht nach § 47 GEG/GModG bei ungedämmten Decken).',
+  ok:(P)=>P.ogd==='nein'||'bereits gedämmt',
+  f:(P,b)=>{const u0=b.bj.u[1],s=Math.min(b.th.heiz*0.3,b.roof*(u0-0.14)*HGS*0.9);return {th:{heiz:s},inv:b.roof*48,life:40,basis:`${r0(b.roof)} m² × (U ${u0} → 0,14 W/(m²K)) × ${HGS} kKh/a × 0,9 (Temperaturfaktor); 48 €/m².`}}},
+ {id:'kd',cat:'huelle',n:'Kellerdecke von unten dämmen',d:'Dämmplatten unter die Kellerdecke kleben/dübeln. Einfach, ohne Eingriff in die Nutzung; verbessert auch die Behaglichkeit (warme Fußböden).',
+  ok:(P)=>P.kd==='nein'||'bereits gedämmt bzw. kein Keller',
+  f:(P,b)=>{const u0=b.bj.u[2],s=Math.min(b.th.heiz*0.15,b.roof*(u0-0.25)*HGS*0.55);return {th:{heiz:s},inv:b.roof*42,life:40,basis:`${r0(b.roof)} m² × (U ${u0} → 0,25 W/(m²K)) × ${HGS} kKh/a × 0,55 (Temperaturfaktor unbeheizter Keller); 42 €/m².`}}},
+ {id:'perlator',cat:'wasser',n:'Perlatoren und Durchflussbegrenzer an Waschtischen und Duschen',d:'Strahlregler mit 5–6 l/min statt 10–15 l/min; Spar-Duschköpfe. Spart Wasser und Warmwasserenergie.',
+  ok:()=>true,
+  f:(P,b)=>{const taps=P.taps>0?P.taps:Math.max(2,Math.round(b.A/60)),m3=b.water*0.30*0.35,wwShare=P.ww==='nur_kalt'?0:0.5,kwh=m3*wwShare*55;
+    const o={w:m3,inv:taps*18,life:10,basis:`30 % des Wassers an Armaturen × 35 % Durchflussminderung = ${r0(m3)} m³/a; davon ${r0(wwShare*100)} % warm × 55 kWh/m³; ${taps} Armaturen × 18 €.`};
+    if(P.ww==='zentral')o.th={ww:Math.min(b.th.ww*0.4,kwh)};else o.el={ww:Math.min(b.el.ww*0.4,kwh)};return o}},
+ {id:'wc_spar',cat:'wasser',n:'WC-Spülkästen mit Spartaste, Spülmenge reduzieren',d:'Spülkästen auf 6/3 l (Zwei-Mengen-Spülung) umrüsten bzw. Spülmenge einstellen; Druckspüler auf kürzere Spülzeit.',
+  ok:(P,b)=>!b.res||'nicht zutreffend',
+  f:(P,b)=>{const n=P.nWc>0?P.nWc*2:Math.max(2,Math.round(b.A/80)),m3=b.water*0.45*0.25;return {w:m3,inv:n*65,life:15,basis:`45 % des Wassers für WC × 25 % Einsparung = ${r0(m3)} m³/a; ${n} WCs × 65 €.`}}},
+ {id:'monitor',cat:'org',n:'Energiemonitoring und Energiecontrolling',d:'Monatliche bzw. Lastgang-Auswertung aller Zähler, Grundlastanalyse, Alarm bei Abweichungen. Fehler (Anlagen im Dauerbetrieb, defekte Regelung) werden früh erkannt.',
+  ok:()=>true,
+  f:(P,b)=>{const sE=(b.EL)*0.04,sT=b.th.heiz*0.03;return {el:{sonst:Math.min(sE,b.el.sonst*0.9)},th:{heiz:sT},inv:3500,opex:700,life:10,basis:`4 % des Stroms und 3 % der Heizwärme (Erfahrungswerte Energiecontrolling); 3.500 € Zähler/Software, 700 €/a Betrieb.`}}},
+ {id:'nutzer',cat:'org',n:'Nutzersensibilisierung und Hausmeisterschulung',d:'Energiekampagne (z. B. Prämiensystem fifty/fifty an Schulen), Energieteams, Schulung der Haustechnik zu Regelung und Zeitprogrammen.',
+  ok:()=>true,
+  f:(P,b)=>{const f=P.prof==='schule'||P.prof==='kita'?0.06:0.03;return {el:{it:b.el.it*f*1.5,licht:b.el.licht*f},th:{heiz:b.th.heiz*f},inv:1500,opex:600,life:3,basis:`${r0(f*100)} % Wärme und Beleuchtung, ${r0(f*150)} % Arbeitshilfen; 1.500 € Kampagne, 600 €/a Fortführung.`}}}];
+
+/* ===================== Bewertung ===================== */
+function evalMeasure(m,P,b){
+  const ok=m.ok(P,b);if(ok!==true)return {m,id:m.id,na:typeof ok==='string'?ok:'nicht zutreffend'};
+  const r=m.f(P,b);const el={},th={};
+  for(const [k,v] of Object.entries(r.el||{}))el[k]=clamp(v,0,(b.el[k]||0)*0.95);
+  for(const [k,v] of Object.entries(r.th||{}))th[k]=clamp(v,0,(b.th[k]||0)*0.95);
+  const inv=P.invOv&&P.invOv[m.id]>=0&&P.invOv[m.id]!==''&&P.invOv[m.id]!=null?+P.invOv[m.id]:r.inv;
+  return finish({m,id:m.id,el,th,w:r.w||0,inv,invDef:r.inv,opex:r.opex||0,life:r.life,basis:r.basis},P,b);
+}
+function finish(x,P,b){
+  const sEl=sum(Object.values(x.el)),sTh=sum(Object.values(x.th));
+  // Wärme: Nutzwärme → Endenergie (bei WP Strom: ÷ JAZ)
+  const thEnd=P.carrier==='wp'?sTh/b.jaz:sTh;
+  const eur=sEl*b.p.el+(P.carrier==='wp'?thEnd*b.p.el:thEnd*b.p.th*1)+x.w*b.p.w;
+  const co2=sEl*b.p.co2el*1+thEnd*(P.carrier==='wp'?b.p.co2el:b.p.co2th)+0;
+  const i=P.disc/100,g=P.esc/100,n=x.life;
+  let pv=0;for(let t=1;t<=n;t++)pv+=(eur*Math.pow(1+g,t-1)-x.opex*Math.pow(1.02,t-1))/Math.pow(1+i,t);
+  const net=eur-x.opex,npv=pv-x.inv,af=i>0?i/(1-Math.pow(1+i,-n)):1/n;
+  let dyn=null;{let c=-x.inv;for(let t=1;t<=40;t++){const pc=c;c+=(eur*Math.pow(1+g,t-1)-x.opex*Math.pow(1.02,t-1))/Math.pow(1+i,t);if(c>=0){dyn=t-1+(-pc)/(c-pc);break}}}
+  const stat=net>0?x.inv/net:null,kwh=sEl+thEnd;
+  const cse=kwh>0?(x.inv*af+x.opex)/kwh:null;                    // Kosten der eingesparten kWh
+  const mac=co2>0?(x.inv*af+x.opex-eur)/co2:null;                // CO₂-Vermeidungskosten €/t (negativ = Gewinn)
+  const cls=x.inv<=500&&net>0?'sofort':stat!==null&&stat<=Math.min(5,n)?'kurz':dyn!==null&&dyn<=n?'wirtsch':'lang';
+  return Object.assign(x,{sEl,sTh,thEnd,eur,net,co2,npv,dyn,stat,cse,mac,kwh,cls});
+}
+/* Paket: Maßnahmen in Reihenfolge der Wirtschaftlichkeit; jede wirkt auf den nach den vorherigen verbleibenden Anteil der Anwendung */
+function bundle(list,P,b){
+  const remEl={},remTh={};for(const k in b.el)remEl[k]=1;for(const k in b.th)remTh[k]=1;
+  const ord=list.slice().sort((a,c)=>(a.stat??1e9)-(c.stat??1e9));
+  const out=[];
+  for(const x of ord){
+    const el={},th={};
+    for(const [k,v] of Object.entries(x.el)){const f=b.el[k]>0?v/b.el[k]:0;el[k]=b.el[k]*f*remEl[k];remEl[k]*=1-f}
+    for(const [k,v] of Object.entries(x.th)){const f=b.th[k]>0?v/b.th[k]:0;th[k]=b.th[k]*f*remTh[k];remTh[k]*=1-f}
+    out.push(finish({m:x.m,id:x.id,el,th,w:x.w,inv:x.inv,opex:x.opex,life:x.life,basis:x.basis},P,b));
+  }
+  const after={el:{},th:{}};for(const k in b.el)after.el[k]=b.el[k]*remEl[k];for(const k in b.th)after.th[k]=b.th[k]*remTh[k];
+  const T={sEl:sum(out.map(x=>x.sEl)),sTh:sum(out.map(x=>x.sTh)),thEnd:sum(out.map(x=>x.thEnd)),w:sum(out.map(x=>x.w)),eur:sum(out.map(x=>x.eur)),opex:sum(out.map(x=>x.opex)),
+    inv:sum(out.map(x=>x.inv)),co2:sum(out.map(x=>x.co2)),npv:sum(out.map(x=>x.npv))};
+  // Kapitalfluss des Pakets über 20 Jahre (Ersatzinvestition nach Ablauf der Nutzungsdauer)
+  const i=P.disc/100,g=P.esc/100,cf=[-T.inv];let cum=-T.inv,cumD=-T.inv,dyn=null,stat=null;const cumA=[cum],cumDA=[cumD];
+  for(let t=1;t<=20;t++){let v=0;for(const x of out){v+=x.eur*Math.pow(1+g,t-1)-x.opex*Math.pow(1.02,t-1);if(t%x.life===0&&t<20)v-=x.inv}
+    const pc=cum,pd=cumD;cum+=v;cumD+=v/Math.pow(1+i,t);cf.push(v);cumA.push(cum);cumDA.push(cumD);
+    if(stat===null&&cum>=0&&pc<0)stat=t-1+(-pc)/(cum-pc);if(dyn===null&&cumD>=0&&pd<0)dyn=t-1+(-pd)/(cumD-pd)}
+  if(T.inv<=0){stat=0;dyn=0}
+  return {out,after,T,cf,cumA,cumDA,stat,dyn};
+}
+
+/* ===================== Eingaben ===================== */
+const SECTIONS=[
+ {id:'geb',title:'Gebäude',hint:'Nutzung, Größe, Baujahr',open:true,fields:[
+  {id:'prof',label:'Nutzung',type:'sel',cls:'wide',def:'buero',opts:()=>Object.entries(PROF).map(([k,v])=>[k,v.l])},
+  {id:'area',label:'Nettoraumfläche (beheizt)',unit:'m²',def:2500,step:10},
+  {id:'floors',label:'Geschosse',unit:'',def:3,step:1},
+  {id:'bj',label:'Baujahr',type:'sel',def:'1978–1994',opts:()=>Object.keys(BJ).map(k=>[k,k])},
+  {id:'pers',label:'Beschäftigte / Nutzer (0 = Kennwert)',unit:'Pers.',def:0,step:1},
+  {id:'days',label:'Nutzungstage (0 = Profil)',unit:'d/a',def:0,step:1},
+  {id:'hours',label:'Nutzungsstunden je Tag (0 = Profil)',unit:'h',def:0,step:0.5}]},
+ {id:'verb',title:'Verbrauch & Preise',hint:'aus Abrechnungen',open:true,fields:[
+  {id:'elKwh',label:'Strom ohne Heizung (0 = Kennwert)',unit:'kWh/a',def:0,step:100},
+  {id:'carrier',label:'Wärmeerzeugung',type:'sel',def:'gas',opts:()=>Object.entries(CARRIER).map(([k,v])=>[k,v.l])},
+  {id:'thKwh',label:'Wärmeverbrauch Endenergie (0 = Kennwert)',unit:'kWh/a',def:0,step:100},
+  {id:'jaz',label:'Jahresarbeitszahl Wärmepumpe',unit:'',def:3,step:0.1,when:'carrier=wp'},
+  {id:'waterM3',label:'Wasser (0 = Kennwert)',unit:'m³/a',def:0,step:10},
+  {id:'priceEl',label:'Strompreis (brutto)',unit:'ct/kWh',def:30,step:0.1},
+  {id:'priceTh',label:'Wärmepreis (brutto, je kWh Endenergie)',unit:'ct/kWh',def:11,step:0.1},
+  {id:'priceW',label:'Wasser + Abwasser',unit:'€/m³',def:5.5,step:0.1},
+  {id:'co2El',label:'CO₂-Faktor Strom',unit:'g/kWh',def:380,step:5},
+  {id:'co2Th',label:'CO₂-Faktor Wärme',unit:'g/kWh',def:240,step:5},
+  {id:'disc',label:'Kalkulationszins',unit:'%',def:3,step:0.1},
+  {id:'esc',label:'Energiepreissteigerung',unit:'%/a',def:3,step:0.1}]},
+ {id:'strom',title:'Ausstattung Strom',hint:'für die Maßnahmenauswahl',open:true,fields:[
+  {id:'light',label:'Beleuchtung',type:'sel',def:'t8',opts:()=>Object.entries(LIGHT).map(([k,v])=>[k,v.l])},
+  {id:'lightCtrl',label:'Lichtsteuerung',type:'sel',def:'schalter',opts:()=>[['schalter','Schalter'],['zeit','Zeitschaltung / GLT'],['praesenz','Präsenzmelder'],['dali','Präsenz + Tageslicht (DALI)']]},
+  {id:'nWc',label:'WC- und Sanitärräume (0 = Kennwert)',unit:'Stk',def:0,step:1},
+  {id:'nNeben',label:'Drucker-, Teeküchen-, Lagerräume (0 = Kennwert)',unit:'Stk',def:0,step:1},
+  {id:'outKw',label:'Außenbeleuchtung',unit:'kW',def:1.5,step:0.1},
+  {id:'pcs',label:'PC-Arbeitsplätze (0 = je Person)',unit:'Stk',def:0,step:1},
+  {id:'printers',label:'Drucker / Multifunktionsgeräte',unit:'Stk',def:12,step:1},
+  {id:'srvKw',label:'Serverraum IT-Last',unit:'kW',def:2,step:0.5},
+  {id:'pue',label:'PUE Serverraum',unit:'',def:1.8,step:0.05},
+  {id:'automats',label:'Getränke-/Snackautomaten',unit:'Stk',def:2,step:1},
+  {id:'fridges',label:'Kühlschränke älter als 15 Jahre',unit:'Stk',def:6,step:1},
+  {id:'lifts',label:'Aufzüge',unit:'Stk',def:1,step:1},
+  {id:'acUnits',label:'Räume mit Klimagerät',unit:'Stk',def:8,step:1},
+  {id:'fanKw',label:'Lüftungsanlage Ventilatorleistung',unit:'kW',def:0,step:0.5},
+  {id:'ventMode',label:'Betrieb Lüftungsanlage',type:'sel',def:'24h',opts:()=>[['24h','rund um die Uhr'],['zeit','nach Zeitprogramm']]},
+  {id:'wrg',label:'mit Wärmerückgewinnung',type:'chk',def:false},
+  {id:'compKw',label:'Druckluftkompressor',unit:'kW',def:0,step:0.5},
+  {id:'ww',label:'Warmwasser',type:'sel',def:'dezentral',opts:()=>[['zentral','zentral über die Heizung'],['dezentral','dezentral elektrisch (Kleinspeicher/DLE)'],['nur_kalt','nur Kaltwasser']]},
+  {id:'boilers',label:'Elektro-Kleinspeicher (5–10 l)',unit:'Stk',def:10,step:1},
+  {id:'circ',label:'Zirkulation (bei zentralem WW)',type:'sel',def:'24h',opts:()=>[['24h','läuft rund um die Uhr'],['zeit','mit Zeitprogramm'],['keine','keine']]}]},
+ {id:'heiz',title:'Heizung & Gebäudehülle',hint:'Zustand',open:true,fields:[
+  {id:'troom',label:'Raumtemperatur Ø (Nutzungszeit)',unit:'°C',def:21.5,step:0.5},
+  {id:'setback',label:'Nacht- und Wochenendabsenkung',type:'sel',def:'teilweise',opts:()=>[['ja','ja, an Nutzung angepasst'],['teilweise','teilweise / Standardprogramm'],['nein','nein, Dauerbetrieb']]},
+  {id:'abgleich',label:'Hydraulischer Abgleich durchgeführt',type:'sel',def:'nein',opts:()=>[['nein','nein / unbekannt'],['ja','ja']]},
+  {id:'oldPumps',label:'ungeregelte Heizungspumpen',unit:'Stk',def:3,step:1},
+  {id:'pumpW',label:'Ø Leistung je alter Pumpe',unit:'W',def:90,step:5},
+  {id:'pipeM',label:'ungedämmte Leitungen in unbeheizten Räumen',unit:'m',def:40,step:5},
+  {id:'windows',label:'Fenster (0 = Kennwert)',unit:'Stk',def:0,step:1},
+  {id:'ogd',label:'Oberste Geschossdecke zum Dachraum gedämmt',type:'sel',def:'ja',opts:()=>[['ja','ja / kein unbeheizter Dachraum'],['nein','nein']]},
+  {id:'kd',label:'Kellerdecke gedämmt',type:'sel',def:'nein',opts:()=>[['nein','nein'],['ja','ja / kein Keller']]},
+  {id:'taps',label:'Waschtische / Duschen (0 = Kennwert)',unit:'Stk',def:0,step:1},
+  {id:'ledEur',label:'Kosten LED-Umrüstung',unit:'€/m²',def:30,step:1}]}];
+const TIP={
+ elKwh:'Jahresverbrauch aus den Stromrechnungen (ohne Wärmepumpe). Unbekannt: Kennwert aus Nutzung und Fläche. Die Aufteilung auf Anwendungen (Beleuchtung, IT, Lüftung …) wird aus den Ausstattungsangaben und typischen Anteilen ermittelt.',
+ thKwh:'Endenergie für Heizung und Warmwasser (z. B. Gas in kWh, Heizöl × 10). Bei Wärmepumpe: Heizstrom. Unbekannt: Kennwert nach Nutzung und Baujahr.',
+ carrier:'Setzt Richtwerte für Wärmepreis und CO₂-Faktor (änderbar).',
+ co2El:'Strommix Deutschland ca. 360–400 g/kWh; der GEG-Rechenwert beträgt 560 g/kWh.',
+ setback:'Ob die Heizung außerhalb der Nutzungszeit (Nacht, Wochenende, Ferien) abgesenkt wird. Häufig laufen Standardprogramme, die nicht zur Nutzung passen.',
+ troom:'Mittlere Raumtemperatur während der Nutzung. Jedes Grad weniger spart rund 6 % Heizwärme.',
+ pue:'Power Usage Effectiveness: Gesamtstrom Serverraum ÷ IT-Strom. Typisch 1,6–2,0 bei kleinen Serverräumen, 1,3 bei optimierten.',
+ light:'Bestimmt die installierte Beleuchtungsleistung: LED ca. 6 W/m², T5 9 W/m², T8 mit konventionellem Vorschaltgerät 13 W/m².'};
+function defaults(){const P={};for(const s of SECTIONS)for(const f of s.fields)P[f.id]=f.def;P.sel={};P.invOv={};return P}
+const SCEN=[
+ {label:'Beispiel: Verwaltungsgebäude 1980er (2.500 m²)',over:{}},
+ {label:'Beispiel: Schule 1970er (4.000 m²)',over:{prof:'schule',area:4000,floors:3,bj:'bis 1977',printers:8,srvKw:2,automats:1,fridges:4,lifts:1,acUnits:0,boilers:6,pipeM:120,ogd:'nein',setback:'teilweise',troom:21.5,oldPumps:5}},
+ {label:'Beispiel: Kita mit Küche (700 m²)',over:{prof:'kita',area:700,floors:1,bj:'1995–2009',light:'t5',printers:2,srvKw:0,automats:0,fridges:3,lifts:0,acUnits:0,ww:'zentral',circ:'24h',boilers:0,pipeM:25,kd:'ja',oldPumps:2}},
+ {label:'Beispiel: Sporthalle (1.200 m²) mit Lüftungsanlage',over:{prof:'sport',area:1200,floors:1,bj:'1978–1994',light:'halo',printers:0,srvKw:0,automats:1,fridges:1,lifts:0,acUnits:0,fanKw:7.5,ventMode:'24h',ww:'zentral',circ:'24h',boilers:0,outKw:3,pipeM:60}},
+ {label:'Beispiel: Betriebshof mit Werkstatt (1.800 m²)',over:{prof:'werk',area:1800,floors:2,light:'t8',printers:4,srvKw:1,acUnits:2,compKw:7.5,boilers:6,outKw:4,pipeM:80,kd:'ja',ogd:'nein'}}];
+
+/* ===================== Zustand ===================== */
+const LSKEY='einsparmassnahmen.v1';
+let P=defaults();
+try{const s=localStorage.getItem(LSKEY);if(s)P=Object.assign(defaults(),JSON.parse(s))}catch(e){}
+let B=null,LIST=null,PKG=null,activeTab='mass',dirty={},catFilter='alle';
+const CH={};
+const nf=(d)=>new Intl.NumberFormat('de-DE',{minimumFractionDigits:d,maximumFractionDigits:d});
+const NF=[0,1,2,3].map(nf);
+const fmt=(v,d=0)=>v==null||!isFinite(v)?'–':NF[d].format(v);
+const eur=(v)=>v==null||!isFinite(v)?'–':NF[0].format(Math.round(v))+' €';
+const pct=(v,d=0)=>v==null||!isFinite(v)?'–':NF[d].format(v*100)+' %';
+const esc=(s)=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const tok=(n)=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const ti=(t)=>`<span class="tipi" tabindex="0" role="button" aria-label="Info" data-tip="${esc(t)}">i</span>`;
+function fieldHTML(f){
+  const v=P[f.id];let inp;
+  if(f.type==='sel')inp=`<select id="f_${f.id}" data-k="${f.id}">${f.opts().map(([val,lab])=>`<option value="${val}"${String(v)===val?' selected':''}>${esc(lab)}</option>`).join('')}</select>`;
+  else if(f.type==='chk')inp=`<input type="checkbox" id="f_${f.id}" data-k="${f.id}"${v?' checked':''}>`;
+  else inp=`<input type="number" id="f_${f.id}" data-k="${f.id}" value="${v}" step="${f.step||'any'}">`;
+  const tt=TIP[f.id]||'';
+  return `<div class="fld ${f.cls||''}"${f.when?` data-when="${f.when}"`:''}><label class="lab" for="f_${f.id}">${esc(f.label)}${tt?ti(tt):''}</label><span class="ctl">${inp}${f.unit?`<span class="unit">${esc(f.unit)}</span>`:''}</span></div>`;
+}
+function renderInputs(){
+  document.getElementById('inputs').innerHTML=SECTIONS.map(s=>`<details class="sec" ${s.open?'open':''}><summary>${esc(s.title)}<small>${esc(s.hint||'')}</small></summary><div class="secbody">${s.fields.map(fieldHTML).join('')}</div></details>`).join('');
+  applyWhen();
+}
+function applyWhen(){document.querySelectorAll('[data-when]').forEach(e=>{const [k,v]=e.dataset.when.split('=');e.hidden=String(P[k])!==v})}
+function setField(id,val){P[id]=val;const e=document.getElementById('f_'+id);if(e)e.value=val}
+document.getElementById('inputs').addEventListener('input',onInput);
+document.getElementById('inputs').addEventListener('change',onInput);
+function onInput(ev){const t=ev.target,id=t.dataset.k;if(!id)return;let v;
+  if(t.type==='checkbox')v=t.checked;else if(t.type==='number'){v=parseFloat(t.value);if(!isFinite(v))return}else v=t.value;
+  P[id]=v;
+  if(id==='carrier'){const c=CARRIER[v];if(v==='wp'){setField('priceTh',P.priceEl);setField('co2Th',P.co2El)}else{setField('priceTh',c.p);setField('co2Th',c.co2)}}
+  applyWhen();schedule()}
+let timer=null;function schedule(){clearTimeout(timer);timer=setTimeout(compute,300)}
+
+/* ===================== Berechnung ===================== */
+function compute(){
+  try{localStorage.setItem(LSKEY,JSON.stringify(P))}catch(e){}
+  B=building(P);
+  LIST=M.map(m=>evalMeasure(m,P,B));
+  // Vorauswahl: zutreffende Maßnahmen, die sich innerhalb der Nutzungsdauer amortisieren
+  for(const x of LIST)if(!x.na&&P.sel[x.id]===undefined)x.auto=x.dyn!==null&&x.dyn<=x.life;
+  PKG=bundle(LIST.filter(x=>!x.na&&isSel(x)),P,B);
+  dirty={mass:1,ov:1,verb:1,econ:1,docs:1};
+  document.getElementById('status').textContent=`${LIST.filter(x=>!x.na).length} zutreffende Maßnahmen · ${PKG.out.length} ausgewählt`;
+  renderTab(activeTab);
+}
+const isSel=x=>P.sel[x.id]!==undefined?!!P.sel[x.id]:!!x.auto;
+
+/* ===================== Darstellung ===================== */
+function baseOpts(extra){
+  const ink=tok('--ink'),mut=tok('--muted'),line=tok('--line');
+  if(typeof Chart!=='undefined'){Chart.defaults.font.family=getComputedStyle(document.body).fontFamily;Chart.defaults.font.size=12;Chart.defaults.color=mut}
+  const o={responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:'index',intersect:false},
+    plugins:{legend:{labels:{color:ink,boxWidth:12,boxHeight:12}},tooltip:{backgroundColor:tok('--panel'),titleColor:ink,bodyColor:ink,borderColor:line,borderWidth:1}},
+    scales:{x:{grid:{color:line},ticks:{color:mut}},y:{grid:{color:line},ticks:{color:mut}}}};
+  return deepMerge(o,extra||{});
+}
+function deepMerge(a,b){for(const k in b){if(b[k]&&typeof b[k]==='object'&&!Array.isArray(b[k])&&a[k]&&typeof a[k]==='object')deepMerge(a[k],b[k]);else a[k]=b[k]}return a}
+function chart(id,cfg){if(typeof Chart==='undefined')return;if(CH[id])CH[id].destroy();const c=document.getElementById(id);if(!c)return;CH[id]=new Chart(c,cfg)}
+const ccol=c=>tok(CAT[c][1]);
+const CLS={sofort:['sofort','ok'],kurz:['kurzfristig','ok'],wirtsch:['wirtschaftlich','info'],lang:['langfristig','warn']};
+document.getElementById('tabs').addEventListener('click',e=>{const b=e.target.closest('[role=tab]');if(b)selectTab(b.dataset.tab)});
+function selectTab(name){activeTab=name;document.querySelectorAll('[role=tab]').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===name?'true':'false'));
+  document.querySelectorAll('[data-panel]').forEach(p=>p.hidden=p.dataset.panel!==name);try{localStorage.setItem(LSKEY+'.tab',name)}catch(e){}renderTab(name)}
+function renderTab(n){if(!B||!dirty[n])return;dirty[n]=0;({mass:renderMass,ov:renderOv,verb:renderVerb,econ:renderEcon,docs:()=>{}})[n]()}
+const kpi=(l,v,u,s,cls='')=>`<div class="kpi ${cls}"><span class="k">${l}</span><span class="v">${v}${u?`<small>${u}</small>`:''}</span><span class="s">${s||'&nbsp;'}</span></div>`;
+function kpis(){
+  const T=PKG.T,elTot=B.EL,thTot=P.carrier==='wp'?B.TH:B.TH;
+  const co20=B.EL*B.p.co2el+B.TH*B.p.co2th;
+  return [kpi('Einsparung',eur(T.eur),'/a',`${PKG.out.length} Maßnahmen · ${pct(T.eur/(B.EL*B.p.el+B.TH*B.p.th+B.water*B.p.w))} der Kosten`,'pos'),
+    kpi('Strom',fmt(T.sEl),'kWh/a',`−${pct(T.sEl/elTot,1)} von ${fmt(elTot)} kWh`),
+    kpi('Wärme',fmt(T.thEnd),'kWh/a',`−${pct(T.thEnd/thTot,1)} von ${fmt(thTot)} kWh`),
+    kpi('CO₂',fmt(T.co2,1),'t/a',`−${pct(T.co2/co20,1)}`),
+    kpi('Investition',eur(T.inv),'',`Betriebskosten ${T.opex>0?'+':''}${eur(T.opex)}/a`),
+    kpi('Amortisation',PKG.dyn!=null?fmt(PKG.dyn,1):'–',PKG.dyn!=null?'Jahre':'',`statisch ${PKG.stat!=null?fmt(PKG.stat,1)+' J.':'–'}`,PKG.dyn!=null&&PKG.dyn<=10?'pos':''),
+    kpi('Kapitalwert',eur(T.npv),'',`Summe der Maßnahmen über ihre Nutzungsdauer`,T.npv>=0?'pos':'neg'),
+    kpi('Wasser',fmt(T.w),'m³/a',`−${pct(T.w/B.water,1)}`)].join('');
+}
+
+/* ---------- Maßnahmenliste ---------- */
+function renderMass(){
+  document.getElementById('kpis1').innerHTML=kpis();
+  const cats=['alle',...Object.keys(CAT)];
+  document.getElementById('catBar').innerHTML=cats.map(c=>`<button class="chipbtn${c===catFilter?' on':''}" data-cat="${c}" type="button">${c==='alle'?'Alle':CAT[c][0]}</button>`).join('')+
+    `<span class="sp"></span><button class="btn sm" id="selEco" type="button">Wirtschaftliche auswählen</button><button class="btn sm" id="selNone" type="button">Auswahl leeren</button>`;
+  const pk=Object.fromEntries(PKG.out.map(x=>[x.id,x]));
+  const rows=LIST.filter(x=>catFilter==='alle'||x.m.cat===catFilter);
+  const ok=rows.filter(x=>!x.na).sort((a,b)=>(a.stat??1e9)-(b.stat??1e9)),na=rows.filter(x=>x.na);
+  const th=`<thead><tr><th></th><th>Maßnahme</th><th class="n">Strom kWh/a</th><th class="n">Wärme kWh/a</th><th class="n">Wasser m³/a</th><th class="n">Einsparung €/a</th><th class="n">CO₂ t/a</th><th class="n">Investition €</th><th class="n">Amortisation</th><th>Bewertung</th></tr></thead>`;
+  const tr=x=>{const s=isSel(x),q=pk[x.id],c=CLS[x.cls];
+    return `<tr class="mrow${s?' sel':''}" data-id="${x.id}"><td><input type="checkbox" data-sel="${x.id}"${s?' checked':''} aria-label="auswählen"></td>
+      <td class="wrap"><span class="cat" style="background:${ccol(x.m.cat)}"></span><b>${esc(x.m.n)}</b><button class="more" data-more="${x.id}" type="button" aria-label="Details">▸</button>
+        <div class="det" id="det_${x.id}" hidden><p>${esc(x.m.d)}</p><p class="calc"><b>Rechenweg:</b> ${esc(x.basis)}</p><p class="calc">Nutzungsdauer ${x.life} Jahre · Kapitalwert ${eur(x.npv)} · Kosten der eingesparten kWh ${x.cse!=null?fmt(x.cse*100,1)+' ct':'–'}${x.mac!=null?` · CO₂-Vermeidungskosten ${fmt(x.mac)} €/t`:''}${q&&Math.abs(q.eur-x.eur)>1?` · <b>im Paket</b> ${eur(q.eur)}/a (Wechselwirkung mit anderen Maßnahmen)`:''}</p></div></td>
+      <td class="n">${x.sEl?fmt(x.sEl):''}</td><td class="n">${x.thEnd?fmt(x.thEnd):''}</td><td class="n">${x.w?fmt(x.w):''}</td><td class="n"><b>${eur(x.eur)}</b></td><td class="n">${fmt(x.co2,1)}</td>
+      <td class="n"><input class="inv" type="number" data-inv="${x.id}" value="${Math.round(x.inv)}" step="50" title="Richtwert ${eur(x.invDef)} – überschreiben möglich"></td>
+      <td class="n">${x.stat!=null?(x.stat<0.1?'sofort':fmt(x.stat,1)+' J.'):'–'}</td><td><span class="chip ${c[1]}">${c[0]}</span></td></tr>`};
+  document.getElementById('massTable').innerHTML=th+`<tbody>${ok.map(tr).join('')}</tbody>`+(na.length?`<tbody class="na"><tr><td colspan="10" class="nah">Nicht zutreffend für dieses Gebäude</td></tr>${na.map(x=>`<tr><td></td><td class="wrap"><span class="cat" style="background:${ccol(x.m.cat)}"></span>${esc(x.m.n)}</td><td colspan="8" class="muted">${esc(x.na)}</td></tr>`).join('')}</tbody>`:'');
+}
+document.getElementById('massWrap').addEventListener('click',e=>{
+  const c=e.target.closest('[data-cat]');if(c){catFilter=c.dataset.cat;dirty.mass=1;renderMass();return}
+  const m=e.target.closest('[data-more]');if(m){const d=document.getElementById('det_'+m.dataset.more);d.hidden=!d.hidden;m.textContent=d.hidden?'▸':'▾';return}
+  if(e.target.id==='selEco'){for(const x of LIST)if(!x.na)P.sel[x.id]=x.dyn!==null&&x.dyn<=x.life;compute();return}
+  if(e.target.id==='selNone'){for(const x of LIST)if(!x.na)P.sel[x.id]=false;compute();return}
+});
+document.getElementById('massWrap').addEventListener('change',e=>{
+  const s=e.target.dataset.sel;if(s){P.sel[s]=e.target.checked;const keep=activeTab;compute();return}
+  const i=e.target.dataset.inv;if(i){const v=parseFloat(e.target.value);P.invOv[i]=isFinite(v)?v:null;compute()}
+});
+
+/* ---------- Übersicht ---------- */
+function renderOv(){
+  document.getElementById('kpis2').innerHTML=kpis();
+  const c={g:tok('--grey'),good:tok('--good'),ink:tok('--ink'),mut:tok('--muted')};
+  const elK=Object.keys(POOL_EL).filter(k=>B.el[k]>1),thK=Object.keys(POOL_TH).filter(k=>B.th[k]>1);
+  const pal=['--s1','--s2','--s3','--s4','--s5','--s6','--s7','--s8','--b1','--b3','--grey'].map(tok);
+  chart('chEl',{type:'bar',data:{labels:['Ist','nach Maßnahmen'],datasets:elK.map((k,i)=>({label:POOL_EL[k],data:[B.el[k],PKG.after.el[k]],backgroundColor:pal[i%pal.length]}))},
+    options:baseOpts({indexAxis:'y',scales:{x:{stacked:true,title:{display:true,text:'kWh/a',color:c.mut}},y:{stacked:true}},plugins:{tooltip:{mode:'nearest',callbacks:{label:t=>`${t.dataset.label}: ${fmt(t.raw)} kWh`}}}})});
+  const f=P.carrier==='wp'?1/B.jaz:1;
+  chart('chTh',{type:'bar',data:{labels:['Ist','nach Maßnahmen'],datasets:thK.map((k,i)=>({label:POOL_TH[k],data:[B.th[k]*f,PKG.after.th[k]*f],backgroundColor:pal[(i+3)%pal.length]}))},
+    options:baseOpts({indexAxis:'y',scales:{x:{stacked:true,title:{display:true,text:P.carrier==='wp'?'kWh Heizstrom/a':'kWh Endenergie/a',color:c.mut}},y:{stacked:true}},plugins:{tooltip:{mode:'nearest',callbacks:{label:t=>`${t.dataset.label}: ${fmt(t.raw)} kWh`}}}})});
+  const o=PKG.out.slice().sort((a,b)=>b.eur-a.eur);
+  const h=document.getElementById('chMeasBox');h.style.height=Math.max(220,o.length*26+60)+'px';
+  chart('chMeas',{type:'bar',data:{labels:o.map(x=>x.m.n.length>48?x.m.n.slice(0,46)+'…':x.m.n),datasets:[{label:'Einsparung €/a (im Paket)',data:o.map(x=>x.eur),backgroundColor:o.map(x=>ccol(x.m.cat))}]},
+    options:baseOpts({indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:t=>{const x=o[t.dataIndex];return [`${eur(x.eur)}/a · Investition ${eur(x.inv)}`,`Amortisation ${x.stat!=null?fmt(x.stat,1)+' Jahre':'–'} · CO₂ ${fmt(x.co2,2)} t/a`]}}}},scales:{x:{title:{display:true,text:'€/a',color:c.mut}}}})});
+  const top=LIST.filter(x=>!x.na&&(x.cls==='sofort'||x.cls==='kurz')).sort((a,b)=>(a.stat??1e9)-(b.stat??1e9)).slice(0,6);
+  document.getElementById('quick').innerHTML=top.length?top.map(x=>`<li><span class="chip ok">${x.stat!=null&&x.stat<0.1?'sofort':fmt(x.stat,1)+' J.'}</span><span><b>${esc(x.m.n)}</b> – spart ${eur(x.eur)}/a bei ${eur(x.inv)} Investition.</span></li>`).join(''):'<li>Keine kurzfristigen Maßnahmen gefunden.</li>';
+}
+
+/* ---------- Verbrauch ---------- */
+function renderVerb(){
+  const pr=B.pr,A=B.A,rows=[];
+  const thEnd=B.TH;
+  const tb=(id,head,rs)=>{document.getElementById(id).innerHTML=`<thead><tr>${head.map(h=>`<th class="${h[1]||''}">${h[0]}</th>`).join('')}</tr></thead><tbody>${rs.map(r=>`<tr class="${r.cls||''}">${r.c.map((v,j)=>`<td class="${head[j][1]||''}">${v}</td>`).join('')}</tr>`).join('')}</tbody>`};
+  tb('kennTable',[['Kennwert'],['Gebäude','n'],['Vergleichswert','n'],['Bewertung']],[
+    {c:['Strom kWh/(m²·a)',fmt(B.EL/A,1),fmt(pr.el,0),rate(B.EL/A,pr.el)]},
+    {c:[`Wärme kWh/(m²·a)${P.carrier==='wp'?' (Heizstrom × JAZ)':''}`,fmt(B.heat/A,1),fmt(pr.heat,0),rate(B.heat/A,pr.heat)]},
+    {c:['Wasser l/(m²·a)',fmt(B.water/A*1000),fmt(pr.water*1000),rate(B.water/A,pr.water)]},
+    {c:['Energiekosten €/(m²·a)',fmt((B.EL*B.p.el+B.TH*B.p.th)/A,2),'',''],cls:'sum'}]);
+  document.getElementById('kennNote').textContent=`Vergleichswerte für ${pr.l} in Anlehnung an die Bekanntmachung der Vergleichswerte für Nichtwohngebäude (BMWi/BMUB 2015) und VDI 3807. ${B.elKnown?'':'Strom ist ein Kennwert (keine Eingabe). '}${B.thKnown?'':'Wärme ist ein Kennwert nach Baujahr (keine Eingabe).'}`;
+  tb('poolEl',[['Anwendung'],['kWh/a','n'],['Anteil','n'],['nach Maßnahmen','n'],['Herleitung']],Object.keys(POOL_EL).filter(k=>B.el[k]>0.5).map(k=>({c:[POOL_EL[k],fmt(B.el[k]),pct(B.el[k]/B.EL),fmt(PKG.after.el[k]),
+    k==='licht'?`${fmt(B.aLit)} m² × ${B.W} W/m² × ${fmt(pr.lh)} h × Steuerung ${B.ctrl}`+(P.outKw?` + außen ${P.outKw} kW × 4.100 h`:''):k==='server'?`${P.srvKw} kW × 8.760 h × PUE ${P.pue}`:'typischer Anteil am übrigen Strom'] }))
+    .concat([{cls:'sum',c:['Summe',fmt(B.EL),'100 %',fmt(sum(Object.values(PKG.after.el))),'']}]));
+  const f=P.carrier==='wp'?1/B.jaz:1;
+  tb('poolTh',[['Anwendung'],['kWh/a','n'],['Anteil','n'],['nach Maßnahmen','n']],Object.keys(POOL_TH).filter(k=>B.th[k]>0.5).map(k=>({c:[POOL_TH[k],fmt(B.th[k]*f),pct(B.th[k]/B.heat),fmt(PKG.after.th[k]*f)]}))
+    .concat([{cls:'sum',c:['Summe',fmt(B.heat*f),'100 %',fmt(sum(Object.values(PKG.after.th))*f)]}]));
+}
+const rate=(v,r)=>v<=r*0.85?'<span class="okc">gut</span>':v<=r*1.15?'durchschnittlich':'<span class="badc">hoch – Potenzial</span>';
+
+/* ---------- Wirtschaftlichkeit ---------- */
+function renderEcon(){
+  const c={ink:tok('--ink'),good:tok('--good'),bad:tok('--bad'),mut:tok('--muted'),cell:tok('--cell')};
+  chart('chCash',{type:'bar',data:{labels:PKG.cf.map((_,t)=>String(t)),datasets:[{label:'Überschuss je Jahr',data:PKG.cf,backgroundColor:PKG.cf.map(v=>v>=0?c.good:c.bad)},
+    {label:'kumuliert',data:PKG.cumA,type:'line',borderColor:c.ink,backgroundColor:c.ink,pointRadius:2},{label:'kumuliert abgezinst',data:PKG.cumDA,type:'line',borderColor:c.cell,backgroundColor:c.cell,borderDash:[4,3],pointRadius:2}]},
+    options:baseOpts({scales:{x:{title:{display:true,text:'Jahr (Ersatzinvestitionen nach Ablauf der Nutzungsdauer)',color:c.mut}},y:{title:{display:true,text:'€',color:c.mut}}},plugins:{tooltip:{callbacks:{label:t=>`${t.dataset.label}: ${eur(t.raw)}`}}}})});
+  const ok=LIST.filter(x=>!x.na&&x.eur>0);
+  chart('chScatter',{type:'bubble',data:{datasets:Object.keys(CAT).map(k=>({label:CAT[k][0],backgroundColor:ccol(k)+'bb',borderColor:ccol(k),
+      data:ok.filter(x=>x.m.cat===k).map(x=>({x:Math.max(10,x.inv),y:x.eur,r:4+Math.sqrt(Math.max(0,x.co2))*4,n:x.m.n,st:x.stat}))})).filter(d=>d.data.length)},
+    options:baseOpts({interaction:{mode:'nearest',intersect:true},scales:{x:{type:'logarithmic',title:{display:true,text:'Investition € (log.)',color:c.mut}},y:{type:'logarithmic',title:{display:true,text:'Einsparung €/a (log.)',color:c.mut}}},
+      plugins:{tooltip:{callbacks:{label:t=>`${t.raw.n}: ${eur(t.raw.x)} → ${eur(t.raw.y)}/a (${t.raw.st!=null?fmt(t.raw.st,1)+' J.':'–'})`}}}})});
+  macCurve();
+  const tb=document.getElementById('econTable');
+  tb.innerHTML=`<thead><tr><th>Maßnahme</th><th class="n">Investition</th><th class="n">Einsparung/a</th><th class="n">Betriebskosten/a</th><th class="n">Nutzungsdauer</th><th class="n">stat. Amort.</th><th class="n">dyn. Amort.</th><th class="n">Kapitalwert</th><th class="n">ct je kWh</th><th class="n">€ je t CO₂</th></tr></thead><tbody>`+
+    PKG.out.slice().sort((a,b)=>(a.stat??1e9)-(b.stat??1e9)).map(x=>`<tr><td class="wrap">${esc(x.m.n)}</td><td class="n">${eur(x.inv)}</td><td class="n">${eur(x.eur)}</td><td class="n">${x.opex?eur(x.opex):''}</td><td class="n">${x.life} J.</td><td class="n">${x.stat!=null?fmt(x.stat,1):'–'}</td><td class="n">${x.dyn!=null?fmt(x.dyn,1):'–'}</td><td class="n">${eur(x.npv)}</td><td class="n">${x.cse!=null?fmt(x.cse*100,1):'–'}</td><td class="n">${x.mac!=null?fmt(x.mac):'–'}</td></tr>`).join('')+
+    `<tr class="sum"><td>Paket</td><td class="n">${eur(PKG.T.inv)}</td><td class="n">${eur(PKG.T.eur)}</td><td class="n">${eur(PKG.T.opex)}</td><td></td><td class="n">${PKG.stat!=null?fmt(PKG.stat,1):'–'}</td><td class="n">${PKG.dyn!=null?fmt(PKG.dyn,1):'–'}</td><td class="n">${eur(PKG.T.npv)}</td><td></td><td></td></tr></tbody>`;
+}
+/* CO₂-Vermeidungskostenkurve: Balkenbreite = vermiedene t CO₂/a, Höhe = Kosten je t (negativ = Maßnahme spart Geld) */
+function macCurve(){
+  const xs=PKG.out.filter(x=>x.co2>0.01&&x.mac!=null).sort((a,b)=>a.mac-b.mac),box=document.getElementById('mac');
+  if(!xs.length){box.innerHTML='<p class="note">Keine Maßnahmen mit CO₂-Minderung ausgewählt.</p>';return}
+  const W=1000,H=330,L=70,R=20,T=20,Bm=40,tot=sum(xs.map(x=>x.co2)),sm=xs.map(x=>x.mac).sort((a,b)=>a-b),lo=Math.min(0,Math.max(sm[0],sm[Math.floor(sm.length*0.15)]*1.6,-1500)),hi=Math.max(50,Math.min(sm[sm.length-1],1500));
+  const X=v=>L+v/tot*(W-L-R),Y=v=>T+(hi-v)/(hi-lo)*(H-T-Bm);
+  let s=`<svg viewBox="0 0 ${W} ${H}" class="macsvg" xmlns="http://www.w3.org/2000/svg">`;
+  const st=niceStep(hi-lo,6);for(let v=Math.ceil(lo/st)*st;v<=hi;v+=st)s+=`<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${L-6}" y="${Y(v)+4}" font-size="11" text-anchor="end" fill="var(--muted)">${fmt(v)}</text>`;
+  let x0=0;xs.forEach((x,i)=>{const w=x.co2;const mv=clamp(x.mac,lo,hi);s+=`<rect x="${X(x0)+0.5}" y="${Math.min(Y(0),Y(mv))}" width="${Math.max(1,X(x0+w)-X(x0)-1)}" height="${Math.abs(Y(mv)-Y(0))||1}" fill="var(${CAT[x.m.cat][1]})"><title>${esc(x.m.n)}: ${fmt(x.mac)} €/t, ${fmt(x.co2,2)} t/a</title></rect>`;
+    if(X(x0+w)-X(x0)>22)s+=`<text x="${(X(x0)+X(x0+w))/2}" y="${x.mac<0?Y(0)-6:Y(0)+14}" font-size="10.5" text-anchor="middle" fill="var(--ink)">${i+1}</text>`;x0+=w});
+  s+=`<line x1="${L}" x2="${W-R}" y1="${Y(0)}" y2="${Y(0)}" stroke="var(--ink)"/>`;
+  s+=`<text x="${(L+W-R)/2}" y="${H-28}" font-size="12" text-anchor="middle" fill="var(--muted)">vermiedene Emissionen kumuliert ${fmt(tot,1)} t CO₂/a</text><text x="16" y="${(T+H-Bm)/2}" font-size="12" fill="var(--muted)" transform="rotate(-90 16 ${(T+H-Bm)/2})" text-anchor="middle">€ je t CO₂</text>`;
+  s+=`</svg>`;
+  box.innerHTML=s+`<ol class="maclist">${xs.map(x=>`<li><i style="background:var(${CAT[x.m.cat][1]})"></i>${esc(x.m.n)}: <b>${fmt(x.mac)} €/t</b>, ${fmt(x.co2,1)} t/a</li>`).join('')}</ol>`;
+}
+function niceStep(r,n){const raw=r/n,mag=Math.pow(10,Math.floor(Math.log10(raw||1))),q=raw/mag;return (q<=1?1:q<=2?2:q<=5?5:10)*mag}
+
+/* ===================== Bedienung ===================== */
+function toast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2200)}
+document.getElementById('btnReset').onclick=()=>{P=defaults();document.getElementById('scenario').value='0';renderInputs();compute();toast('Standardwerte geladen')};
+document.getElementById('btnCsv').onclick=()=>{const f=(v,d=0)=>v==null||!isFinite(v)?'':Number(v).toFixed(d).replace('.',',');
+  let s='Maßnahme;Kategorie;ausgewählt;Strom kWh/a;Wärme kWh/a;Wasser m³/a;Einsparung €/a;CO2 t/a;Investition €;Nutzungsdauer;Amortisation statisch;Kapitalwert €;Rechenweg\n';
+  for(const x of LIST)if(!x.na)s+=[x.m.n,CAT[x.m.cat][0],isSel(x)?'ja':'nein',f(x.sEl),f(x.thEnd),f(x.w),f(x.eur),f(x.co2,2),f(x.inv),x.life,f(x.stat,1),f(x.npv),'"'+x.basis.replace(/"/g,"'")+'"'].join(';')+'\n';
+  const blob=new Blob(['﻿'+s],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='einsparmassnahmen.csv';a.click();toast('Maßnahmenliste als CSV gespeichert')};
+document.getElementById('btnPrint').onclick=()=>{for(const k in dirty)dirty[k]=1;['mass','ov','verb','econ'].forEach(k=>{dirty[k]=1;renderTab(k)});document.querySelectorAll('.det').forEach(d=>d.hidden=false);setTimeout(()=>window.print(),300)};
+const scSel=document.getElementById('scenario');
+scSel.innerHTML=SCEN.map((s,i)=>`<option value="${i}">${esc(s.label)}</option>`).join('');
+scSel.onchange=()=>{const s=SCEN[+scSel.value];P=Object.assign(defaults(),JSON.parse(JSON.stringify(s.over)));renderInputs();compute();toast('Beispiel geladen')};
+const tipbox=document.createElement('div');tipbox.id='tipbox';tipbox.hidden=true;document.body.appendChild(tipbox);let tipEl=null;
+function showTip(el){tipEl=el;tipbox.textContent=el.dataset.tip;tipbox.hidden=false;const r=el.getBoundingClientRect(),b=tipbox.getBoundingClientRect();
+  tipbox.style.left=clamp(r.left+r.width/2-b.width/2,8,Math.max(8,innerWidth-b.width-8))+'px';let y=r.bottom+6;if(y+b.height>innerHeight-8)y=Math.max(8,r.top-b.height-6);tipbox.style.top=y+'px'}
+document.addEventListener('mouseover',e=>{const t=e.target.closest&&e.target.closest('[data-tip]');if(t)showTip(t);else if(tipEl){tipbox.hidden=true;tipEl=null}});
+const rerender=()=>{dirty={mass:1,ov:1,verb:1,econ:1};renderTab(activeTab)};
+try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',rerender)}catch(e){}
+new MutationObserver(rerender).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+renderInputs();
+try{const t=localStorage.getItem(LSKEY+'.tab');if(t&&document.querySelector(`[data-tab="${t}"]`))activeTab=t}catch(e){}
+document.querySelectorAll('[role=tab]').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===activeTab?'true':'false'));
+document.querySelectorAll('[data-panel]').forEach(p=>p.hidden=p.dataset.panel!==activeTab);
+window.__ES={get B(){return B},get LIST(){return LIST},get PKG(){return PKG},get P(){return P},set P(v){P=v},compute};
+compute();
+
+</script>
+<script src="../../assets/js/toolbar.js" defer></script>
+</body>
+</html>

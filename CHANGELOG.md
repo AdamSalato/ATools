@@ -1,0 +1,36 @@
+# Änderungen
+
+## ATools 2.0.0
+
+- Umbenennung des Projekts von AdamTools in **ATools** (neues Repository, neue Adresse `/ATools/`)
+- Prüfungsaufgaben heißen jetzt **Übungsaufgaben** (`tools/uebungsaufgaben/`)
+- Neu: **Ladesäulenplanung** – Jahressimulation in Viertelstunden für Beschäftigte, Flotte, Besucher und Bewohner; AC/DC-Ladepunkte mit Fahrzeug-Ladeleistung und DC-Ladekurve; Lastmanagement ohne/statisch/dynamisch/PV-Überschuss mit Priorisierung; PV und Batteriespeicher (Eigenverbrauch oder Spitzenkappung); Belegungsplan je Tag, Jahres-Belegungsdiagramm, Dauerlinien, Gleichzeitigkeit; Strategievergleich und Leistungsgrenzen-Studie; Stromverkauf mit Abrechnungsdienst (z. B. MENNEKES ativo), THG-Quote, Leistungspreis, Kapitalwert, Amortisation, Sensitivität; technische Herausforderungen mit Lösungen (Netzanschluss, § 14a EnWG, AFIR, Eichrecht, VDE 0100-722)
+- Neu: **Einsparmaßnahmen** – schnelle Gebäudeaufnahme, Aufteilung des Verbrauchs nach Anwendungen, rund 30 Maßnahmen (Beleuchtung, Präsenz-/Bewegungsmelder in WC und Druckerräumen, Fensterkontakt für Klimageräte, Geräte und IT, Haustechnik, Heizung, Hülle, Wasser, Organisation) mit Rechenweg, Einsparung, CO₂, Amortisation, Kapitalwert; Paketwirkung mit Wechselwirkungen, Kapitalrückfluss, CO₂-Vermeidungskostenkurve, CSV und Druck
+- Energiebedarfsrechner: neuer Eingabe- und Ergebnisreiter **E-Mobilität** – AC/DC-Ladepunkte, Nutzerprofile, Besucher-Ladevorgänge, Lastmanagement; viertelstündliche Ladesimulation fließt in Lastgang, PV-Eigenverbrauch, Netzanschluss und Kosten ein; **GEIG-Prüfung in der Fassung des GModG** (Neubau, größere Renovierung, Bestand, Behördengebäude, Übergangsregel § 16, Ausnahme § 14, öffentlich zugängliche Stellplätze) mit Stellplatzplan Ist/Soll und Nachrüstkosten; Wirtschaftlichkeit der Ladeinfrastruktur; eigenes Kapitel im Energiekonzept, Befunde und Bericht
+
+## ATools 1.1.0 – 21.11.2026
+
+- Neu: **Lastgang-Analyse** – CSV/Excel-Import mit automatischer Erkennung, Kennzahlen und Befunde, Zeitverlauf, Dauerlinie, Teppichdiagramm, Typtage, Monatswerte, Lastspitzenkappung mit Speicherauslegung, CSV/PDF-Export
+- Neu: **Übungsaufgaben** – 11 Aufgabentypen in 5 Themen, 3 Niveaustufen für Azubis (kaufmännisch, Verwaltung, technisch) und Studierende, Zufallswerte, Varianten je Prüfling, Musterlösungen mit Rechenweg, IHK-Notenschlüssel, Druck/PDF
+- Übungsaufgaben erweitert: **Betriebskostenabrechnung** (BetrKV, HeizkostenV, Abrechnungsfrist) und **PV-Technik** (Übersichtsschaltplan mit nummerierten Bauteilen, Strangauslegung nach Temperatur, Spannungsfall, DC/AC-Verhältnis); Diagramme in LED, Kapitalwert, Kostenvergleich, PV, Wärmepumpe, Lastgang und Fristen
+- Musterlösungen mit „Lösungsansatz“ je Teilaufgabe: warum welche Formel, Herleitung, typische Fehler, Bewertungshinweise bei Textaufgaben
+- WP vs. Brennwert: neues Diagramm **Jahresdauerlinie der Heizleistung** (Deckung WP/Heizstab, WP-Maximalleistung, elektrische Leistungsaufnahme, Außentemperatur); Warmwasser über der WP-Einsatzgrenze wird anteilig per Heizstab gerechnet; Hinweistext Monatsarbeitszahl korrigiert
+- PV-Rechner und WP-Tool: Achsenbeschriftungen im deutschen Zahlenformat
+- Chart.js 4.4.1 liegt jetzt in `vendor/` – Diagramme funktionieren auch ohne Internet bzw. bei gesperrten CDNs
+- Energiebedarfsrechner: neue Warmwasser-Variante „nur Kaltwasser – einzelne Durchlauferhitzer“ mit Anzahl, Nennleistung und Zapfdauer der Geräte; Strombedarf daraus berechnet, Leistung im Netzanschluss berücksichtigt; auch bei „dezentral elektrisch (Durchlauferhitzer)“ und Kleinspeichern in Nichtwohngebäuden geht die Geräteleistung (aus Ausstattung oder eigener Angabe, Gleichzeitigkeit 1/√n, mindestens größtes Gerät) in den Netzanschluss ein
+- Startseite: Titel „Tools“ ohne Symbol und Überschrift, neue Kategorie „Ausbildung“
+
+## ATools 1.0.0 – 21.11.2026
+
+- Startseite mit Kacheln, Suche und Kategorie-Filter, Hell/Dunkel für alle Tools
+- Vier Tools aus den Einzel-Repos übernommen: Energiebedarfsrechner, InvestTool, PV-Rechner, WP vs. Brennwert
+- Chart.js lokal (`vendor/`) mit CDN-Fallback, Offline-Nutzung per Service Worker, als App installierbar
+- Automatische Konsistenzprüfung (`scripts/check.mjs`, GitHub Actions)
+
+### InvestTool 1.2-web
+
+- **Sonderzahlungen** je Alternative (z. B. „13: 2.500; 20: 1.200“) für Ersatzinvestitionen, Generalüberholung oder Rückbau – ohne in die manuelle Zahlungsreihe wechseln zu müssen. Wirken auf alle Verfahren, auf Sensitivität (eigener Parameter) und Berichte/CSV.
+- Vorlage „Photovoltaik“ berücksichtigt jetzt den Wechselrichtertausch im Jahr 13.
+- **Link teilen:** Alle Eingaben stecken im Link. Wer ihn öffnet, sieht genau diese Rechnung (kein Server, keine Datenübertragung).
+- Lange Feldbezeichnungen auf dem Handy werden umbrochen statt abgeschnitten.
+- Alle bestehenden Vorlagen liefern unverändert dieselben Ergebnisse wie Version 1.1.
