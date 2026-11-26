@@ -18,7 +18,8 @@ window.ATOOLS = {
     energie: "Energie",
     wirtschaft: "Wirtschaftlichkeit",
     anlagen: "Anlagentechnik",
-    ausbildung: "Ausbildung"
+    ausbildung: "Ausbildung",
+    wissen: "Wissen & Vorgaben"
   },
   tools: [
     {
@@ -50,6 +51,16 @@ window.ATOOLS = {
       norms: "DIN V 18599 · VDI 2067 · ASR A3.5 · GModG",
       accent: "#2c7d48",
       icon: '<path d="M12 3c-4.5 4-6 7-6 10a6 6 0 0 0 12 0c0-3-1.5-6-6-10z"/><path d="M12 21v-8M12 16l-2.5-2.2M12 18.5l3-3"/>'
+    },
+    {
+      id: "vorgaben",
+      title: "Daten und Vorgaben",
+      short: "Gesetze, Normen, Richtwerte",
+      description: "Durchsuchbare Sammlung: Raumtemperaturen und Beleuchtungsstärken je Raumart, U-Werte, KfW-Effizienzhaus, GModG, EnEfG, Solarpflicht, Prüfpflichten, Primärenergiefaktoren und ein Normenverzeichnis – mit Raum-Steckbrief.",
+      categories: ["wissen", "energie"],
+      norms: "GModG · ASR A3.4/A3.5 · DIN EN 12464-1 · DIN V 18599",
+      accent: "#5a4a9c",
+      icon: '<rect x="4" y="3" width="12" height="17" rx="1.5"/><path d="M7 7.5h6M7 11h6M7 14.5h3"/><circle cx="17" cy="17" r="3.2"/><path d="m19.3 19.3 2.2 2.2"/>'
     },
     {
       id: "uebungsaufgaben",

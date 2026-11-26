@@ -1,0 +1,1144 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Daten und Vorgaben · ATools</title>
+<link rel="icon" href="../../assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: Datenblatt-Werkzeug. Links Parameterspalte, rechts Ergebnis-Reiter. Zellenblau + Sonnenbernstein. */
+:root{
+  --bg:#e9edf1; --panel:#ffffff; --panel2:#f4f6f9; --ink:#132130; --muted:#586777; --line:#d3dbe3;
+  --cell:#1d4f7c; --cell-soft:#dbe6f1; --sun:#c7780a; --sun-soft:#fbecd2;
+  --teal:#23807d; --rose:#b3412f; --grey:#8a97a5; --good:#2c7d48; --warn:#a8670b; --bad:#b3412f;
+  --b8:#d97f0c; --b7:#e8a442; --b6:#f1c27d; --b5:#f4dcb3; --b4:#dde2e7; --b3:#b9c6d2; --b2:#90a6ba; --b1:#6884a0; --b0:#445f7d;
+  --s1:#1d63a8; --s2:#d9730d; --s3:#2a8a5e; --s4:#b8336a; --s5:#6f4fb8; --s6:#0f8b9c; --s7:#8d6b12; --s8:#c23b22;
+  --roof:#dfe5eb; --roofline:#7b8896;
+  --f-disp:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0d141b; --panel:#141e28; --panel2:#18242f; --ink:#e3e9ef; --muted:#93a2b1; --line:#283746;
+  --cell:#6fa8dc; --cell-soft:#1b2f43; --sun:#f0a53a; --sun-soft:#3a2a12;
+  --teal:#4fb7b2; --rose:#e2735f; --grey:#7f8d9b; --good:#5bbf7c; --warn:#e5a443; --bad:#e2735f;
+  --b8:#f0a032; --b7:#d88a2a; --b6:#b5762e; --b5:#8a6638; --b4:#4c5866; --b3:#3d5268; --b2:#33495f; --b1:#2a3e53; --b0:#213244;
+  --s1:#6ea8e6; --s2:#f29b45; --s3:#5cc08f; --s4:#e277a4; --s5:#a68be8; --s6:#4cc3d1; --s7:#d1ac4a; --s8:#ef7158;
+  --roof:#1f2b37; --roofline:#6b7a8a;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d141b; --panel:#141e28; --panel2:#18242f; --ink:#e3e9ef; --muted:#93a2b1; --line:#283746;
+  --cell:#6fa8dc; --cell-soft:#1b2f43; --sun:#f0a53a; --sun-soft:#3a2a12;
+  --teal:#4fb7b2; --rose:#e2735f; --grey:#7f8d9b; --good:#5bbf7c; --warn:#e5a443; --bad:#e2735f;
+  --b8:#f0a032; --b7:#d88a2a; --b6:#b5762e; --b5:#8a6638; --b4:#4c5866; --b3:#3d5268; --b2:#33495f; --b1:#2a3e53; --b0:#213244;
+  --s1:#6ea8e6; --s2:#f29b45; --s3:#5cc08f; --s4:#e277a4; --s5:#a68be8; --s6:#4cc3d1; --s7:#d1ac4a; --s8:#ef7158;
+  --roof:#1f2b37; --roofline:#6b7a8a;
+  color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.45;margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+h1,h2,h3{font-family:var(--f-disp);font-weight:600;letter-spacing:.01em;text-wrap:balance;margin:0}
+.num,td.n,th.n{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+header.top{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;padding-block:14px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));background:var(--panel);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:baseline;gap:12px;min-width:0;flex-wrap:wrap}
+.brand h1{font-size:28px;line-height:1}
+.brand .sub{color:var(--muted);font-size:12.5px}
+.mark{width:26px;height:26px;flex:none;align-self:center}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-left:auto;min-width:0;max-width:100%}
+.btn{border:1px solid var(--line);background:var(--panel2);border-radius:6px;padding:7px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--cell)}
+.btn.pri{background:var(--cell);border-color:var(--cell);color:var(--panel)}
+.btn.sm{padding:4px 9px;font-size:12px}
+.btn:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible,[role=tab]:focus-visible{outline:2px solid var(--sun);outline-offset:1px}
+.status{font-size:12px;color:var(--muted);font-family:var(--f-mono)}
+select.preset{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:7px 8px;max-width:100%;min-width:0}
+
+.app{display:grid;grid-template-columns:minmax(330px,390px) minmax(0,1fr);gap:16px;padding-block:16px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));align-items:start}
+@media (max-width:900px){.app{grid-template-columns:minmax(0,1fr)}}
+aside.inputs{display:flex;flex-direction:column;gap:8px;min-width:0}
+@media (min-width:901px){aside.inputs{position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto;padding-right:4px}}
+details.sec{background:var(--panel);border:1px solid var(--line);border-radius:8px}
+details.sec>summary{cursor:pointer;list-style:none;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;font-family:var(--f-disp);font-size:18px;font-weight:600}
+details.sec>summary::-webkit-details-marker{display:none}
+details.sec>summary::after{content:"+";font-family:var(--f-mono);color:var(--muted);font-size:16px}
+details.sec[open]>summary::after{content:"–"}
+details.sec>summary small{font-family:var(--f-body);font-size:11.5px;color:var(--muted);font-weight:400;margin-left:8px;margin-right:auto}
+.secbody{padding:4px 14px 14px;display:flex;flex-direction:column;gap:8px}
+.fld{display:grid;grid-template-columns:minmax(0,1fr) 150px;gap:4px 10px;align-items:center}
+.fld .lab{font-size:13px;min-width:0}
+.fld small{grid-column:1/-1;color:var(--muted);font-size:11.5px;margin-top:-2px}
+.ctl{display:flex;align-items:center;gap:6px;min-width:0}
+.ctl input[type=number],.ctl select{width:100%;min-width:0;border:1px solid var(--line);background:var(--panel2);border-radius:5px;padding:5px 7px;font-family:var(--f-mono);font-size:13px;text-align:right}
+.ctl select{text-align:left;font-family:var(--f-body)}
+.ctl .unit{font-size:11px;color:var(--muted);font-family:var(--f-mono);white-space:nowrap;min-width:46px}
+.fld.wide{grid-template-columns:minmax(0,1fr)}
+.fld.wide .ctl select{width:100%}
+textarea{width:100%;border:1px solid var(--line);background:var(--panel2);border-radius:5px;padding:6px;font-family:var(--f-mono);font-size:12px;resize:vertical}
+.hgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.hgrid label{display:flex;flex-direction:column;gap:2px;font-size:11px;color:var(--muted);font-family:var(--f-mono)}
+.hgrid input{border:1px solid var(--line);background:var(--panel2);border-radius:5px;padding:4px 6px;font-family:var(--f-mono);font-size:13px;text-align:right;width:100%}
+.dim{opacity:.45}
+.surf{border:1px solid var(--line);border-radius:6px;padding:10px;display:flex;flex-direction:column;gap:7px;background:var(--panel2)}
+.surf.tpl{background:var(--cell-soft);border-color:transparent}
+.surf.tpl .ttl{font-weight:600;font-size:13px}
+.surf .sh{display:flex;gap:8px;align-items:center}
+.surf .sh input{flex:1;min-width:0;border:1px solid var(--line);background:var(--panel);border-radius:5px;padding:5px 7px;font-weight:600}
+.surf .info{font-family:var(--f-mono);font-size:11.5px;color:var(--cell)}
+.xbtn{border:1px solid var(--line);background:var(--panel);border-radius:5px;padding:4px 8px;cursor:pointer;font-size:12px}
+
+section.results{min-width:0;display:flex;flex-direction:column;gap:12px}
+nav.tabs{display:flex;gap:2px;overflow-x:auto;border-bottom:2px solid var(--line);scrollbar-width:thin}
+nav.tabs button{border:0;background:none;padding:9px 14px;cursor:pointer;font-family:var(--f-disp);font-size:17px;font-weight:600;color:var(--muted);white-space:nowrap;border-bottom:3px solid transparent;margin-bottom:-2px}
+nav.tabs button[aria-selected=true]{color:var(--ink);border-bottom-color:var(--sun)}
+.panel{display:flex;flex-direction:column;gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px;min-width:0}
+.card h2{font-size:20px;margin-bottom:8px}
+.card h3{font-size:16px;margin-bottom:6px}
+.card p.note{color:var(--muted);font-size:12.5px;margin:6px 0 0;max-width:90ch}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+@media (max-width:1150px){.grid2{grid-template-columns:minmax(0,1fr)}}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+@media (max-width:1100px){.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:620px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kpi{background:var(--panel);padding:12px 14px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.kpi .k{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.kpi .v{font-family:var(--f-disp);font-size:30px;font-weight:600;line-height:1.05;font-variant-numeric:tabular-nums}
+.kpi .v small{font-size:15px;color:var(--muted);font-weight:500;margin-left:3px}
+.kpi .s{font-size:12px;color:var(--muted);font-family:var(--f-mono)}
+.kpi.pos .v{color:var(--good)} .kpi.neg .v{color:var(--bad)}
+.chartbox{position:relative;height:300px;width:100%}
+.chartbox.tall{height:380px}.chartbox.short{height:230px}
+.flowbar{display:flex;height:22px;border-radius:4px;overflow:hidden;background:var(--panel2)}
+.flowbar>div{height:100%;min-width:0}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:6px;font-size:12.5px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:11px;height:11px;border-radius:2px;display:inline-block}
+.flowrow{display:flex;flex-direction:column;gap:4px;margin-top:12px}
+.flowrow .t{display:flex;justify-content:space-between;font-size:13px}
+.tablewrap,.svgwrap{overflow-x:auto}
+.svgwrap svg{display:block;min-width:720px;width:100%;height:auto}
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+th,td{padding:5px 8px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+th{font-weight:600;color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:.04em}
+td.n,th.n{text-align:right}
+td.okc{color:var(--good)} td.warnc{color:var(--warn);font-weight:600} td.badc{color:var(--bad);font-weight:600}
+tr.sum td{font-weight:600;border-top:2px solid var(--ink)}
+tr.hl td{background:var(--sun-soft)}
+.warns{display:flex;flex-direction:column;gap:6px;margin:0;padding:0;list-style:none}
+.warns li{display:flex;gap:10px;align-items:flex-start;font-size:13px}
+.chip{flex:none;font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;padding:2px 7px;border-radius:10px;border:1px solid currentColor;margin-top:1px}
+.chip.bad{color:var(--bad)} .chip.warn{color:var(--warn)} .chip.ok{color:var(--good)} .chip.info{color:var(--cell)}
+.casc td.bar{width:42%}
+.casc .bb{height:12px;background:var(--cell);border-radius:2px}
+.casc .bb.loss{background:var(--rose)} .casc .bb.gain{background:var(--sun)}
+.casc tr.lvl td{font-weight:600;background:var(--panel2)}
+.rec{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:700px){.rec{grid-template-columns:minmax(0,1fr)}}
+.recbox{border:1px solid var(--line);border-radius:6px;padding:10px 12px;background:var(--panel2);display:flex;flex-direction:column;gap:5px;min-width:0}
+.recbox .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);display:flex;justify-content:space-between;gap:8px}
+.recbox .big{font-family:var(--f-disp);font-size:24px;font-weight:600;line-height:1.1}
+.recbox .det{font-size:12.5px;color:var(--muted)}
+.recbox .det b{color:var(--ink);font-weight:500}
+.planlist{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:14px}
+.roofsvg{width:100%;height:auto;max-height:540px;display:block}
+.strleg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;font-family:var(--f-mono);margin-top:8px}
+.strleg span{display:inline-flex;gap:6px;align-items:center}
+.strleg i{width:14px;height:10px;border-radius:2px;display:inline-block}
+.fanwrap{display:grid;grid-template-columns:minmax(0,560px) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:1150px){.fanwrap{grid-template-columns:minmax(0,1fr)}}
+.fan{position:relative;width:100%;max-width:560px;aspect-ratio:1/1}
+.fan canvas{width:100%;height:100%;cursor:crosshair;display:block}
+.fanleg{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+.fanleg span{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-family:var(--f-mono);padding-right:6px}
+.fanleg i{width:16px;height:12px;display:inline-block;border-radius:2px}
+.tip{position:absolute;pointer-events:none;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:6px 9px;font-size:12px;font-family:var(--f-mono);box-shadow:0 4px 14px rgba(0,0,0,.15);white-space:nowrap}
+.sel-info{font-family:var(--f-mono);font-size:13px;display:grid;grid-template-columns:auto auto;gap:3px 14px;justify-content:start}
+.rangebar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px}
+.rangebar input[type=range]{flex:1;min-width:160px;accent-color:var(--sun)}
+.statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.stat{border-left:3px solid var(--cell);padding:2px 10px}
+.stat .k{font-size:11.5px;color:var(--muted)} .stat .v{font-family:var(--f-mono);font-size:16px}
+.docs{font-size:13px;max-width:95ch}
+.docs h3{margin-top:14px}
+.docs ul{padding-left:18px;margin:6px 0}
+.docs li{margin:3px 0}
+.overlay{position:fixed;inset:0;background:rgba(10,16,22,.5);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}
+.dialog{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;width:min(640px,100%);display:flex;flex-direction:column;gap:10px}
+.dialog textarea{min-height:220px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--panel);padding:8px 14px;border-radius:6px;font-size:13px;z-index:60}
+
+.tipi{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;border:1px solid var(--muted);color:var(--muted);font:600 10px/1 var(--f-body);font-style:normal;margin-left:6px;cursor:help;vertical-align:1px;text-transform:none;letter-spacing:0;flex:none}
+.tipi:hover,.tipi:focus-visible{border-color:var(--cell);color:var(--cell);outline:none}
+#tipbox{position:fixed;z-index:70;max-width:min(330px,calc(100vw - 24px));background:var(--ink);color:var(--panel);font-size:12.5px;line-height:1.45;padding:8px 11px;border-radius:6px;pointer-events:none;box-shadow:0 6px 18px rgba(0,0,0,.22);text-transform:none;letter-spacing:0;font-weight:400}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+:root{--cell:#5a4a9c;--cell-soft:#e6e2f3}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--cell:#a597e0;--cell-soft:#262041}}
+:root[data-theme="dark"]{--cell:#a597e0;--cell-soft:#262041}
+.app.full{grid-template-columns:minmax(0,1fr)}
+.searchbar{display:flex;gap:10px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 12px}
+.searchbar svg{flex:none;color:var(--muted)}
+.searchbar input{flex:1;min-width:0;border:0;background:transparent;font-size:17px;padding:6px 2px;outline:none}
+.searchbar:focus-within{border-color:var(--cell);box-shadow:0 0 0 3px var(--cell-soft)}
+.searchbar kbd{font-family:var(--f-mono);font-size:11px;border:1px solid var(--line);border-radius:4px;padding:1px 6px;color:var(--muted)}
+.quick{display:flex;flex-wrap:wrap;gap:6px}
+.qchip{border:1px dashed var(--line);background:none;border-radius:14px;padding:3px 10px;font-size:12px;cursor:pointer;color:var(--muted)}
+.qchip:hover{border-color:var(--cell);color:var(--cell)}
+.count{font-size:13px;color:var(--muted)}.count b{color:var(--ink)}
+.fgrp{display:flex;flex-wrap:wrap;gap:5px}
+.fchip{border:1px solid var(--line);background:var(--panel2);border-radius:14px;padding:4px 10px;font-size:12.5px;cursor:pointer;display:inline-flex;gap:6px;align-items:center;text-align:left}
+.fchip span{font-family:var(--f-mono);font-size:10.5px;color:var(--muted)}
+.fchip.on{background:var(--cell);border-color:var(--cell);color:var(--panel)}.fchip.on span{color:var(--panel);opacity:.8}
+.fchip:hover{border-color:var(--cell)}
+.flab{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-top:4px}
+#toc{display:flex;flex-direction:column;gap:8px;font-size:12.5px}
+.toch{font-weight:600;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px}
+#toc a{display:block;color:var(--ink);text-decoration:none;padding:2px 6px;border-radius:4px;border-left:2px solid transparent}
+#toc a:hover{background:var(--cell-soft);border-left-color:var(--cell)}
+#list{display:flex;flex-direction:column;gap:12px}
+.topic h2{font-size:22px;margin:4px 0 6px}
+.thead{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 12px;align-items:center}
+.tmeta{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font-size:12px;color:var(--muted)}
+.tmeta .uses{font-size:11.5px}
+.tact{display:flex;gap:6px;align-items:center}
+.chip.grey{color:var(--grey)}
+.iconbtn{border:1px solid var(--line);background:var(--panel2);border-radius:6px;padding:4px 6px;cursor:pointer;display:inline-flex;line-height:0}
+.iconbtn svg{fill:none;stroke:var(--muted);stroke-width:1.6}
+.iconbtn.on svg{fill:var(--sun);stroke:var(--sun)}
+.txt{margin:0 0 8px;max-width:105ch}
+.topic h3{font-size:15px;margin:12px 0 4px}
+table.dv td{white-space:normal;vertical-align:top;min-width:70px}
+table.dv td.c0{font-weight:500;min-width:160px}
+table.dv tbody tr:nth-child(even) td{background:var(--panel2)}
+mark{background:var(--sun-soft);color:inherit;border-radius:2px;padding:0 1px;box-shadow:0 0 0 1px var(--sun-soft)}
+.more{font-size:12px;color:var(--muted);margin-top:6px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.src{font-size:12px;color:var(--muted);margin:10px 0 0;border-top:1px dashed var(--line);padding-top:6px}
+.src b{color:var(--ink);font-weight:500}
+.topic.flash{box-shadow:0 0 0 3px var(--cell)}
+.topic{scroll-margin-top:12px}
+.roomhits{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:12px}
+.room{border-left:4px solid var(--cell)}
+.room h2{font-size:21px;margin:4px 0 8px}
+.rdl{display:grid;grid-template-columns:minmax(120px,190px) minmax(0,1fr);gap:6px 14px;margin:0;font-size:13px}
+.rdl dt{color:var(--muted)}.rdl dd{margin:0}
+.room.big .rdl{font-size:15px}.room.big h2{font-size:26px}
+#roomTable tr{cursor:pointer}
+#roomTable td{white-space:normal;vertical-align:top}
+.rtop{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:10px}
+.rtop select{border:1px solid var(--line);background:var(--panel2);border-radius:6px;padding:6px 8px}
+.empty p{color:var(--muted)}
+.legendk{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;align-items:center;font-size:13px}
+#phead{display:none}
+@media print{
+  @page{size:A4 portrait;margin:12mm 11mm 14mm}
+  body{background:#fff;color:#111;font-size:10.5px}
+  header.top,aside.inputs,nav.tabs,.searchbar,.quick,.tact,.more .btn,#count,.toast,#tipbox{display:none!important}
+  .app{display:block;padding:0}
+  .panel[hidden]{display:none!important}
+  #phead{display:flex;justify-content:space-between;background:#1f2833;color:#fff;padding:8px 12px;border-radius:4px;margin-bottom:10px;font-size:11px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .card{border:1px solid #ccd;break-inside:auto;page-break-inside:auto;box-shadow:none;margin-bottom:8px;padding:10px 12px}
+  .topic h2,.room h2{break-after:avoid}
+  table.dv tr{break-inside:avoid}
+  mark{background:none;box-shadow:none;font-weight:600}
+  .tablewrap{overflow:visible}
+  th,td{padding:3px 6px}
+  .chip{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <svg class="mark" viewBox="0 0 26 26" aria-hidden="true"><rect x="4" y="3" width="15" height="20" rx="2" fill="var(--cell)"/><path d="M8 8h7M8 12h7M8 16h4" stroke="var(--panel)" stroke-width="1.6" stroke-linecap="round"/><circle cx="18.5" cy="18.5" r="4" fill="var(--panel)" stroke="var(--sun)" stroke-width="1.8"/><path d="m21.4 21.4 2.6 2.6" stroke="var(--sun)" stroke-width="2" stroke-linecap="round"/></svg>
+    <h1>Daten und Vorgaben</h1>
+    <span class="sub">Gesetze · Normen · Richtwerte · Förderung – durchsuchbar</span>
+  </div>
+  <div class="toolbar">
+    <button class="btn pri" id="btnPrint" type="button">Drucken / PDF</button>
+    <span class="status" id="status">–</span>
+  </div>
+</header>
+<main class="app">
+  <aside class="inputs" id="inputs">
+    <details class="sec" open><summary>Filter<small>mehrfach wählbar</small></summary><div class="secbody">
+      <div class="flab">Art</div><div class="fgrp" id="fKind"></div>
+      <div class="flab">Nutzung</div><div class="fgrp" id="fUse"></div>
+      <div class="flab">Themenbereich</div><div class="fgrp" id="fCat"></div>
+      <div class="flab">Merkliste</div><div class="fgrp"><button type="button" class="fchip" id="fFav" aria-pressed="false">★ nur Favoriten <span id="favN">0</span></button></div>
+      <button class="btn sm" id="btnClear" type="button" hidden>Alle Filter und Suche zurücksetzen</button>
+    </div></details>
+    <details class="sec" open><summary>Inhalt<small>zum Thema springen</small></summary><div class="secbody"><nav id="toc" aria-label="Inhaltsverzeichnis"></nav></div></details>
+  </aside>
+  <section class="results">
+    <div class="searchbar"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" type="search" placeholder="Suchen: z. B. „Flur lux“, „Klassenraum Temperatur“, „U-Wert Fenster“, „KfW 55“" aria-label="Daten und Vorgaben durchsuchen" autocomplete="off" spellcheck="false"><kbd>/</kbd></div>
+    <div class="quick" id="quick"></div>
+    <nav class="tabs" role="tablist" id="tabs">
+      <button role="tab" data-tab="suche" aria-selected="true">Themen</button>
+      <button role="tab" data-tab="raum" aria-selected="false">Raum-Steckbrief</button>
+      <button role="tab" data-tab="info" aria-selected="false">Hinweise</button>
+    </nav>
+    <div id="phead"></div>
+    <div class="panel" data-panel="suche">
+      <div class="count" id="count"></div>
+      <div id="list"></div>
+    </div>
+    <div class="panel" data-panel="raum" hidden>
+      <div class="card"><h2>Raumart wählen</h2>
+        <div class="rtop"><label>Nutzung <select id="roomUse"></select></label></div>
+        <div class="fgrp" id="roomChips"></div>
+        <p class="note">Alle Vorgaben für einen Raum auf einen Blick: Temperatur, Beleuchtung, Lüftung. Die Einzelheiten und Quellen stehen in den Themenkarten (Suche nach dem Raumnamen).</p></div>
+      <div id="roomCard"></div>
+      <div class="card"><h2>Alle Räume im Vergleich</h2><div class="tablewrap"><table id="roomTable" class="dv"></table></div><p class="note">Zeile anklicken, um den Steckbrief zu öffnen.</p></div>
+    </div>
+    <div class="panel" data-panel="info" hidden>
+      <div class="card docs">
+        <h2>Wie die Einträge zu lesen sind</h2>
+        <div class="legendk">
+          <span class="chip bad">Gesetz / Verordnung</span><span>verbindliches Recht (Gesetz, Verordnung, Technische Regeln für Arbeitsstätten mit Vermutungswirkung)</span>
+          <span class="chip info">Norm / Regel der Technik</span><span>DIN, DIN VDE, VDI, DVGW – verbindlich, wenn vertraglich vereinbart oder in Gesetzen in Bezug genommen; sonst Stand der Technik</span>
+          <span class="chip ok">Empfehlung / Richtwert</span><span>Praxis- und Erfahrungswerte, Empfehlungen von Behörden und Verbänden</span>
+          <span class="chip warn">Förderung</span><span>Voraussetzungen von Förderprogrammen (nur bei Antrag relevant)</span>
+          <span class="chip grey">Kennwert / Rechenhilfe</span><span>typische Werte für Abschätzungen und Plausibilitätsprüfungen</span>
+        </div>
+        <h3>Suche</h3>
+        <ul>
+          <li>Mehrere Begriffe werden kombiniert: „Flur lux“ zeigt nur die passenden Tabellenzeilen. Über „alle Zeilen zeigen“ erscheint die vollständige Tabelle.</li>
+          <li>Umlaute sind egal (buero = Büro), gängige Synonyme werden mitgesucht (Klassenzimmer → Unterrichtsraum, WC → Toilette/Sanitär, Lux → Beleuchtung, GEG → GModG).</li>
+          <li>Taste <b>/</b> springt in das Suchfeld, <b>Esc</b> leert es. Die Adresse enthält die Suche (#q=…) und kann als Link weitergegeben werden.</li>
+          <li>★ merkt Themen als Favoriten in diesem Browser. „Tabelle kopieren“ liefert tabulatorgetrennten Text für Excel oder Word.</li>
+        </ul>
+        <h3>Stand und Gewähr</h3>
+        <ul>
+          <li>Stand 11/2026: GModG (in Kraft seit 29.07.2026, ersetzt das GEG), BEG-Konditionen ab 21.07.2026, BEHG-Preiskorridor 2027, EnEfG in der Fassung von 2023 (Novelle im Verfahren).</li>
+          <li>Normen werden laufend überarbeitet. Für Planung und Ausschreibung die aktuelle Ausgabe heranziehen (z. B. über den Normenzugang der Verwaltung).</li>
+          <li>Länderrecht (Schulbau, Bauordnung) unterscheidet sich; hinterlegt sind NRW-Regelungen.</li>
+          <li>Die Sammlung ist eine Arbeitshilfe und ersetzt keine Rechtsberatung oder Fachplanung.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</main>
+<script>
+/* ===================== Inhalte =====================
+   kind: gesetz = verbindliches Recht · regel = Norm / anerkannte Regel der Technik · empf = Empfehlung / Richtwert ·
+         foerd = Förderbedingung · kenn = Kennwert / Rechenhilfe
+   use: Nutzungen, für die das Thema besonders relevant ist (leer = allgemein) */
+const KIND={gesetz:['Gesetz / Verordnung','bad'],regel:['Norm / Regel der Technik','info'],empf:['Empfehlung / Richtwert','ok'],foerd:['Förderung','warn'],kenn:['Kennwert / Rechenhilfe','grey']};
+const CATS={raum:'Raumklima & Temperatur',licht:'Beleuchtung',luft:'Lüftung & Luftqualität',wasser:'Trinkwasser & Hygiene',huelle:'Wärmeschutz & U-Werte',
+  recht:'Gesetze & Verordnungen',foerd:'Förderung & KfW',normen:'Normen & Regelwerke',kenn:'Kennwerte & Faktoren',tech:'Anlagentechnik & Betrieb'};
+const USES={verw:'Verwaltung / Büro',schule:'Schule',kita:'Kita',sport:'Sporthalle',wohn:'Wohngebäude',betr:'Werkstatt / Betriebshof'};
+const STAND='Stand 11/2026';
+
+const TOPICS=[
+/* ---------------- Raumklima ---------------- */
+{id:'asr35',cat:'raum',kind:'gesetz',use:['verw','schule','kita','sport','betr'],title:'Raumtemperatur am Arbeitsplatz – ASR A3.5',
+ src:'Technische Regel für Arbeitsstätten ASR A3.5 „Raumtemperatur“ (konkretisiert die Arbeitsstättenverordnung)',
+ text:'Mindest-Lufttemperaturen während der Arbeitszeit, abhängig von Arbeitshaltung und Arbeitsschwere. Gilt für Arbeitsräume, also auch Büros, Lehrerzimmer, Werkstätten. Für Schülerinnen und Schüler gilt das Arbeitsstättenrecht nicht unmittelbar (Schulbaurichtlinien der Länder, siehe Richtwerte Schulen).',
+ table:{head:['Arbeitshaltung','leichte Arbeit','mittelschwere Arbeit','schwere Arbeit'],rows:[
+  ['überwiegend sitzend','20 °C','19 °C','–'],
+  ['überwiegend stehend / gehend','19 °C','17 °C','12 °C']]},
+ table2:{title:'Weitere Räume und Hitze',head:['Raum / Situation','Anforderung'],rows:[
+  ['Pausen-, Bereitschafts-, Sanitär- und Erste-Hilfe-Räume, Kantinen','mind. 21 °C während der Nutzung'],
+  ['Waschräume mit Duschen','mind. 24 °C während der Nutzung'],
+  ['Obergrenze Arbeitsraum','Lufttemperatur soll 26 °C nicht überschreiten'],
+  ['über 26 °C (bei Sonnenschutz)','Maßnahmen sollen ergriffen werden (Lüften in Morgenstunden, Gleitzeit, Lockerung Kleiderordnung, Getränke)'],
+  ['über 30 °C','Maßnahmen müssen ergriffen werden (Gefährdungsbeurteilung)'],
+  ['über 35 °C','Raum ohne technische/organisatorische Maßnahmen (Luftduschen, Entwärmungsphasen, Hitzeschutzkleidung) nicht als Arbeitsraum geeignet'],
+  ['Strahlungsasymmetrie, Zugluft','vermeiden; Fußbodenoberfläche nicht dauerhaft unter 18 °C']]},
+ tags:'raumtemperatur arbeitsplatz büro minimum mindesttemperatur hitze sommer 26 grad heizung arbeitsstättenverordnung arbstättv'},
+
+{id:'norminnen',cat:'raum',kind:'regel',use:['verw','schule','wohn','kita','sport'],title:'Norm-Innentemperaturen für die Heizlast – DIN EN 12831-1 / DIN/TS 12831-1',
+ src:'DIN EN 12831-1 mit nationalem Anhang bzw. DIN/TS 12831-1 (Auslegung von Heizflächen und Wärmeerzeugern)',
+ text:'Rechenwerte für die Auslegung der Heizung – nicht zu verwechseln mit Soll- oder Mindestwerten im Betrieb. Abweichende Werte sind zu vereinbaren und zu dokumentieren.',
+ table:{head:['Raumart','Norm-Innentemperatur'],rows:[
+  ['Wohn- und Schlafräume','20 °C'],['Büroräume, Sitzungszimmer','20 °C'],['Unterrichtsräume','20 °C'],['Verkaufsräume, Ausstellungsräume','20 °C'],
+  ['Hotelzimmer','20 °C'],['Theater, Versammlungsräume','20 °C'],['Bäder, Duschräume','24 °C'],['WC-Räume','20 °C'],
+  ['beheizte Nebenräume (Flure, Treppenhäuser)','15 °C'],['unbeheizte Nebenräume (Keller, Abstellräume)','10 °C (Rechenwert)']]},
+ note:'Werte nach dem bisher üblichen nationalen Anhang; bei Planung die gültige Normfassung heranziehen.',
+ tags:'heizlast auslegung innentemperatur bad flur treppenhaus 24 grad 15 grad'},
+
+{id:'tschule',cat:'raum',kind:'empf',use:['schule','kita','sport'],title:'Richtwerte Raumtemperatur Schulen, Kitas und Sporthallen',
+ src:'Schulbaurichtlinien bzw. Musterraumprogramme der Länder, DIN 18032-1 (Sporthallen), Empfehlungen der Unfallkassen (Kitas), DIN/TS 12831-1',
+ text:'Richtwerte für den Heizbetrieb während der Nutzung. Länderregelungen können abweichen; die Heizungsregelung sollte außerhalb der Nutzungszeiten absenken.',
+ table:{head:['Raum','Richtwert Heizbetrieb','Hinweis'],rows:[
+  ['Unterrichts-, Klassen-, Fachräume','20 °C','bei Unterrichtsbeginn erreicht'],['Lehrerzimmer, Verwaltung','20 °C','Arbeitsräume: ASR A3.5'],
+  ['Aula, Pausenhalle','15–18 °C','je nach Nutzung'],['Flure, Treppenhäuser','15 °C',''],['WC-Räume','15–20 °C',''],
+  ['Sporthalle (Halle)','17 °C','DIN 18032-1; Schulsport, ohne Zuschauer'],['Umkleideräume','22 °C',''],['Duschräume','24 °C',''],
+  ['Kita: Gruppen- und Spielräume','20–22 °C','Kinder spielen auf dem Boden – Fußbodentemperatur beachten'],
+  ['Kita: Schlafräume','18–20 °C',''],['Kita: Wickel- und Sanitärräume','22–24 °C',''],
+  ['Lehrküche','18–20 °C','hohe innere Lasten'],['Werkräume','17–20 °C','je nach Tätigkeit']]},
+ tags:'schule klassenraum klassenzimmer unterrichtsraum turnhalle sporthalle umkleide dusche kita kindergarten temperatur aula'},
+
+{id:'tbetrieb',cat:'raum',kind:'empf',use:['verw','schule','kita','sport','wohn','betr'],title:'Energiesparende Solltemperaturen im Betrieb',
+ src:'Praxiswerte Energiemanagement (u. a. AMEV-Empfehlungen, kommunale Energiedienstanweisungen); ehem. EnSikuMaV (2022/23, außer Kraft)',
+ text:'Jedes Grad weniger Raumtemperatur spart rund 6 % Heizenergie. Die Mindestwerte der ASR A3.5 dürfen in Arbeitsräumen nicht unterschritten werden. Die EnSikuMaV (Höchstwert 19 °C in öffentlichen Arbeitsräumen) galt nur bis 15.04.2023.',
+ table:{head:['Bereich','Sollwert Nutzungszeit','Absenkbetrieb'],rows:[
+  ['Büro, Besprechung','20 °C','16–17 °C nachts/Wochenende'],['Klassenräume','20 °C','15–16 °C, Ferien 12–15 °C'],['Flure, Treppenhäuser','15 °C','12 °C'],
+  ['Sporthalle','17 °C','12–15 °C'],['Lager, Archive (frostfrei/trocken)','10–15 °C','5–10 °C'],['Technikräume','frostfrei','–'],
+  ['Kühlung (wenn vorhanden)','≥ 26 °C bzw. 6 K unter Außentemperatur','aus']]},
+ tags:'absenkung nachtabsenkung sollwert sparen 19 grad ensikumav energiesparverordnung kühlung klimaanlage'},
+
+{id:'din18599_10',cat:'raum',kind:'regel',use:['verw','schule','kita','sport'],title:'Nutzungsrandbedingungen – DIN V 18599-10 (Auszug)',
+ src:'DIN V 18599-10 „Nutzungsrandbedingungen, Klimadaten“ – Grundlage der Energiebilanz nach GModG',
+ text:'Standardwerte für Nutzungszeit, Beleuchtung und Raumtemperatur in der Energiebilanz von Nichtwohngebäuden (Energieausweis, Nachweis). Auszug, gerundet; maßgeblich ist die geltende Normfassung.',
+ table:{head:['Nutzungsprofil','Nutzungszeit','Tage/Jahr','Beleuchtung (Wartungswert)','Heiz- / Kühlsollwert'],rows:[
+  ['Einzel-, Gruppen-, Großraumbüro','07–18 Uhr','250','500 lx','21 °C / 24 °C'],
+  ['Besprechung, Sitzung, Seminar','07–18 Uhr','250','500 lx','21 °C / 24 °C'],
+  ['Klassenzimmer (Schule)','08–15 Uhr','200','300–500 lx','21 °C / 24 °C'],
+  ['Hörsaal, Auditorium','08–18 Uhr','150','500 lx','21 °C / 24 °C'],
+  ['Kantine','08–15 Uhr','250','200 lx','21 °C / 24 °C'],
+  ['Verkehrsflächen','07–18 Uhr','250','100 lx','21 °C / –'],
+  ['WC und Sanitärräume','07–18 Uhr','250','200 lx','21 °C / –'],
+  ['Lager, Technik, Archiv','07–18 Uhr','250','100 lx','reduziert / –'],
+  ['Serverraum, Rechenzentrum','00–24 Uhr','365','500 lx','– / Kühlung'],
+  ['Turnhalle (ohne Zuschauer)','08–23 Uhr','250','300 lx','21 °C (Rechenwert) / –']]},
+ note:'Die Bilanz-Sollwerte (21 °C) sind Rechenwerte und keine Betriebsvorgabe.',
+ tags:'nutzungsprofil nutzungszeit 18599 energieausweis bilanz randbedingungen'},
+
+{id:'iso7730',cat:'raum',kind:'regel',use:[],title:'Thermische Behaglichkeit – DIN EN ISO 7730 und DIN EN 16798-1',
+ src:'DIN EN ISO 7730 (PMV/PPD), DIN EN 16798-1 (Kategorien des Innenraumklimas)',
+ text:'Behaglichkeit hängt von Lufttemperatur, Oberflächentemperaturen, Luftgeschwindigkeit, Feuchte, Kleidung und Aktivität ab. Die operative Temperatur (≈ Mittel aus Luft- und Strahlungstemperatur) ist maßgeblich.',
+ table:{head:['Kategorie','PPD (Unzufriedene)','Büro Winter (operativ)','Büro Sommer (operativ, gekühlt)','Relative Feuchte (Be-/Entfeuchtung)'],rows:[
+  ['I – hohe Erwartung','< 6 %','21–23 °C','23,5–25,5 °C','30–50 %'],['II – normale Erwartung (Neubau/Sanierung)','< 10 %','20–24 °C','23–26 °C','25–60 %'],
+  ['III – moderate Erwartung (Bestand)','< 15 %','19–25 °C','22–27 °C','20–70 %']]},
+ table2:{title:'Weitere Behaglichkeitskriterien',head:['Kriterium','Richtwert'],rows:[
+  ['Luftgeschwindigkeit Winter','< 0,15–0,2 m/s'],['vertikaler Temperaturunterschied Kopf–Knöchel','< 3 K'],['Fußbodenoberfläche','19–29 °C (Fußbodenheizung max. 29 °C Aufenthaltszone)'],
+  ['Strahlungsasymmetrie kalte Wand/Fenster','< 10 K'],['Oberflächentemperatur Außenwand innen','möglichst > 17 °C (Behaglichkeit, Schimmelschutz)']]},
+ tags:'behaglichkeit komfort pmv ppd operative temperatur luftfeuchte feuchte zugluft'},
+
+{id:'sommer',cat:'raum',kind:'regel',use:[],title:'Sommerlicher Wärmeschutz – DIN 4108-2',
+ src:'DIN 4108-2, GModG § 14',
+ text:'Nachweis über Sonneneintragskennwert oder thermische Simulation. Bei der Simulation gelten Grenzwerte für Übertemperaturgradstunden oberhalb einer Bezugstemperatur je Sommerklimaregion.',
+ table:{head:['Größe','Wert'],rows:[
+  ['Bezugstemperatur Sommerklimaregion A / B / C','25 / 26 / 27 °C'],['zulässige Übertemperaturgradstunden Wohngebäude','1.200 Kh/a'],['zulässige Übertemperaturgradstunden Nichtwohngebäude','500 Kh/a'],
+  ['wirksamer Sonnenschutz','außenliegend (Fc 0,1–0,3) deutlich besser als innen (Fc 0,6–0,8)'],['Nachtlüftung','erhöhter Luftwechsel nachts senkt Raumtemperaturen um 2–4 K']]},
+ tags:'sommer überhitzung sonnenschutz übertemperatur hitze fc wert'},
+
+/* ---------------- Beleuchtung ---------------- */
+{id:'lux',cat:'licht',kind:'regel',use:['verw','schule','kita','sport','betr'],title:'Beleuchtungsstärken in Innenräumen – DIN EN 12464-1:2021',
+ src:'DIN EN 12464-1:2021-11 „Beleuchtung von Arbeitsstätten in Innenräumen“ (Wartungswerte Ēm)',
+ text:'Wartungswert = Mindestwert der mittleren Beleuchtungsstärke im Bereich der Sehaufgabe, der nicht unterschritten werden darf. Die Norm von 2021 erlaubt „modifizierte“ höhere Werte bei besonderen Anforderungen (z. B. ältere Beschäftigte, lange Tätigkeit). UGR = Blendungsbegrenzung (kleiner = besser), Ra = Farbwiedergabe.',
+ table:{head:['Raum / Tätigkeit','Ēm Wartungswert','UGR max.','Ra min.'],rows:[
+  ['Büro: Schreiben, Lesen, Datenverarbeitung','500 lx','19','80'],['Büro: Ablage, Kopieren','300 lx','19','80'],['CAD-Arbeitsplätze, technisches Zeichnen','500–750 lx','16','80'],
+  ['Besprechungs- und Konferenzräume','500 lx','19','80'],['Empfang, Rezeption','300 lx','22','80'],['Archive','200 lx','25','80'],
+  ['Verkehrsflächen und Flure','100 lx','28','40'],['Treppen, Rolltreppen','150 lx','25','40'],['Aufzüge (Kabine)','100 lx','25','40'],
+  ['Kantinen, Teeküchen','200 lx','22','80'],['Pausenräume','100 lx','22','80'],['Garderoben, Waschräume, Toiletten','200 lx','25','80'],['Erste-Hilfe-Räume','500 lx','19','80'],
+  ['Technikräume, Schaltanlagen','200 lx','25','60'],['Lager (Lagerflächen)','100 lx','25','60'],['Versand, Packbereich','300 lx','25','60'],
+  ['Unterrichtsräume, Klassenzimmer','500 lx','19','80'],['Tafel / Whiteboard (vertikal)','500 lx','19','80'],['Hörsäle','500 lx','19','80'],
+  ['Zeichen- und Kunsträume','750 lx','19','90'],['Lehrküchen','500 lx','19','80'],['Computerräume (Schule)','500 lx','19','80'],
+  ['Bibliothek: Lesebereich','500 lx','19','80'],['Bibliothek: Regale','200 lx','19','80'],['Sporthallen, Turnhallen (Schulsport)','300 lx','22','80'],
+  ['Kita: Spiel- und Gruppenräume','300 lx','22','80'],['Kita: Bastelräume','500 lx','19','80'],
+  ['Werkstatt: grobe Arbeiten','300 lx','25','80'],['Werkstatt: mittelfeine Arbeiten','500 lx','22','80'],['Werkstatt: feine Arbeiten','750 lx','19','80'],
+  ['Parkhaus: Fahrwege','75 lx','25','40'],['Parkhaus: Ein-/Ausfahrten (Tag)','300 lx','25','40']]},
+ note:'Unterrichtsräume: bis zur Fassung 2011 waren 300 lx (500 lx bei Abendunterricht) gefordert – die Fassung 2021 sieht 500 lx vor. Bestandsanlagen sind nicht automatisch nachzurüsten.',
+ tags:'lux beleuchtung licht beleuchtungsstärke büro flur klassenzimmer klassenraum treppe wc toilette sporthalle lager werkstatt ugr blendung'},
+
+{id:'asr34',cat:'licht',kind:'gesetz',use:['verw','schule','betr'],title:'Mindestbeleuchtung am Arbeitsplatz – ASR A3.4 (Auszug)',
+ src:'Technische Regel für Arbeitsstätten ASR A3.4 „Beleuchtung und Sichtverbindung“, Anhang 1',
+ text:'Arbeitsschutzrechtliche Mindestwerte. Bei Unterschieden zur DIN EN 12464-1 erfüllt die Einhaltung der ASR die Arbeitsstättenverordnung; die DIN-Werte sind für die Planung üblich. Außerdem: Arbeitsräume brauchen möglichst ausreichendes Tageslicht und eine Sichtverbindung nach außen.',
+ table:{head:['Bereich','Mindestwert'],rows:[
+  ['Büroarbeitsplätze (Schreiben, Lesen, Bildschirm)','500 lx'],['Verkehrswege für Personen','50 lx'],['Treppen, Rolltreppen','100 lx'],
+  ['Toiletten, Wasch- und Umkleideräume','200 lx'],['Kantinen','200 lx'],['Erste-Hilfe-Räume','500 lx']]},
+ note:'Auszug; vollständige Tabelle und Werte für Umgebungsbereiche in der ASR A3.4.',
+ tags:'lux arbeitsschutz mindestbeleuchtung asr tageslicht sichtverbindung'},
+
+{id:'lampen',cat:'licht',kind:'gesetz',use:[],title:'Auslaufende Leuchtmittel (Ökodesign / RoHS)',
+ src:'Verordnung (EU) 2019/2020 (Ökodesign Lichtquellen), Delegierte Richtlinie (EU) 2022/284 (RoHS-Ausnahmen Quecksilber)',
+ text:'Leuchtstofflampen enthalten Quecksilber und dürfen schrittweise nicht mehr in Verkehr gebracht werden. Vorhandene Lampen dürfen weiter betrieben werden, Ersatz wird aber knapp und teuer – LED-Umrüstung frühzeitig planen.',
+ table:{head:['Lampentyp','Verbot des Inverkehrbringens'],rows:[
+  ['Kompaktleuchtstofflampen mit integriertem Vorschaltgerät (CFLi)','seit 24.02.2023'],['Kompaktleuchtstofflampen ohne Vorschaltgerät (CFLni, Stecksockel)','seit 24.02.2023'],
+  ['T8-Leuchtstofflampen 60 / 120 / 150 cm','seit 24.08.2023'],['T5-Leuchtstofflampen und übrige lineare Lampen','ab 24.02.2027'],
+  ['Halogen-Stiftsockellampen G4, GY6.35, G9','seit 01.09.2023']]},
+ tags:'leuchtstofflampe t8 t5 verbot led umrüstung quecksilber halogen'},
+
+/* ---------------- Lüftung ---------------- */
+{id:'co2',cat:'luft',kind:'gesetz',use:['verw','schule','kita'],title:'CO₂-Konzentration und Lüften – ASR A3.6 und UBA',
+ src:'ASR A3.6 „Lüftung“, Umweltbundesamt (Leitwerte für Kohlendioxid in der Innenraumluft, Lüften in Schulen)',
+ text:'CO₂ ist Leitparameter für verbrauchte Luft. In Klassenräumen wird ohne Lüftungsanlage 1.000 ppm oft schon nach 15–20 Minuten überschritten. Stoßlüften (Querlüften 3–5 min, Winter) ist wirksamer als Kippen. CO₂-Ampeln helfen.',
+ table:{head:['CO₂-Konzentration','Bewertung','Maßnahme'],rows:[
+  ['< 1.000 ppm','unbedenklich','keine weiteren Maßnahmen'],['1.000–2.000 ppm','auffällig','Lüftungsverhalten überprüfen und verbessern, Lüftungsplan'],
+  ['> 2.000 ppm','inakzeptabel','weitergehende Maßnahmen (verstärkte Lüftung, Belegung reduzieren, Lüftungsanlage)'],['Außenluft','ca. 420 ppm','Referenz']]},
+ table2:{title:'Lüftungsdauer (UBA, Fensterlüftung)',head:['Jahreszeit','Stoß-/Querlüftung'],rows:[['Winter','3–5 Minuten'],['Frühjahr / Herbst','5–10 Minuten'],['Sommer','10–20 Minuten'],['Klassenraum','nach jeder Unterrichtsstunde, bei Bedarf in der Mitte']]},
+ tags:'co2 kohlendioxid lüften luftqualität ppm ampel klassenraum fensterlüftung stoßlüften'},
+
+{id:'aul',cat:'luft',kind:'regel',use:['verw','schule'],title:'Außenluftvolumenstrom – DIN EN 16798-1 / -3',
+ src:'DIN EN 16798-1 (Methode Personen + Gebäude), DIN EN 16798-3 (Lüftung Nichtwohngebäude), DIN 1946-6 (Wohnungen)',
+ text:'Auslegung von Lüftungsanlagen. Der Außenluftbedarf setzt sich aus einem personenbezogenen Anteil und einem flächenbezogenen Anteil (Emissionen des Gebäudes) zusammen.',
+ table:{head:['Kategorie','je Person','je m² (schadstoffarmes Gebäude)','Beispiel Büro 10 m²/Person'],rows:[
+  ['I','10 l/s (36 m³/h)','1,0 l/s·m²','≈ 72 m³/h je Person'],['II','7 l/s (25 m³/h)','0,7 l/s·m²','≈ 50 m³/h je Person'],['III','4 l/s (14 m³/h)','0,4 l/s·m²','≈ 29 m³/h je Person']]},
+ table2:{title:'Typische Werte',head:['Raum','Richtwert'],rows:[['Klassenraum (25–30 Personen)','600–900 m³/h, bedarfsgeführt'],['Besprechungsraum','30–40 m³/h je Person'],['WC (Abluft)','30–60 m³/h je WC/Urinal'],['Duschen (Abluft)','150–220 m³/h je Dusche'],['Wohnung: Nennlüftung','nach DIN 1946-6, Feuchteschutz sicherstellen']]},
+ tags:'lüftungsanlage außenluft volumenstrom m3/h rlt auslegung luftwechsel'},
+
+{id:'vdi6022',cat:'luft',kind:'regel',use:[],title:'Hygiene in Lüftungs- und Klimaanlagen – VDI 6022',
+ src:'VDI 6022 Blatt 1 (Hygieneanforderungen an RLT-Anlagen)',
+ text:'Betreiberpflichten für raumlufttechnische Anlagen: regelmäßige Hygienekontrollen und Hygieneinspektionen durch geschultes Personal (Kategorie A/B).',
+ table:{head:['Maßnahme','Intervall (Richtwert)'],rows:[['Hygienekontrolle (Sichtprüfung, Filter, Befeuchter)','je nach Komponente 1–12 Monate'],['Hygieneinspektion mit Befeuchtung','alle 2 Jahre'],['Hygieneinspektion ohne Befeuchtung','alle 3 Jahre'],['Filterwechsel','nach Differenzdruck bzw. spätestens 12 Monate (1. Stufe) / 24 Monate (2. Stufe)']]},
+ tags:'lüftungsanlage klimaanlage hygiene filter inspektion vdi 6022 betreiber'},
+
+/* ---------------- Wasser ---------------- */
+{id:'legio',cat:'wasser',kind:'gesetz',use:['verw','schule','sport','wohn','kita'],title:'Warmwasser und Legionellen – TrinkwV und DVGW W 551',
+ src:'Trinkwasserverordnung (TrinkwV 2023), DVGW-Arbeitsblatt W 551, DIN 1988-200',
+ text:'Großanlagen zur Trinkwassererwärmung müssen Temperaturen halten, die Legionellenwachstum verhindern. Einsparmaßnahmen (Absenken, Zirkulation abschalten) nur im zulässigen Rahmen.',
+ table:{head:['Anforderung','Wert'],rows:[
+  ['Großanlage','Speicher > 400 l oder > 3 l Leitungsinhalt zwischen Abgang Erwärmer und Entnahmestelle'],['Austrittstemperatur Trinkwassererwärmer (Großanlage)','≥ 60 °C'],
+  ['Zirkulationsrücklauf','≥ 55 °C (max. 5 K Abkühlung)'],['Unterbrechung der Zirkulation','höchstens 8 h je 24 h'],['Kaltwasser','≤ 25 °C, möglichst < 20 °C'],
+  ['Technischer Maßnahmenwert Legionellen','100 KBE / 100 ml'],['Untersuchungspflicht (Großanlage mit Duschen/Vernebelung)','öffentliche Tätigkeit: jährlich; gewerbliche: alle 3 Jahre'],
+  ['Stagnation','Entnahmestellen mind. alle 72 h nutzen bzw. spülen (bestimmungsgemäßer Betrieb)'],['Kleinanlagen (z. B. Untertischspeicher)','keine Temperaturvorgabe; ≥ 60 °C empfohlen bei längeren Standzeiten']]},
+ tags:'legionellen warmwasser trinkwasser 60 grad zirkulation trinkwv dvgw w551 kaltwasser hygiene dusche'},
+
+{id:'wasser',cat:'wasser',kind:'kenn',use:['verw','schule','sport','kita'],title:'Wasserverbrauch – Richtwerte',
+ src:'Erfahrungswerte, VDI 3807 Blatt 3, Herstellerangaben',
+ text:'Orientierungswerte für die Plausibilisierung und für Sparmaßnahmen.',
+ table:{head:['Verbraucher','typischer Wert','sparsam'],rows:[
+  ['Waschtischarmatur','8–15 l/min','4–6 l/min (Perlator, Durchflussbegrenzer)'],['Dusche','12–20 l/min','6–9 l/min'],['WC-Spülung','9–14 l','6/3 l (2-Mengen)'],
+  ['Urinal','2–4 l je Spülung','wasserlos'],['Büro','4–10 m³ je Beschäftigtem und Jahr',''],['Schule','1–3 m³ je Schüler und Jahr',''],['Energie für 1 m³ Warmwasser (ΔT 45 K)','≈ 52 kWh + Verteilverluste','']]},
+ tags:'wasser verbrauch perlator dusche wc spülung urinal kennwert'},
+
+/* ---------------- Wärmeschutz ---------------- */
+{id:'anl7',cat:'huelle',kind:'gesetz',use:['verw','schule','kita','sport','wohn','betr'],title:'U-Werte bei Änderung bestehender Gebäude – Anlage 7 GModG',
+ src:'Gebäudemodernisierungsgesetz (GModG) § 36 mit Anlage 7 (Werte inhaltlich wie bisher GEG Anlage 7)',
+ text:'Werden Außenbauteile erneuert, ersetzt oder erstmalig eingebaut, dürfen diese Höchstwerte nicht überschritten werden. Ausgenommen sind Änderungen von nicht mehr als 10 % der Fläche der jeweiligen Bauteilgruppe. Ist die Dämmschichtdicke technisch begrenzt, genügt die höchstmögliche Dicke (WLS 035).',
+ table:{head:['Bauteil','Wohngebäude / NWG ≥ 19 °C','NWG 12 bis < 19 °C'],rows:[
+  ['Außenwand (Ersatz, Bekleidung, Dämmung, neuer Außenputz)','0,24 W/(m²K)','0,35 W/(m²K)'],['Fenster, Fenstertüren','1,3 W/(m²K)','1,9 W/(m²K)'],['Dachflächenfenster','1,4 W/(m²K)','1,9 W/(m²K)'],
+  ['Verglasung (Ersatz nur der Scheibe)','1,1 W/(m²K)','keine Anforderung'],['Vorhangfassade','1,5 W/(m²K)','1,9 W/(m²K)'],['Glasdächer','2,0 W/(m²K)','2,7 W/(m²K)'],
+  ['Außentüren','1,8 W/(m²K)','1,8 W/(m²K)'],['Steildach, oberste Geschossdecke','0,24 W/(m²K)','0,35 W/(m²K)'],['Flachdach (mit Abdichtung)','0,20 W/(m²K)','0,35 W/(m²K)'],
+  ['Wände und Decken gegen unbeheizt / Erdreich','0,30 W/(m²K)','keine Anforderung'],['Decken nach unten gegen Außenluft','0,24 W/(m²K)','0,35 W/(m²K)'],['Fußbodenaufbauten (beheizte Seite)','0,50 W/(m²K)','keine Anforderung']]},
+ tags:'u-wert uwert wärmedurchgangskoeffizient sanierung bestand fenster außenwand dach anlage 7 gmodg geg 10 prozent'},
+
+{id:'tma',cat:'huelle',kind:'foerd',use:['verw','schule','kita','sport','wohn','betr'],title:'U-Werte für BEG-Einzelmaßnahmen (Technische Mindestanforderungen)',
+ src:'BEG EM – Technische Mindestanforderungen (Anlage zur Richtlinie, BAFA); Stand vor der Anpassung 07/2026 – aktuelle Fassung prüfen',
+ text:'Für eine Förderung müssen die Bauteile deutlich besser sein als die gesetzlichen Höchstwerte. Fenster gegen Außenluft benötigen in der Regel 3-fach-Verglasung.',
+ table:{head:['Bauteil','U-Wert max. (Förderung)','zum Vergleich gesetzlich'],rows:[
+  ['Außenwand','0,20 W/(m²K)','0,24'],['Außenwand Innendämmung / Fachwerk','0,45 W/(m²K)','0,24'],['Steildach, oberste Geschossdecke, Dachgauben','0,14 W/(m²K)','0,24'],['Flachdach','0,14 W/(m²K)','0,20'],
+  ['Kellerdecke, Wände/Böden gegen Erdreich oder unbeheizt','0,25 W/(m²K)','0,30'],['Fenster, Fenstertüren','0,95 W/(m²K)','1,3'],['Dachflächenfenster','1,0 W/(m²K)','1,4'],
+  ['Außentüren','1,3 W/(m²K)','1,8'],['Vorhangfassade','1,3 W/(m²K)','1,5']]},
+ tags:'beg förderung u-wert bafa einzelmaßnahme tma fenster 0,95 dämmung'},
+
+{id:'ualt',cat:'huelle',kind:'kenn',use:['verw','schule','kita','sport','wohn','betr'],title:'Typische U-Werte im Bestand nach Baualter',
+ src:'Orientierung an der deutschen Gebäudetypologie (IWU/TABULA) und Bekanntmachung der Pauschalwerte für Bestandsgebäude; Einzelfall kann stark abweichen',
+ text:'Pauschale Ansätze, wenn keine Bauteilinformationen vorliegen (z. B. für Energieausweis-Plausibilität, Grobplanung).',
+ table:{head:['Baualter','Außenwand','Dach / OGD','Kellerdecke','Fenster'],rows:[
+  ['bis 1948','1,4–1,7','1,4','1,2','2,7–5,0 (Einfach/Kasten)'],['1949–1968','1,3–1,4','1,1–1,4','1,0','2,7–2,9'],['1969–1978','1,0','0,8','1,0','2,8 (Isolierglas)'],
+  ['1979–1983 (1. WSVO)','0,8','0,5','0,8','2,8'],['1984–1994 (2. WSVO)','0,6','0,4','0,6','2,7'],['1995–2001 (3. WSVO)','0,4','0,3','0,5','1,6–1,9'],
+  ['2002–2008 (EnEV)','0,3','0,25','0,4','1,4'],['2009–2015','0,28','0,2','0,35','1,3'],['ab 2016','0,2–0,24','0,15–0,2','0,3','0,9–1,1']]},
+ note:'Alle Werte in W/(m²K), gerundet.',
+ tags:'u-wert altbau baualter bestand pauschal typisch 1970 wärmeschutzverordnung wsvo enev'},
+
+{id:'fenster',cat:'huelle',kind:'kenn',use:[],title:'Fenster und Verglasung – typische Kennwerte',
+ src:'Herstellerangaben, DIN EN ISO 10077, Erfahrungswerte',
+ text:'Uw = ganzes Fenster, Ug = Glas, Uf = Rahmen, g = Gesamtenergiedurchlassgrad (Solargewinn).',
+ table:{head:['Fenstertyp','Ug','Uw','g-Wert'],rows:[
+  ['Einfachverglasung','5,8','5,0–5,2','0,85'],['Verbund-/Kastenfenster','2,7–3,0','2,5–2,8','0,75'],['Isolierglas (1970–1994, Luft)','2,8–3,0','2,7–3,0','0,75'],
+  ['2-fach Wärmeschutzglas (Argon)','1,1','1,3–1,6','0,60'],['3-fach Wärmeschutzglas','0,5–0,7','0,8–1,0','0,50'],['Passivhausfenster','0,5','≤ 0,8','0,50']]},
+ note:'Werte in W/(m²K).',
+ tags:'fenster verglasung uw ug g-wert isolierglas 3-fach dreifach'},
+
+{id:'lambda',cat:'huelle',kind:'kenn',use:[],title:'Wärmeleitfähigkeit von Baustoffen und Wärmeübergang',
+ src:'DIN 4108-4, DIN EN ISO 10456, DIN EN ISO 6946; Bemessungswerte gerundet',
+ text:'U = 1 / (Rsi + Σ d/λ + Rse). Beispiel: 24 cm Vollziegel (λ 0,8) + 14 cm Dämmung WLS 035 → U ≈ 0,22 W/(m²K).',
+ table:{head:['Baustoff','λ in W/(mK)'],rows:[
+  ['Polyurethan (PUR/PIR)','0,022–0,028'],['Mineralwolle, Glaswolle','0,032–0,040'],['EPS (Polystyrol), XPS','0,031–0,040'],['Holzfaserdämmplatte','0,038–0,050'],['Zellulose','0,038–0,040'],
+  ['Porenbeton','0,08–0,16'],['Hochlochziegel (Wärmedämmziegel)','0,07–0,16'],['Vollziegel','0,5–0,8'],['Kalksandstein','0,5–1,0'],['Normalbeton','2,0–2,3'],
+  ['Holz (Nadelholz)','0,13'],['Kalkzementputz','0,8–1,0'],['Gipsputz','0,4–0,6'],['Stahl','50'],['Luftschicht ruhend (4 cm)','R ≈ 0,18 m²K/W']]},
+ table2:{title:'Wärmeübergangswiderstände (DIN EN ISO 6946)',head:['Wärmestrom','Rsi','Rse'],rows:[['horizontal (Wände)','0,13','0,04'],['aufwärts (Dach, Decke)','0,10','0,04'],['abwärts (Fußboden)','0,17','0,04'],['gegen Erdreich / unbeheizt','wie oben','0 bzw. Rsi']]},
+ tags:'lambda wärmeleitfähigkeit dämmstoff dämmung baustoff u-wert berechnen formel rsi rse'},
+
+{id:'mindest',cat:'huelle',kind:'regel',use:[],title:'Mindestwärmeschutz und Feuchteschutz – DIN 4108-2/-3',
+ src:'DIN 4108-2, DIN 4108-3, DIN 4108 Beiblatt 2 (Wärmebrücken)',
+ text:'Mindestanforderungen zur Vermeidung von Tauwasser und Schimmel an Innenoberflächen.',
+ table:{head:['Kriterium','Anforderung'],rows:[
+  ['Temperaturfaktor fRsi an der ungünstigsten Stelle','≥ 0,70 (entspricht 12,6 °C bei 20 °C innen, −5 °C außen)'],['Wärmedurchlasswiderstand Außenwand (leicht/schwer)','R ≥ 1,75 bzw. 1,2 m²K/W (Mindestwärmeschutz)'],
+  ['Innenraumbedingungen Nachweis','20 °C, 50 % relative Feuchte'],['Schimmelgefahr','ab ca. 80 % relativer Feuchte an der Oberfläche über mehrere Tage'],['Luftdichtheit n50 (Neubau mit Lüftungsanlage / ohne)','≤ 1,5 h⁻¹ / ≤ 3,0 h⁻¹ (GModG § 26)']]},
+ tags:'mindestwärmeschutz schimmel tauwasser frsi wärmebrücke luftdichtheit blower door n50'},
+
+/* ---------------- Gesetze ---------------- */
+{id:'gmodg',cat:'recht',kind:'gesetz',use:['verw','schule','kita','sport','wohn','betr'],title:'Gebäudemodernisierungsgesetz (GModG) – Überblick',
+ src:'GModG (bisher GEG), verkündet 28.07.2026 (BGBl. 2026 I Nr. 226), in Kraft seit 29.07.2026; einzelne Teile ab 01.01.2027',
+ text:'Das GModG ersetzt das Gebäudeenergiegesetz und setzt die EU-Gebäuderichtlinie (EPBD 2024/1275) um. Die Berechnung bleibt auf Basis DIN V 18599.',
+ table:{head:['Regelung','Inhalt','ab'],rows:[
+  ['65-%-Erneuerbare-Pflicht beim Heizungstausch','entfällt (§§ 71 ff. GEG a. F. gestrichen)','29.07.2026'],
+  ['Brennstoffquote „Bio-Treppe“ (§ 43)','neue Gas-/Öl-/Flüssiggasheizungen im Bestand: Anteil klimafreundlicher Brennstoffe 10 % (2029), 15 % (2030), 30 % (2035), 60 % (2040)','01.01.2029'],
+  ['Austauschpflicht für 30 Jahre alte Kessel','entfällt','29.07.2026'],
+  ['Nachrüstpflicht oberste Geschossdecke / Dach','weiterhin: U ≤ 0,24 W/(m²K) bzw. höchstmögliche Dämmung','gilt'],
+  ['Dämmung ungedämmter Heizungs- und Warmwasserleitungen in unbeheizten Räumen','weiterhin Nachrüstpflicht','gilt'],
+  ['Bauteilanforderungen bei Sanierung (Anlage 7)','unverändert; Bagatellgrenze 10 % der Bauteilfläche','gilt'],
+  ['Heizungsprüfung älterer Anlagen (§ 60b), hydraulischer Abgleich (§ 60c), Prüfung Wärmepumpen (§ 60a)','bleiben bestehen','gilt'],
+  ['Energetische Inspektion von Klimaanlagen (§§ 74–78)','bleibt bestehen (Anlagen > 12 kW, Intervall 10 Jahre)','gilt'],
+  ['Gebäudeautomation Nichtwohngebäude (§ 56)','Anlagen > 70 kW Nennleistung: Automatisierungs- und Steuerungssystem bis 31.12.2029','31.12.2029'],
+  ['Mindesteffizienz bestehender Nichtwohngebäude (§ 40, MEPS)','Primärenergiebedarf max. 3,50-fach Referenzgebäude (ab 2030), max. 2,95-fach (ab 2033)','01.01.2030'],
+  ['Nullemissionsgebäude (Neubau)','öffentliche Nichtwohngebäude mit Behördennutzung ab 2028, alle Neubauten ab 2030','2028 / 2030'],
+  ['Solarpflicht (§ 106)','neue NWG > 250 m² Nutzfläche und öffentliche NWG ab 2027, neue Wohngebäude ab 2030; PV oder Solarthermie','01.01.2027'],
+  ['Ökobilanz (Lebenszyklus-Treibhausgase)','Neubauten > 1.000 m² ab 2028, alle Neubauten ab 2030','2028 / 2030'],
+  ['Mieterschutz bei neuen fossilen Heizungen','Netzentgelte und CO₂-Kosten ab 2028 hälftig, Mehrkosten Bio-Brennstoffe ab 2029 (bis 30 %)','2028'],
+  ['Energieausweis','Nichtwohngebäude grundsätzlich als Bedarfsausweis, neue Effizienzklassen; Aushangpflicht in öffentlichen Gebäuden mit Publikumsverkehr','01.01.2027']]},
+ note:'Kurzüberblick ohne Gewähr; Ausnahmen, Übergangs- und Härtefallregelungen im Gesetzestext prüfen.',
+ tags:'gmodg geg heizungsgesetz gebäudeenergiegesetz 65 prozent biotreppe brennstoffquote nachrüstpflicht austauschpflicht meps mindeststandard nullemission solarpflicht gebäudeautomation energieausweis'},
+
+{id:'meps',cat:'recht',kind:'gesetz',use:['verw','schule','kita','sport','betr'],title:'Mindesteffizienz für bestehende Nichtwohngebäude (MEPS) – § 40 GModG',
+ src:'§ 40 GModG (in Kraft ab 01.01.2027) zur Umsetzung von Art. 9 EPBD',
+ text:'Die EPBD verlangt, dass bis 2030 die energetisch schlechtesten 16 % und bis 2033 die schlechtesten 26 % des Nichtwohngebäudebestands renoviert werden. Deutschland setzt dies über einen Höchstwert des Jahres-Primärenergiebedarfs im Verhältnis zum Referenzgebäude um. Für kommunale Liegenschaften ist ein bilanzieller Energieausweis die Grundlage der Prüfung.',
+ table:{head:['Stichtag','zulässiger Jahres-Primärenergiebedarf','entspricht etwa'],rows:[['bis 31.12.2029','keine Obergrenze nach § 40','Vorbereitung: Ausweise, Sanierungsfahrpläne'],['ab 01.01.2030','≤ 3,50 × Referenzgebäude','Effizienzklasse G – schlechteste 16 %'],['ab 01.01.2033','≤ 2,95 × Referenzgebäude','Effizienzklasse F – schlechteste 26 %']]},
+ note:'Ausnahmen (Denkmal, Sonderbauten, Unwirtschaftlichkeit) und Nachweisverfahren im Gesetz prüfen.',
+ tags:'meps mindeststandard sanierungspflicht nichtwohngebäude epbd 16 prozent 26 prozent referenzgebäude kommune'},
+
+{id:'enefg',cat:'recht',kind:'gesetz',use:['verw','schule','kita','sport'],title:'Energieeffizienzgesetz (EnEfG) – Pflichten öffentlicher Stellen',
+ src:'EnEfG vom 13.11.2023 (gültige Fassung); Novelle „Gesetz zur Beschleunigung der Umsetzung der Energieeffizienzrichtlinie“ im parlamentarischen Verfahren (BT-Drs. 21/8027)',
+ text:'Öffentliche Stellen (Bund, Länder, Kommunen und deren Einrichtungen) müssen Energie einsparen und Energiemanagement einführen. Die Novelle soll die Pflichten anpassen – Stand des Verfahrens prüfen.',
+ table:{head:['Pflicht','geltende Fassung (2023)','Novelle (Entwurf 2026)'],rows:[
+  ['Endenergie-Einsparung','2 % pro Jahr bis 2045 (ab 1 GWh/a Gesamtverbrauch)','1,9 % pro Jahr („öffentliche Einrichtungen“)'],
+  ['Energie-/Umweltmanagement ≥ 3 GWh/a','EMS (z. B. ISO 50001) oder EMAS bis 30.06.2026','Frist bis 11.10.2027 geplant'],
+  ['vereinfachtes Energiemanagement 1–3 GWh/a','bis 30.06.2026','Frist bis 11.10.2027 geplant'],
+  ['Energieverbrauchsregister','–','jährliche Meldung der Verbrauchsdaten geplant'],
+  ['Unternehmen ≥ 7,5 GWh/a','Energiemanagementsystem','Schwelle ca. 23,6 GWh/a geplant'],
+  ['Unternehmen ≥ 2,5 GWh/a','Umsetzungspläne wirtschaftlicher Maßnahmen veröffentlichen','geändert']]},
+ tags:'enefg energieeffizienzgesetz öffentliche stelle kommune einsparung 2 prozent energiemanagement ems iso 50001 emas'},
+
+{id:'edlg',cat:'recht',kind:'gesetz',use:[],title:'Energieaudit – EDL-G und DIN EN 16247',
+ src:'Energiedienstleistungsgesetz (EDL-G) §§ 8 ff., DIN EN 16247-1 bis -5',
+ text:'Nicht-KMU-Unternehmen (auch kommunale Unternehmen) müssen alle 4 Jahre ein Energieaudit durchführen, sofern kein Energiemanagementsystem besteht. Für Verwaltungen kein Pflichtinstrument, aber als Methode für Gebäudeanalysen geeignet (DIN EN 16247-2 Gebäude).',
+ table:{head:['Punkt','Inhalt'],rows:[['Intervall','alle 4 Jahre'],['Bagatellgrenze','Gesamtenergieverbrauch ≤ 500 MWh/a: Online-Erklärung statt Audit'],['Inhalt','Verbrauchsanalyse, Lastgänge, Maßnahmen mit Wirtschaftlichkeit (Kapitalwert)'],['Novelle 2026 (Entwurf)','Auditpflicht künftig verbrauchsabhängig ab ca. 2,77 GWh/a']]},
+ tags:'energieaudit edl-g 16247 audit pflicht unternehmen'},
+
+{id:'geig',cat:'recht',kind:'gesetz',use:['verw','schule','wohn','betr'],title:'Ladeinfrastruktur an Gebäuden – GEIG (Fassung GModG)',
+ src:'Gebäude-Elektromobilitätsinfrastruktur-Gesetz, geändert durch Art. 7 GModG; Änderungen ab 01.01.2027 (Übergang § 16)',
+ text:'Ausstattungspflichten für Stellplätze. Vorverkabelung = Leitung bis zu einem anschlussfähigen Endpunkt; Leitungsinfrastruktur = Schutzrohre und Kabelwege. Detaillierte Prüfung im Energiebedarfsrechner (Reiter E-Mobilität).',
+ table:{head:['Fall','Stellplätze','Anforderung'],rows:[
+  ['Wohngebäude Neubau','> 3','50 % vorverkabelt, Rest Leitungsinfrastruktur, mind. 1 Ladepunkt'],['Wohngebäude größere Renovierung','> 3','50 % vorverkabelt, Rest Leitungsinfrastruktur'],
+  ['Nichtwohngebäude Neubau / größere Renovierung','> 5','50 % vorverkabelt, Rest Leitungsinfrastruktur; 1 Ladepunkt je 5 Stellplätze (Büro/Verwaltung: je 2)'],
+  ['Nichtwohngebäude Bestand','> 20','ab 01.01.2027: 1 Ladepunkt je 10 Stellplätze oder Leitungsinfrastruktur für 50 %'],
+  ['Behördengebäude im Eigentum der öffentlichen Hand (Bestand)','> 20','bis 01.01.2033: Vorverkabelung von 50 % der Stellplätze'],
+  ['öffentlich zugängliche Stellplätze','–','alternativ Gesamtladeleistung 2,2 kW (Neubau) bzw. 1,1 kW (Bestand) je Stellplatz']]},
+ tags:'geig ladepunkt ladesäule wallbox stellplatz parkplatz e-mobilität vorverkabelung leitungsinfrastruktur'},
+
+{id:'wpg',cat:'recht',kind:'gesetz',use:['verw','wohn'],title:'Kommunale Wärmeplanung – Wärmeplanungsgesetz (WPG)',
+ src:'Wärmeplanungsgesetz (WPG) vom 20.12.2023; Landesumsetzung NRW: Landeswärmeplanungsgesetz',
+ text:'Gemeinden erstellen Wärmepläne (Bestands- und Potenzialanalyse, Zielszenario, Wärmeversorgungsgebiete). Für Liegenschaftsverwaltungen wichtig: Wo ist Fern-/Nahwärme geplant, wo dezentrale Versorgung?',
+ table:{head:['Gemeindegröße','Frist Wärmeplan'],rows:[['> 100.000 Einwohner','30.06.2026'],['≤ 100.000 Einwohner','30.06.2028'],['< 10.000 Einwohner','vereinfachtes Verfahren möglich (Landesrecht)']]},
+ tags:'wärmeplanung wpg fernwärme kommune wärmenetz frist 2028'},
+
+{id:'behg',cat:'recht',kind:'gesetz',use:[],title:'CO₂-Preis für Heizung und Verkehr – BEHG',
+ src:'Brennstoffemissionshandelsgesetz (BEHG); Drittes Änderungsgesetz (Preiskorridor 2027, Bundestag 15.10.2026); EU-ETS 2 ab 2028',
+ text:'Der CO₂-Preis wird über die Brennstoffpreise weitergegeben. Ab 2028 soll der europäische Emissionshandel für Gebäude und Verkehr (ETS 2) gelten – Preisentwicklung unsicher.',
+ table:{head:['Jahr','Preis je t CO₂','Erdgas ct/kWh*','Heizöl ct/l*'],rows:[
+  ['2021','25 €','0,6','7,9'],['2022 / 2023','30 €','0,7','9,5'],['2024','45 €','1,1','14,2'],['2025','55 €','1,3','17,3'],['2026','55–65 € (Korridor)','1,3–1,6','17,3–20,5'],['2027','55–65 € (Korridor)','1,3–1,6','17,3–20,5'],['ab 2028','EU-ETS 2 (Marktpreis)','–','–']]},
+ note:'* brutto inkl. 19 % USt., Emissionsfaktoren Erdgas ≈ 0,201 kg/kWh (Hi), Heizöl ≈ 2,65 kg/l.',
+ tags:'co2 preis behg emissionshandel ets2 kosten erdgas heizöl tonne'},
+
+{id:'co2kost',cat:'recht',kind:'gesetz',use:['wohn','verw'],title:'Aufteilung der CO₂-Kosten Vermieter/Mieter – CO2KostAufG',
+ src:'Kohlendioxidkostenaufteilungsgesetz (CO2KostAufG), ergänzt durch GModG (§§ 5a, 5b)',
+ text:'Wohngebäude: Stufenmodell nach CO₂-Ausstoß je m² Wohnfläche – je schlechter das Gebäude, desto höher der Vermieteranteil. Nichtwohngebäude: grundsätzlich 50 : 50.',
+ table:{head:['CO₂-Ausstoß Wohngebäude','Anteil Mieter','Anteil Vermieter'],rows:[
+  ['< 12 kg/(m²·a)','100 %','0 %'],['12 bis < 17','90 %','10 %'],['17 bis < 22','80 %','20 %'],['22 bis < 27','70 %','30 %'],['27 bis < 32','60 %','40 %'],['32 bis < 37','50 %','50 %'],
+  ['37 bis < 42','40 %','60 %'],['42 bis < 47','30 %','70 %'],['47 bis < 52','20 %','80 %'],['≥ 52','5 %','95 %'],['Nichtwohngebäude','50 %','50 %']]},
+ tags:'co2 kosten aufteilung vermieter mieter stufenmodell nebenkosten'},
+
+{id:'hkvo',cat:'recht',kind:'gesetz',use:['wohn','verw'],title:'Heizkostenverordnung (HeizkostenV)',
+ src:'Verordnung über die verbrauchsabhängige Abrechnung der Heiz- und Warmwasserkosten',
+ text:'Pflicht zur verbrauchsabhängigen Abrechnung bei zentraler Versorgung mehrerer Nutzer (auch gewerblich vermietete Flächen).',
+ table:{head:['Regelung','Inhalt'],rows:[['Verbrauchsabhängiger Anteil','50–70 % (70 % bei schlecht gedämmten Gebäuden mit gedämmten Leitungen)'],['Fernablesbare Zähler / Heizkostenverteiler','Neugeräte seit 01.12.2021; Nachrüstung bis 31.12.2026'],['Abrechnungs- und Verbrauchsinformation','monatlich bei fernablesbaren Geräten'],['Kürzungsrecht Mieter','15 % bei nicht verbrauchsabhängiger Abrechnung bzw. 3 % bei fehlender Fernablesbarkeit']]},
+ tags:'heizkostenverordnung heizkosten abrechnung nebenkosten fernablesbar verbrauchsabhängig'},
+
+{id:'paragraph14a',cat:'recht',kind:'gesetz',use:['wohn','verw'],title:'Steuerbare Verbrauchseinrichtungen – § 14a EnWG',
+ src:'§ 14a Energiewirtschaftsgesetz, Festlegungen der Bundesnetzagentur (seit 01.01.2024)',
+ text:'Neue Wärmepumpen, nicht öffentliche Wallboxen, Klimaanlagen und Stromspeicher über 4,2 kW müssen netzorientiert steuerbar sein. Der Netzbetreiber darf bei Engpässen auf mind. 4,2 kW dimmen; dafür sinken die Netzentgelte.',
+ table:{head:['Modul','Netzentgeltreduzierung'],rows:[['Modul 1','pauschale Reduzierung je Jahr (netzbetreiberabhängig, ca. 110–190 €)'],['Modul 2','60 % Reduzierung des Arbeitspreises, separater Zähler'],['Modul 3','zeitvariables Netzentgelt (zusätzlich zu Modul 1, intelligentes Messsystem nötig)']]},
+ tags:'14a enwg steuerbar wärmepumpe wallbox netzentgelt dimmen smart meter'},
+
+{id:'eeg',cat:'recht',kind:'gesetz',use:[],title:'PV-Einspeisevergütung – EEG',
+ src:'Erneuerbare-Energien-Gesetz; Vergütungssätze der Bundesnetzagentur, Inbetriebnahme ab 01.08.2026 (halbjährliche Degression)',
+ text:'Feste Vergütung für 20 Jahre. Bei Überschusseinspeisung lohnt vor allem der Eigenverbrauch. Bei negativen Börsenstrompreisen gibt es für Neuanlagen keine Vergütung (Solarspitzengesetz).',
+ table:{head:['Anlagengröße (Teileinspeisung)','Vergütung'],rows:[['bis 10 kWp','7,70 ct/kWh'],['10 bis 40 kWp (Anteil)','6,66 ct/kWh'],['40 bis 100 kWp (Anteil)','5,44 ct/kWh'],['> 100 kWp','Direktvermarktung (Marktprämie)']]},
+ note:'Volleinspeisung erhält einen Zuschlag. Aktuelle Werte bei der Bundesnetzagentur prüfen.',
+ tags:'eeg einspeisevergütung pv photovoltaik solar vergütung'},
+
+{id:'solarnrw',cat:'recht',kind:'gesetz',use:['verw','schule','kita','sport','wohn','betr'],title:'Solarpflicht NRW – § 42a BauO NRW und SAN-VO NRW',
+ src:'§ 42a und § 48 Abs. 1a BauO NRW 2018, Solaranlagen-Verordnung NRW (SAN-VO NRW) vom 06.06.2024',
+ text:'Pflicht zur Installation von Photovoltaik (alternativ Solarthermie) auf geeigneten Dachflächen. Zusätzlich gilt ab 2027 die bundesweite Solarpflicht nach § 106 GModG.',
+ table:{head:['Fall','Pflicht ab'],rows:[['Neubau Nichtwohngebäude','Bauantrag ab 01.01.2024'],['Dachsanierung kommunaler und landeseigener Gebäude','Baubeginn ab 01.07.2024'],['Neubau Wohngebäude','Bauantrag ab 01.01.2025'],
+  ['Vollständige Erneuerung der Dachhaut (übrige Gebäude)','Baubeginn ab 01.01.2026'],['Offene Parkplätze von Nichtwohngebäuden','> 35 notwendige Stellplätze'],
+  ['Umfang','30 % der Bruttodachfläche bzw. Mindestleistung (Dachsanierung NWG: alternativ mind. 8 kWp)']]},
+ tags:'solarpflicht nrw photovoltaik pv dach bauordnung parkplatz dachsanierung'},
+
+{id:'epbd',cat:'recht',kind:'gesetz',use:[],title:'EU-Rahmen: Gebäuderichtlinie (EPBD) und Energieeffizienzrichtlinie (EED)',
+ src:'Richtlinie (EU) 2024/1275 (EPBD), Richtlinie (EU) 2023/1791 (EED)',
+ text:'EU-Vorgaben, die über GModG und EnEfG in deutsches Recht umgesetzt werden.',
+ table:{head:['Vorgabe','Inhalt','Termin'],rows:[['Nullemissionsgebäude (EPBD)','öffentliche Neubauten / alle Neubauten','2028 / 2030'],['MEPS Nichtwohngebäude (EPBD)','schlechteste 16 % / 26 % renovieren','2030 / 2033'],
+  ['Wohngebäudebestand (EPBD)','Primärenergie −16 % / −20–22 % gegenüber 2020','2030 / 2035'],['Fossile Heizkessel (EPBD)','keine Förderung eigenständiger fossiler Kessel; Ziel Ausstieg','seit 2025 / 2040'],
+  ['Öffentlicher Sektor (EED Art. 5)','Endenergieverbrauch −1,9 % pro Jahr','ab 2024'],['Renovierungsquote öffentlicher Gebäude (EED Art. 6)','jährlich 3 % der Fläche > 250 m² auf Niedrigstenergie- bzw. Nullemissionsniveau','ab 2024'],
+  ['Gebäudeautomation (EPBD)','Nichtwohngebäude > 70 kW','2029']]},
+ tags:'epbd eed eu richtlinie gebäuderichtlinie nullemission meps renovierung 3 prozent'},
+
+{id:'arbst',cat:'recht',kind:'gesetz',use:['verw','schule','kita','sport','betr'],title:'Arbeitsstättenrecht – relevante Regeln',
+ src:'Arbeitsstättenverordnung (ArbStättV) mit Technischen Regeln (ASR)',
+ text:'Arbeitsschutzrechtliche Vorgaben, die bei Energiesparmaßnahmen einzuhalten sind.',
+ table:{head:['Regel','Inhalt'],rows:[['ASR A3.4','Beleuchtung und Sichtverbindung (Mindestbeleuchtungsstärken)'],['ASR A3.5','Raumtemperatur (Mindestwerte, Hitze)'],['ASR A3.6','Lüftung (CO₂, Fensterlüftung, RLT-Anlagen)'],['ASR A3.7','Lärm'],['ASR A4.1','Sanitärräume (Anzahl Toiletten, Waschgelegenheiten)'],['ASR A1.2','Raumabmessungen (mind. 8 m² für einen Arbeitsplatz + 6 m² je weiterem)'],['ASR A2.3','Fluchtwege, Sicherheitsbeleuchtung']]},
+ tags:'arbeitsstättenverordnung arbstättv asr arbeitsschutz büro fläche sanitär'},
+
+/* ---------------- Förderung ---------------- */
+{id:'eh',cat:'foerd',kind:'foerd',use:['verw','schule','kita','sport','wohn','betr'],title:'KfW-Effizienzhaus / Effizienzgebäude – Stufen und Förderung',
+ src:'Bundesförderung für effiziente Gebäude (BEG WG / NWG), KfW 261 (Wohngebäude), 263 (Nichtwohngebäude, auch Kommunen über 264-Varianten); Konditionen ab 21.07.2026',
+ text:'Die Zahl gibt den Primärenergiebedarf in Prozent des Referenzgebäudes an; zusätzlich gilt eine Anforderung an den Transmissionswärmeverlust H\'T. Seit 21.07.2026 ist die Erneuerbare-Energien-Klasse (mind. 65 % erneuerbar) Pflicht für alle Stufen.',
+ table:{head:['Stufe','Primärenergie Qp','Transmission H\'T','Tilgungszuschuss Sanierung (ab 21.07.2026)'],rows:[
+  ['Effizienzhaus / -gebäude 40','40 %','55 %','10 %'],['Effizienzhaus / -gebäude 55','55 %','70 %','5 %'],['Effizienzhaus / -gebäude 70','70 %','85 %','–'],
+  ['Effizienzhaus 85 (nur Wohngebäude)','85 %','100 %','–'],['Effizienzhaus / -gebäude Denkmal','160 %','175 %','5 %']]},
+ table2:{title:'Weitere Eckdaten',head:['Punkt','Wert'],rows:[['Kredithöchstbetrag Wohngebäude','150.000 € je Wohneinheit'],['Kredithöchstbetrag Nichtwohngebäude','10 Mio. € je Vorhaben'],['Bonus Worst Performing Building / serielle Sanierung','kombinierbar bis 25 % (Antrag ab Ende 09/2026)'],['Sperrfrist BEG EM ↔ BEG WG/NWG','3 Jahre'],['Neubau (Klimafreundlicher Neubau, KfW 297/298/299)','Effizienzhaus 40 mit Ökobilanz-Anforderungen; befristet auch EH 55']]},
+ note:'Kommunen erhalten über die kommunalen Programmvarianten teils andere Zuschüsse – aktuelles Merkblatt prüfen.',
+ tags:'kfw effizienzhaus eh40 eh55 eh70 eh85 denkmal effizienzgebäude beg förderung tilgungszuschuss sanierung neubau ee-klasse'},
+
+{id:'begem',cat:'foerd',kind:'foerd',use:['verw','schule','kita','sport','wohn','betr'],title:'BEG Einzelmaßnahmen und Heizungsförderung (ab 21.07.2026)',
+ src:'BEG EM (BAFA) und Heizungsförderung KfW 458 / 459 / 522; Konditionen ab 21.07.2026',
+ text:'Zuschüsse für einzelne Maßnahmen. Wichtig für Kommunen und Unternehmen: KfW 522 (Heizung Nichtwohngebäude), BAFA für Hülle und Anlagentechnik.',
+ table:{head:['Maßnahme','Fördersatz','Hinweis'],rows:[
+  ['Heizung – Grundförderung','30 %','Wärmepumpen ab Q1 2027: 15 % + 15 % Bonus für in der EU hergestellte Geräte'],
+  ['Klimageschwindigkeitsbonus','16 %','nur Selbstnutzer, Austausch fossiler Heizung ≥ 20 Jahre; sinkt halbjährlich, endet 08/2028'],
+  ['Einkommensbonus','bis 40 %','Selbstnutzer, Einkommensstaffel; max. 70–80 % gesamt'],
+  ['förderfähige Kosten Heizung NWG','28.000 € bis 150 m², darüber 197 / 118 / 79 €/m² gestaffelt','sinkt schrittweise bis 2030'],
+  ['Gebäudehülle, Anlagentechnik (BAFA)','15 %','+5 % iSFP-Bonus (nur oberhalb 30.000 € Investition)'],
+  ['Heizungsoptimierung (Effizienz)','15 %','hydraulischer Abgleich, Pumpen, Dämmung von Leitungen'],
+  ['Beleuchtung in Nichtwohngebäuden','nicht mehr gefördert','seit 21.07.2026'],
+  ['Fachplanung und Baubegleitung','50 %','Energieeffizienz-Experte (Liste dena) erforderlich']]},
+ tags:'beg bafa einzelmaßnahme heizungsförderung kfw 458 522 zuschuss wärmepumpe fördersatz isfp'},
+
+{id:'foerdsonst',cat:'foerd',kind:'foerd',use:['verw','schule','kita','sport'],title:'Weitere Förderprogramme für Kommunen',
+ src:'Programmseiten von BMWE, BMUKN, Länder; Konditionen ändern sich häufig',
+ text:'Übersicht typischer Programme – Fördersätze und Fristen vor Antrag prüfen.',
+ table:{head:['Programm','Inhalt'],rows:[['Kommunalrichtlinie (NKI)','Klimaschutzmanagement, Energiesparmodelle in Schulen/Kitas, Lüftungs- und Beleuchtungssanierung (teilweise), Fahrradinfrastruktur'],
+  ['Bundesförderung effiziente Wärmenetze (BEW)','Wärmenetze, Machbarkeitsstudien, Transformationspläne'],['Energieberatung für Nichtwohngebäude (EBN, BAFA)','Zuschuss zum Sanierungsfahrplan bzw. Energieaudit'],
+  ['progres.nrw (Land NRW)','Wärmepumpen, Speicher, Ladeinfrastruktur – Programmbereiche wechselnd'],['KfW 432 Energetische Stadtsanierung','Quartierskonzepte und Sanierungsmanagement']]},
+ tags:'förderung kommunalrichtlinie nki bew progres nrw ebn energieberatung quartier'},
+
+/* ---------------- Normen ---------------- */
+{id:'normen',cat:'normen',kind:'regel',use:[],title:'Normen und Regelwerke – Verzeichnis',
+ src:'DIN, DIN VDE, VDI, DVGW, AMEV; jeweils aktuelle Ausgabe beachten',
+ text:'Die wichtigsten Normen für Energie, Gebäudetechnik und Betrieb. Suchbegriffe: Nummer, Thema oder Stichwort.',
+ table:{head:['Norm / Regel','Titel / Inhalt','Thema'],rows:[
+  ['DIN V 18599 (Teile 1–12)','Energetische Bewertung von Gebäuden – Berechnung des Nutz-, End- und Primärenergiebedarfs','Bilanz, Energieausweis'],
+  ['DIN EN ISO 52000-1','Energieeffizienz von Gebäuden – übergeordnete Bewertung','Bilanz'],
+  ['DIN EN 12831-1, DIN/TS 12831-1','Verfahren zur Berechnung der Raumheizlast','Heizung'],
+  ['DIN 4108 (-2, -3, -4, -7, Bbl. 2)','Wärmeschutz und Energie-Einsparung in Gebäuden; Mindestwärmeschutz, Feuchte, Luftdichtheit, Wärmebrücken','Hülle'],
+  ['DIN EN ISO 6946','Wärmedurchlasswiderstand und Wärmedurchgangskoeffizient – Berechnung','Hülle'],
+  ['DIN EN ISO 10077-1/-2','Wärmetechnisches Verhalten von Fenstern','Hülle'],
+  ['DIN EN ISO 13788','Raumseitige Oberflächentemperatur, Tauwasser','Hülle'],
+  ['DIN EN ISO 9972','Bestimmung der Luftdurchlässigkeit (Blower-Door)','Hülle'],
+  ['DIN EN 16798-1 / -3','Eingangsparameter für das Innenraumklima; Lüftung von Nichtwohngebäuden','Lüftung'],
+  ['DIN 1946-6','Lüftung von Wohnungen','Lüftung'],
+  ['DIN EN ISO 7730','Ergonomie der thermischen Umgebung – PMV/PPD','Raumklima'],
+  ['VDI 6022 Blatt 1','Raumlufttechnik, Raumluftqualität – Hygieneanforderungen','Lüftung'],
+  ['VDI 2078','Berechnung der thermischen Lasten und Raumtemperaturen (Kühllast)','Kälte'],
+  ['DIN EN 12464-1','Beleuchtung von Arbeitsstätten in Innenräumen','Licht'],
+  ['DIN EN 12464-2','Arbeitsplätze im Freien','Licht'],
+  ['DIN EN 15193-1','Energetische Bewertung von Beleuchtung (LENI)','Licht'],
+  ['DIN EN 1838 / DIN VDE 0108-100','Notbeleuchtung / Sicherheitsbeleuchtungsanlagen','Licht'],
+  ['DIN EN 12193','Sportstättenbeleuchtung','Licht'],
+  ['DIN 5035-6/-7','Messung und Bewertung; Bildschirmarbeitsplätze','Licht'],
+  ['DIN EN 12828','Heizungsanlagen in Gebäuden – Planung','Heizung'],
+  ['VDI 2073 Blatt 2','Hydraulischer Abgleich','Heizung'],
+  ['DIN EN 15378','Heizungssysteme – Inspektion von Kesseln und Heizungssystemen','Heizung'],
+  ['DIN EN 16798-17','Inspektion von Lüftungs- und Klimaanlagen','Lüftung'],
+  ['DIN EN ISO 52120-1 (ex DIN EN 15232)','Gebäudeautomation – Einfluss auf die Energieeffizienz (Effizienzklassen A–D)','Automation'],
+  ['VDI 3814','Gebäudeautomation – Grundlagen','Automation'],
+  ['VDI 2067 Blatt 1','Wirtschaftlichkeit gebäudetechnischer Anlagen (Annuitätenmethode, Nutzungsdauern)','Wirtschaftlichkeit'],
+  ['VDI 6025','Betriebswirtschaftliche Berechnungen für Investitionsgüter','Wirtschaftlichkeit'],
+  ['VDI 3807 Blatt 1–5','Verbrauchskennwerte für Gebäude (Energie, Wasser, Teilkennwerte)','Kennwerte'],
+  ['DIN EN ISO 50001','Energiemanagementsysteme','Management'],
+  ['DIN ISO 50006 / 50015','Energieleistungskennzahlen; Messung und Verifizierung','Management'],
+  ['DIN EN 16247-1 bis -5','Energieaudits (Gebäude: Teil 2)','Management'],
+  ['DIN 1988-200, DIN EN 806','Technische Regeln für Trinkwasser-Installationen','Wasser'],
+  ['DVGW W 551 / W 553','Legionellenvermeidung; Bemessung von Zirkulationssystemen','Wasser'],
+  ['DIN 18015-1/-2','Elektrische Anlagen in Wohngebäuden (Planung, Mindestausstattung)','Elektro'],
+  ['DIN VDE 0100-410 / -520 / -600','Schutz gegen elektrischen Schlag; Kabel- und Leitungsanlagen; Erstprüfung','Elektro'],
+  ['DIN VDE 0100-712','Photovoltaik-Stromversorgungssysteme','Elektro, PV'],
+  ['DIN VDE 0100-722','Stromversorgung von Elektrofahrzeugen','Elektro, E-Mobilität'],
+  ['DIN VDE 0100-551','Niederspannungs-Stromerzeugungseinrichtungen (Speicher, Notstrom)','Elektro'],
+  ['DIN VDE 0105-100','Betrieb von elektrischen Anlagen','Betrieb'],
+  ['DGUV Vorschrift 3','Elektrische Anlagen und Betriebsmittel – Prüfpflichten','Betrieb'],
+  ['VDE-AR-N 4100 / 4105 / 4110','Technische Anschlussregeln Niederspannung; Erzeugungsanlagen am NS-Netz; Mittelspannung','Netzanschluss'],
+  ['DIN EN IEC 61851, DIN EN ISO 15118','Ladesysteme für Elektrofahrzeuge; Kommunikation Fahrzeug–Ladepunkt','E-Mobilität'],
+  ['DIN EN 62305','Blitzschutz','Elektro, PV'],
+  ['VDI 4707 Blatt 1','Aufzüge – Energieeffizienz','Aufzüge'],
+  ['DIN 18032-1','Sporthallen – Grundsätze für die Planung','Sport'],
+  ['DIN 18040-1/-2','Barrierefreies Bauen','Bau'],
+  ['DIN 277','Grundflächen und Rauminhalte im Hochbau (NRF, BGF)','Flächen'],
+  ['DIN 276','Kosten im Bauwesen (Kostengruppen)','Kosten'],
+  ['AMEV-Empfehlungen','Leitfäden der öffentlichen Hand: Heizbetrieb, Beleuchtung, RLT-Anlagenbau, Gebäudeautomation, Energiemanagement','öffentliche Gebäude']]},
+ tags:'norm din vde vdi dvgw amev verzeichnis regelwerk'},
+
+/* ---------------- Kennwerte ---------------- */
+{id:'pef',cat:'kenn',kind:'gesetz',use:[],title:'Primärenergie- und CO₂-Faktoren (GModG Anlagen 4 und 9)',
+ src:'GModG Anlage 4 (Primärenergiefaktoren, nicht erneuerbarer Anteil) und Anlage 9 (Emissionsfaktoren) – Werte wie bisher GEG; ab 2027 neue Bilanzierungsregeln beachten',
+ text:'Bezogen auf den Heizwert (Hi). Für Energieausweis und Nachweise; für Verbrauchsberichte werden oft aktuellere Emissionsfaktoren (z. B. UBA-Strommix) verwendet.',
+ table:{head:['Energieträger','Primärenergiefaktor','CO₂ g/kWh'],rows:[
+  ['Erdgas','1,1','240'],['Heizöl','1,1','310'],['Flüssiggas','1,1','270'],['Steinkohle','1,1','400'],['Braunkohle','1,2','430'],['Biogas / Biomethan','1,1 (gebäudenah 0,5)','140'],
+  ['Holz (Pellets, Scheitholz, Hackschnitzel)','0,2','20'],['Strom netzbezogen','1,8','560'],['Strom gebäudenah erzeugt (PV, Wind)','0,0','0'],['Verdrängungsstrommix (KWK-Gutschrift)','2,8','860'],
+  ['Umweltwärme, Solarthermie','0,0','0'],['Fernwärme','nach Zertifikat des Versorgers (z. B. 0,3–1,3)','nach Zertifikat']]},
+ table2:{title:'Zum Vergleich: tatsächlicher Strommix',head:['Größe','Wert'],rows:[['CO₂-Emissionsfaktor Strommix Deutschland (UBA, Inlandsverbrauch)','ca. 350–400 g/kWh (2024/2025)']]},
+ tags:'primärenergiefaktor co2 faktor emissionsfaktor strom erdgas heizöl fernwärme holz pellets anlage 4 anlage 9'},
+
+{id:'heizwert',cat:'kenn',kind:'kenn',use:[],title:'Heizwerte und Umrechnung von Energieträgern',
+ src:'Brennstoffdaten, Abrechnungspraxis der Versorger; Mittelwerte',
+ text:'Gasrechnungen sind in kWh (Brennwert Hs) angegeben: kWh = m³ × Zustandszahl × Brennwert. Für Bilanzen nach DIN V 18599 wird der Heizwert verwendet (Hs/Hi ≈ 1,11 bei Erdgas).',
+ table:{head:['Energieträger','Einheit','Heizwert Hi','Brennwert Hs'],rows:[
+  ['Erdgas H','m³','≈ 10,0 kWh','≈ 11,1 kWh'],['Erdgas L','m³','≈ 8,9 kWh','≈ 9,8 kWh'],['Heizöl EL','l','≈ 10,0 kWh','≈ 10,6 kWh'],['Flüssiggas (Propan)','l','≈ 6,6 kWh','≈ 7,1 kWh'],
+  ['Holzpellets','kg','≈ 4,8–5,0 kWh','≈ 5,3 kWh'],['Scheitholz Buche (lufttrocken)','kg','≈ 4,2 kWh','–'],['Scheitholz Buche','Raummeter','≈ 2.000 kWh','–'],
+  ['Hackschnitzel (30 % Feuchte)','kg','≈ 3,4 kWh','–'],['Steinkohle','kg','≈ 8,1 kWh','–'],['1 Liter Heizöl ersetzt','–','≈ 1 m³ Erdgas ≈ 2 kg Pellets','']]},
+ tags:'heizwert brennwert umrechnung erdgas m3 kwh heizöl liter pellets holz zustandszahl'},
+
+{id:'kennwerte',cat:'kenn',kind:'kenn',use:['verw','schule','kita','sport','betr'],title:'Verbrauchskennwerte Nichtwohngebäude – Orientierung',
+ src:'Orientierung an VDI 3807 und den Vergleichswerten für Nichtwohngebäude (BMWi/BMUB 2015); Bandbreiten gerundet, witterungsbereinigt',
+ text:'Bezogen auf die Nettoraumfläche (NRF). Werte oberhalb der Bandbreite deuten auf Einsparpotenzial hin, darunter auf einen guten Standard.',
+ table:{head:['Nutzung','Wärme kWh/(m²·a)','Strom kWh/(m²·a)','Wasser l/(m²·a)'],rows:[
+  ['Verwaltungsgebäude','70–130','20–50','100–200'],['Schule (allgemeinbildend)','80–140','10–20','80–150'],['Kindertagesstätte','90–150','15–30','250–450'],
+  ['Sporthalle','90–170','20–40','300–800'],['Feuerwehr, Bauhof, Werkstatt','90–170','20–45','100–250'],['Bibliothek, Museum','70–120','25–60','50–120'],
+  ['Krankenhaus, Pflegeheim','150–250','40–90','800–1.500'],['Rechenzentrum, Serverraum','–','sehr hoch (PUE beachten)','–']]},
+ tags:'kennwert vergleichswert benchmark verbrauch kwh/m2 verwaltung schule kita sporthalle vdi 3807'},
+
+{id:'nutzdauer',cat:'kenn',kind:'kenn',use:[],title:'Rechnerische Nutzungsdauern (VDI 2067)',
+ src:'Orientierung an VDI 2067 Blatt 1 (Anhang) und Praxiswerten',
+ text:'Für Wirtschaftlichkeitsrechnungen (Annuität, Kapitalwert) und Instandhaltungsplanung.',
+ table:{head:['Anlage / Bauteil','Nutzungsdauer'],rows:[
+  ['Gas-Brennwertkessel','18–20 Jahre'],['Wärmepumpe','18–20 Jahre'],['Umwälzpumpe','10–15 Jahre'],['Heizkörper, Rohrleitungen','40–50 Jahre'],['Lüftungsgerät, RLT-Zentralgerät','15–20 Jahre'],
+  ['Kältemaschine, Split-Klimagerät','12–15 Jahre'],['Gebäudeautomation, Regelung','10–15 Jahre'],['LED-Leuchten','15–20 Jahre'],['PV-Module / Wechselrichter','25–30 / 10–15 Jahre'],
+  ['Batteriespeicher','12–15 Jahre'],['Ladestation','10–12 Jahre'],['Wärmedämmverbundsystem','30–40 Jahre'],['Fenster','30–40 Jahre'],['Flachdachabdichtung','20–30 Jahre']]},
+ tags:'nutzungsdauer lebensdauer vdi 2067 abschreibung annuität ersatz'},
+
+{id:'faust',cat:'kenn',kind:'kenn',use:[],title:'Faustwerte für die Planung',
+ src:'Praxiswerte, Planungshandbücher; nur zur Grobabschätzung',
+ text:'Erste Abschätzung ohne Detailberechnung – ersetzt keine Heizlast- oder Kühllastberechnung.',
+ table:{head:['Größe','Faustwert'],rows:[
+  ['spezifische Heizlast unsaniert (vor 1978)','100–150 W/m²'],['spezifische Heizlast teilsaniert','60–90 W/m²'],['spezifische Heizlast Neubau','30–50 W/m²'],
+  ['Heizlast aus Verbrauch','Jahresverbrauch (kWh) ÷ 1.800–2.200 Vollbenutzungsstunden'],['Kühllast Büro','40–60 W/m²'],['Wärmeabgabe Person (sitzend)','≈ 100 W (davon 70 W sensibel)'],
+  ['PC-Arbeitsplatz mit Monitor','40–80 W'],['Beleuchtung LED Büro','5–8 W/m²'],['Jahresarbeitszahl Wärmepumpe Bestand (Heizkörper)','2,8–3,5'],
+  ['Jahresarbeitszahl Wärmepumpe Neubau (Fußbodenheizung)','3,5–4,5'],['PV-Ertrag NRW','850–1.000 kWh/kWp·a'],['PV-Flächenbedarf','≈ 5–6 m² je kWp (Schrägdach)'],
+  ['Heizgradtage (GTZ 20/15) Deutschland','ca. 3.200–3.800 Kd/a (DWD, standortabhängig)']]},
+ tags:'faustwert heizlast w/m2 kühllast person pc wärmepumpe jaz pv ertrag gradtag vollbenutzungsstunden'},
+
+/* ---------------- Anlagentechnik & Betrieb ---------------- */
+{id:'pruef',cat:'tech',kind:'gesetz',use:['verw','schule','kita','sport','betr'],title:'Prüf- und Betreiberpflichten Gebäudetechnik – Übersicht',
+ src:'GModG, BetrSichV, DGUV Vorschrift 3, TrinkwV, 1. BImSchV, VDI 6022, Bauordnungsrecht (Prüfverordnungen der Länder, in NRW PrüfVO NRW)',
+ text:'Auswahl wiederkehrender Pflichten für Betreiber von Liegenschaften (energierelevant).',
+ table:{head:['Anlage','Pflicht','Intervall'],rows:[
+  ['Heizungsanlage älter als 15 Jahre (§ 60b GModG)','Heizungsprüfung und -optimierung','einmalig (Fristen gestaffelt)'],
+  ['Wärmepumpe (§ 60a GModG)','Betriebsprüfung','nach 1 Jahr, spätestens 3 Jahre nach Inbetriebnahme'],
+  ['Heizungsanlagen (§ 60c GModG)','hydraulischer Abgleich (ab 6 Wohneinheiten bzw. bei Heizungstausch)','einmalig'],
+  ['Klimaanlagen > 12 kW (§ 74 GModG)','energetische Inspektion','alle 10 Jahre'],
+  ['Feuerungsanlagen (1. BImSchV)','Abgasmessung durch Schornsteinfeger','je nach Anlage 1–3 Jahre'],
+  ['Elektrische Anlagen (DGUV V3)','Prüfung ortsfester Anlagen / ortsveränderlicher Geräte','4 Jahre / 6–24 Monate'],
+  ['RLT-Anlagen (VDI 6022)','Hygieneinspektion','2–3 Jahre'],
+  ['Trinkwasser-Großanlagen (TrinkwV)','Legionellenuntersuchung','jährlich (öffentlich) / 3 Jahre'],
+  ['Aufzüge (BetrSichV)','Hauptprüfung / Zwischenprüfung durch ZÜS','2 Jahre / jährlich dazwischen'],
+  ['Sicherheitsbeleuchtung, Brandschutztechnik (PrüfVO NRW)','Prüfung durch Prüfsachverständige','3 Jahre (Sonderbauten)'],
+  ['Kälteanlagen (F-Gase-Verordnung)','Dichtheitsprüfung','abhängig von CO₂-Äquivalent 6–12 Monate'],
+  ['PV-Anlagen','Prüfung nach DIN VDE 0105-100 / DGUV V3 empfohlen','4 Jahre']]},
+ tags:'prüfpflicht betreiberpflicht wartung inspektion heizungsprüfung hydraulischer abgleich klimaanlage dguv v3 legionellen aufzug f-gase'},
+
+{id:'ga',cat:'tech',kind:'regel',use:['verw','schule'],title:'Gebäudeautomation – Effizienzklassen (DIN EN ISO 52120-1)',
+ src:'DIN EN ISO 52120-1 (Nachfolger DIN EN 15232-1), GModG § 56',
+ text:'Gebäudeautomation wird in vier Effizienzklassen eingeteilt. Klasse B gilt als Mindeststandard für neue Nichtwohngebäude mit größerer Technik; Nichtwohngebäude mit Anlagen > 70 kW müssen bis Ende 2029 über ein Automatisierungs- und Steuerungssystem verfügen.',
+ table:{head:['Klasse','Beschreibung','Energieeinsparung Büro (Richtwert, Wärme)'],rows:[['A','hocheffiziente GA, bedarfsgeführt, vernetzt, Energiemanagement','≈ 30 % gegenüber C'],['B','weiterentwickelte GA mit zentraler Steuerung und Optimierung','≈ 20 % gegenüber C'],['C','Standard-GA (Referenz)','0'],['D','nicht energieeffizient (keine Einzelraumregelung, Dauerbetrieb)','≈ 50 % Mehrverbrauch']]},
+ tags:'gebäudeautomation gebäudeleittechnik glt msr effizienzklasse 52120 15232 bacnet regelung'},
+
+{id:'hydr',cat:'tech',kind:'regel',use:[],title:'Heizungsoptimierung – Richtwerte',
+ src:'VDI 2073-2, Heizungsoptimierung nach GModG § 60c, AMEV Heizbetrieb',
+ text:'Typische Einstellungen nach Optimierung. Spreizung und Vorlauftemperatur beeinflussen Brennwertnutzung und Wärmepumpen-Effizienz.',
+ table:{head:['Parameter','Richtwert'],rows:[['Vorlauftemperatur Heizkörper (bei Normaußentemperatur)','≤ 55–60 °C anstreben (WP-tauglich)'],['Rücklauftemperatur Brennwertkessel','< 50 °C für Kondensation'],['Spreizung','10–20 K'],
+  ['Pumpenregelung','Δp-variabel, Hocheffizienzpumpe (EEI ≤ 0,23)'],['Heizgrenze','15 °C Außentemperatur (gut gedämmt: 12 °C)'],['Absenkung','Nachtabsenkung 3–5 K bzw. Abschaltung mit Frostschutz'],['Warmwasser (zentral)','60 °C (Hygiene) – Zirkulation zeitgesteuert'],
+  ['Thermostatventile','Begrenzung in Fluren/Treppenhäusern (z. B. Stufe 2 ≈ 16 °C)']]},
+ tags:'hydraulischer abgleich vorlauftemperatur heizkurve spreizung pumpe heizgrenze optimierung thermostat'}
+];
+
+/* Raum-Steckbrief: alle Vorgaben für eine Raumart auf einen Blick */
+const ROOMS=[
+ {n:'Büro (Einzel-/Gruppenbüro)',use:'verw',t:'20 °C (ASR A3.5, sitzend leicht); Heizlast 20 °C',tmax:'≤ 26 °C anstreben, > 30 °C Maßnahmen Pflicht',lux:'500 lx (DIN EN 12464-1 und ASR A3.4), UGR 19',air:'CO₂ < 1.000 ppm; ca. 25–36 m³/h je Person',etc:'Fläche mind. 8 m² + 6 m² je weiterem Arbeitsplatz (ASR A1.2); Sichtverbindung nach außen'},
+ {n:'Besprechungsraum',use:'verw',t:'20 °C',tmax:'≤ 26 °C',lux:'500 lx, UGR 19',air:'30–40 m³/h je Person, bedarfsgeführt; CO₂ steigt schnell',etc:'Präsenzmelder und Lüftung nach Belegung besonders wirksam'},
+ {n:'Flur / Verkehrsfläche',use:'verw',t:'15 °C (Heizlast); Betrieb 15 °C',tmax:'–',lux:'100 lx (DIN EN 12464-1), mind. 50 lx (ASR A3.4)',air:'keine eigene Anforderung',etc:'Präsenzmelder mit Grundhelligkeit; Sicherheitsbeleuchtung (Fluchtweg) beachten'},
+ {n:'Treppenhaus',use:'verw',t:'10–15 °C',tmax:'–',lux:'150 lx (DIN EN 12464-1), mind. 100 lx (ASR A3.4)',air:'–',etc:'Rauchabzug; Thermostate begrenzen'},
+ {n:'WC / Sanitärraum',use:'verw',t:'20 °C (Heizlast, Wohnen); 21 °C ASR während Nutzung (Sanitärräume)',tmax:'–',lux:'200 lx',air:'Abluft 30–60 m³/h je WC/Urinal',etc:'Präsenzmelder; Anzahl Toiletten nach ASR A4.1'},
+ {n:'Dusch-/Waschraum',use:'sport',t:'24 °C',tmax:'–',lux:'200 lx',air:'Abluft 150–220 m³/h je Dusche',etc:'Legionellenschutz (60/55 °C, TrinkwV-Untersuchung)'},
+ {n:'Teeküche / Pausenraum',use:'verw',t:'21 °C (ASR, Pausenraum)',tmax:'≤ 26 °C',lux:'Teeküche 200 lx, Pausenraum 100 lx (DIN) / 200 lx',air:'Fensterlüftung',etc:'Kühlschränke, Kaffeemaschinen: Zeitschaltung'},
+ {n:'Kantine',use:'verw',t:'21 °C (ASR)',tmax:'≤ 26 °C',lux:'200 lx',air:'nach Belegung',etc:''},
+ {n:'Archiv / Lager',use:'verw',t:'10–18 °C je nach Gut (Archivgut: 14–18 °C, 40–55 % r. F.)',tmax:'Archiv möglichst konstant',lux:'Archiv 200 lx, Lager 100 lx',air:'Feuchte begrenzen',etc:'Bewegungsmelder; nicht dauerhaft beheizen'},
+ {n:'Serverraum',use:'verw',t:'Zulufttemperatur 18–27 °C (ASHRAE-Empfehlung)',tmax:'Herstellerangaben',lux:'500 lx (Wartung)',air:'Kühlung nach IT-Last',etc:'PUE-Wert überwachen; Kalt-/Warmgang trennen'},
+ {n:'Klassenraum / Unterrichtsraum',use:'schule',t:'20 °C (Schulbaurichtlinien, Heizlast 20 °C)',tmax:'Hitzefrei-Regelungen der Länder',lux:'500 lx (DIN EN 12464-1:2021), Tafel 500 lx vertikal',air:'CO₂ < 1.000 ppm: Stoßlüften jede Stunde bzw. 600–900 m³/h',etc:'CO₂-Ampel; Heizungsabsenkung in Ferien'},
+ {n:'Fachraum Naturwissenschaften',use:'schule',t:'20 °C',tmax:'–',lux:'500 lx',air:'Abzüge, erhöhter Luftwechsel',etc:''},
+ {n:'Computerraum',use:'schule',t:'20 °C',tmax:'Kühlung bei hoher Belegung prüfen',lux:'500 lx, blendfrei',air:'Wärmelast PCs 40–80 W je Platz',etc:'Rechner zentral abschalten'},
+ {n:'Aula / Pausenhalle',use:'schule',t:'15–18 °C',tmax:'–',lux:'200–300 lx',air:'nach Veranstaltung',etc:''},
+ {n:'Sporthalle',use:'sport',t:'17 °C (DIN 18032-1)',tmax:'–',lux:'300 lx (Schulsport), Wettkampf nach DIN EN 12193',air:'mechanisch oft 24/7 – Zeitprogramm',etc:'LED-Hallenbeleuchtung, Präsenz-/Tageslichtsteuerung'},
+ {n:'Umkleideraum',use:'sport',t:'22 °C',tmax:'–',lux:'200 lx',air:'Abluft',etc:''},
+ {n:'Kita: Gruppen-/Spielraum',use:'kita',t:'20–22 °C',tmax:'Sonnenschutz wichtig',lux:'300 lx',air:'regelmäßiges Stoßlüften',etc:'Fußbodentemperatur beachten'},
+ {n:'Kita: Schlafraum',use:'kita',t:'18–20 °C',tmax:'–',lux:'dimmbar',air:'vor dem Schlafen lüften',etc:''},
+ {n:'Kita: Wickel-/Sanitärraum',use:'kita',t:'22–24 °C',tmax:'–',lux:'200 lx',air:'Abluft',etc:'Warmwasser: Verbrühschutz max. 38–43 °C an der Entnahme'},
+ {n:'Werkstatt',use:'betr',t:'17 °C (stehend, mittelschwer) bis 19 °C (leicht)',tmax:'≤ 26 °C anstreben',lux:'300–750 lx je nach Feinheit',air:'Absaugung je Tätigkeit',etc:'Hallentore: Torluftschleier / Schnelllauftore'},
+ {n:'Fahrzeughalle / Lagerhalle',use:'betr',t:'frostfrei bis 12 °C',tmax:'–',lux:'100–150 lx',air:'CO-/NO₂-Überwachung bei Verbrennern',etc:'Strahlungsheizung effizienter als Luftheizung'},
+ {n:'Wohnraum',use:'wohn',t:'20 °C (Heizlast)',tmax:'Übertemperaturgradstunden ≤ 1.200 Kh/a',lux:'keine Vorgabe',air:'Feuchteschutz nach DIN 1946-6',etc:''},
+ {n:'Bad (Wohnung)',use:'wohn',t:'24 °C (Heizlast)',tmax:'–',lux:'keine Vorgabe',air:'Abluft / Fensterlüftung',etc:''}];
+
+/* ===================== Suche ===================== */
+const LSKEY='atools.vorgaben.v1';
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let ST={q:'',cats:[],kinds:[],uses:[],fav:false,favs:[],room:0,tab:'suche',roomUse:''};
+try{Object.assign(ST,JSON.parse(localStorage.getItem(LSKEY)||'{}'))}catch(e){}
+ST.q='';
+const save=()=>{try{localStorage.setItem(LSKEY,JSON.stringify({favs:ST.favs,room:ST.room,tab:ST.tab}))}catch(e){}};
+
+/* Faltung: Kleinbuchstaben, Umlaute → Grundvokal, ae/oe/ue → a/o/u, ß → ss, Akzente weg.
+   Liefert zusätzlich je gefaltetem Zeichen den Index im Original (für Hervorhebung). */
+function fold(s){
+  s=String(s??'');const out=[],map=[];
+  for(let i=0;i<s.length;i++){
+    let c=s[i].toLowerCase();const n=(s[i+1]||'').toLowerCase();
+    if((c==='a'||c==='o'||c==='u')&&n==='e'){out.push(c);map.push(i);i++;continue}
+    if(c==='ä')c='a';else if(c==='ö')c='o';else if(c==='ü')c='u';
+    else if(c==='ß'){out.push('s','s');map.push(i,i);continue}
+    else if(c==='₂')c='2';
+    else c=c.normalize('NFD').replace(/[̀-ͯ]/g,'');
+    for(const ch of c){out.push(ch);map.push(i)}
+  }
+  return {f:out.join(''),map};
+}
+const F=s=>fold(s).f;
+/* Synonyme (gefaltete Schlüssel) */
+const SYN={
+ lux:['lux','beleuchtung','licht'],licht:['licht','beleuchtung','lux','leucht'],beleuchtung:['beleuchtung','lux','licht'],lampe:['lampe','leucht','led'],
+ klassenzimmer:['klassenr','klassenz','klassen-','unterricht'],klassenraum:['klassenr','klassenz','klassen-','unterricht'],unterricht:['unterricht','klassenr','klassen-'],
+ flur:['flur','verkehr'],gang:['flur','verkehr'],verkehrsflache:['verkehr','flur'],
+ wc:['wc','toilette','sanitar'],toilette:['toilette','wc','sanitar'],klo:['toilette','wc','sanitar'],sanitar:['sanitar','wc','toilette','wasch'],
+ uwert:['u-wert','uwert','w/(m²k)','warmedurchgang'],'u-wert':['u-wert','uwert','w/(m²k)','warmedurchgang'],
+ kfw:['kfw','effizienzhaus','effizienzgebaude','beg '],effizienzhaus:['effizienzhaus','effizienzgebaude','kfw'],forderung:['forder','beg ','kfw','bafa','zuschuss'],
+ temperatur:['temperatur','°c','grad'],grad:['°c','grad','temperatur'],warme:['warm','heiz'],
+ geg:['geg','gmodg','gebaudeenergie','gebaudemodernisierung'],gmodg:['gmodg','geg'],heizungsgesetz:['gmodg','geg','heizung'],
+ turnhalle:['turnhalle','sporthalle','sport'],sporthalle:['sporthalle','turnhalle','sport'],
+ kita:['kita','kinder'],kindergarten:['kita','kinder'],schule:['schul','klassenr','klassen-','unterricht'],
+ buro:['buro','verwaltung','arbeitsplatz'],verwaltung:['verwaltung','buro'],
+ co2:['co2','kohlendioxid'],lueften:['luft','luft'],luften:['luft','luft'],luftung:['luft','rlt'],
+ pv:['pv','photovoltaik','solar'],photovoltaik:['photovoltaik','pv','solar'],solar:['solar','pv','photovoltaik'],
+ wallbox:['wallbox','lade'],ladesaule:['lade','wallbox'],emobilitat:['e-mobil','lade','stellpl'],
+ legionellen:['legionell','trinkwasser','warmwasser'],warmwasser:['warmwasser','trinkwasser','legionell'],
+ dammung:['damm','u-wert','warmeleit'],fenster:['fenster','uw','verglas'],dach:['dach','geschossdecke'],
+ hitze:['hitze','26 °c','30 °c','35 °c','sommer','uberhitz'],sommer:['sommer','hitze','uberhitz','kuhl'],
+ norm:['din','vde','vdi','norm'],vde:['vde'],din:['din'],asr:['asr','arbeitsstatt'],
+ primarenergie:['primarenergie'],heizwert:['heizwert','brennwert'],gas:['gas'],strom:['strom'],
+ pruefung:['prüf','inspektion','wartung'],prufung:['pruf','inspektion','wartung'],wartung:['wartung','pruf','inspektion'],
+ duschen:['dusch'],dusche:['dusch'],umkleide:['umkleid'],archiv:['archiv'],server:['server','rechenzentrum'],werkstatt:['werkstatt'],
+ mieter:['mieter','vermieter'],abrechnung:['abrechnung','heizkosten']};
+
+function parseQuery(q){
+  return F(q).split(/[\s,;]+/).map(t=>t.replace(/^["']|["']$/g,'')).filter(t=>t.length>0)
+    .map(t=>({t,alts:[...new Set([t,...(SYN[t]||SYN[t.replace(/-/g,'')]||[]).map(F)])]}));
+}
+const hit=(fs,tok)=>tok.alts.some(a=>fs.includes(a));
+/* Text mit <mark> für alle Treffer aller Token-Alternativen */
+function hl(s,toks){
+  s=String(s??'');if(!toks.length)return esc(s);
+  const {f,map}=fold(s);const marks=new Array(s.length).fill(false);
+  for(const tk of toks)for(const a of tk.alts){if(a.length<2&&tk.t.length>1)continue;let p=0;
+    while((p=f.indexOf(a,p))>-1){const a0=map[p],a1=map[p+a.length-1];for(let k=a0;k<=a1;k++)marks[k]=true;p+=a.length}}
+  let out='',open=false;
+  for(let i=0;i<s.length;i++){if(marks[i]&&!open){out+='<mark>';open=true}if(!marks[i]&&open){out+='</mark>';open=false}out+=esc(s[i])}
+  return out+(open?'</mark>':'');
+}
+
+/* Index vorbereiten */
+const rowText=r=>r.join(' · ');
+for(const t of TOPICS){
+  t.hdr=F([t.title,t.src,t.text,t.tags,t.note,CATS[t.cat],KIND[t.kind][0]].join(' '));
+  t.rows=(t.table?.rows||[]).map(r=>F(rowText(r)));
+  t.rows2=(t.table2?.rows||[]).map(r=>F(rowText(r)));
+  t.all=t.hdr+' '+t.rows.join(' ')+' '+t.rows2.join(' ')+' '+F((t.table?.head||[]).join(' '));
+}
+for(const r of ROOMS)r.all=F([r.n,USES[r.use],r.t,r.tmax,r.lux,r.air,r.etc,'raum steckbrief'].join(' '));
+
+/* ===================== Filter + Treffer ===================== */
+function matches(){
+  const toks=parseQuery(ST.q);
+  const res=[];
+  for(const t of TOPICS){
+    if(ST.cats.length&&!ST.cats.includes(t.cat))continue;
+    if(ST.kinds.length&&!ST.kinds.includes(t.kind))continue;
+    if(ST.uses.length&&t.use.length&&!t.use.some(u=>ST.uses.includes(u)))continue;
+    if(ST.fav&&!ST.favs.includes(t.id))continue;
+    if(!toks.length){res.push({t,score:0,rows:null,rows2:null});continue}
+    // jedes Token muss irgendwo im Thema vorkommen
+    if(!toks.every(tk=>hit(t.all,tk)))continue;
+    const all=[...t.rows.map((f,i)=>({f,w:1,i})),...t.rows2.map((f,i)=>({f,w:2,i}))];
+    const rest=toks.filter(tk=>!hit(t.hdr,tk));
+    let sel=null;
+    if(rest.length){
+      // Begriffe, die nicht im Kopf stehen, müssen gemeinsam in einer Zeile vorkommen
+      sel=all.filter(r=>rest.every(tk=>hit(r.f,tk)));
+      if(!sel.length)continue;
+    }else{
+      // Begriffe im Kopf: nur solche, die nicht im Titel stehen und einen Teil der Zeilen treffen, filtern die Zeilen
+      const ft=F(t.title);
+      const disc=toks.filter(tk=>{if(hit(ft,tk))return false;const n=all.filter(r=>hit(r.f,tk)).length;return n>0&&n<all.length});
+      if(disc.length){sel=all.filter(r=>disc.every(tk=>hit(r.f,tk)));if(!sel.length)sel=null}
+    }
+    let rows=null,rows2=null;
+    if(sel){rows=t.table?sel.filter(r=>r.w===1).map(r=>r.i):null;rows2=t.table2?sel.filter(r=>r.w===2).map(r=>r.i):null}
+    const score=toks.filter(tk=>hit(F(t.title),tk)).length*10+toks.filter(tk=>hit(F(t.tags),tk)).length*3+toks.filter(tk=>hit(t.hdr,tk)).length*2+(sel?Math.min(sel.length,5):0);
+    res.push({t,score,rows,rows2});
+  }
+  if(toks.length)res.sort((a,b)=>b.score-a.score);
+  const rooms=toks.length?ROOMS.map((r,i)=>({r,i})).filter(({r})=>toks.every(tk=>hit(r.all,tk))&&(!ST.uses.length||ST.uses.includes(r.use))):[];
+  return {res,toks,rooms};
+}
+
+/* ===================== Rendern ===================== */
+const STAR='<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg>';
+function tableHTML(tb,idx,toks,tid,which){
+  if(!tb)return'';
+  const rows=idx?idx.map(i=>tb.rows[i]):tb.rows;
+  if(idx&&!idx.length)return'';
+  const more=idx&&idx.length<tb.rows.length?`<button class="btn sm showall" data-id="${tid}" data-w="${which}" type="button">alle ${tb.rows.length} Zeilen zeigen</button>`:'';
+  return `${tb.title?`<h3>${hl(tb.title,toks)}</h3>`:''}<div class="tablewrap"><table class="dv"><thead><tr>${tb.head.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${
+    rows.map(r=>`<tr>${r.map((c,j)=>`<td${j===0?' class="c0"':''}>${hl(c,toks)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>${more?`<div class="more">${idx.length} von ${tb.rows.length} Zeilen passen zur Suche · ${more}</div>`:''}`;
+}
+const expanded=new Set();
+function cardHTML(m,toks){
+  const t=m.t,[kl,kc]=KIND[t.kind],fav=ST.favs.includes(t.id);
+  const r1=expanded.has(t.id+'|1')?null:m.rows,r2=expanded.has(t.id+'|2')?null:m.rows2;
+  return `<article class="card topic" id="t-${t.id}" data-id="${t.id}">
+   <div class="thead"><div class="tmeta"><span class="chip ${kc}">${kl}</span><span class="catl">${esc(CATS[t.cat])}</span>${t.use.length?`<span class="uses">${t.use.map(u=>esc(USES[u])).join(' · ')}</span>`:''}</div>
+    <div class="tact"><button class="iconbtn star${fav?' on':''}" data-fav="${t.id}" type="button" aria-pressed="${fav}" title="${fav?'Aus Favoriten entfernen':'Als Favorit merken'}">${STAR}</button>
+    <button class="btn sm" data-copy="${t.id}" type="button" title="Tabelle für Excel/Word kopieren">Tabelle kopieren</button>
+    <button class="btn sm" data-link="${t.id}" type="button" title="Direktlink kopieren">Link</button></div></div>
+   <h2>${hl(t.title,toks)}</h2>
+   <p class="txt">${hl(t.text,toks)}</p>
+   ${tableHTML(t.table,r1,toks,t.id,1)}${tableHTML(t.table2,r2,toks,t.id,2)}
+   ${t.note?`<p class="note">${hl(t.note,toks)}</p>`:''}
+   <p class="src"><b>Quelle:</b> ${hl(t.src,toks)} · <span>${STAND}</span></p></article>`;
+}
+function roomHTML(r,toks,big){
+  const rows=[['Temperatur (Heizbetrieb)',r.t],['Sommer / Obergrenze',r.tmax],['Beleuchtung',r.lux],['Lüftung / Luftqualität',r.air],['Hinweise',r.etc]].filter(x=>x[1]);
+  return `<article class="card room${big?' big':''}"><div class="thead"><div class="tmeta"><span class="chip info">Raum-Steckbrief</span><span class="catl">${esc(USES[r.use])}</span></div></div>
+   <h2>${hl(r.n,toks)}</h2><dl class="rdl">${rows.map(([k,v])=>`<dt>${k}</dt><dd>${hl(v,toks)}</dd>`).join('')}</dl>
+   <p class="src">Zusammenstellung aus ASR A3.4/A3.5/A3.6, DIN EN 12464-1, DIN/TS 12831-1, DIN EN 16798-1 und Richtwerten · ${STAND}</p></article>`;
+}
+
+function chipGroup(el,obj,key,counts){
+  el.innerHTML=Object.entries(obj).map(([k,v])=>{const lab=Array.isArray(v)?v[0]:v;const on=ST[key].includes(k);
+    return `<button type="button" class="fchip${on?' on':''}" data-k="${key}" data-v="${k}" aria-pressed="${on}">${esc(lab)}${counts?`<span>${counts[k]||0}</span>`:''}</button>`}).join('');
+}
+function renderFilters(res){
+  const cc={},kc={},uc={};
+  for(const t of TOPICS){cc[t.cat]=(cc[t.cat]||0)+1;kc[t.kind]=(kc[t.kind]||0)+1;for(const u of t.use)uc[u]=(uc[u]||0)+1}
+  chipGroup($('#fCat'),CATS,'cats',cc);chipGroup($('#fKind'),KIND,'kinds',kc);chipGroup($('#fUse'),USES,'uses',uc);
+  $('#fFav').classList.toggle('on',ST.fav);$('#fFav').setAttribute('aria-pressed',ST.fav);
+  $('#favN').textContent=ST.favs.length;
+  const any=ST.cats.length||ST.kinds.length||ST.uses.length||ST.fav||ST.q;
+  $('#btnClear').hidden=!any;
+  // Inhaltsverzeichnis
+  const by={};for(const m of res)(by[m.t.cat]=by[m.t.cat]||[]).push(m.t);
+  $('#toc').innerHTML=Object.keys(CATS).filter(c=>by[c]).map(c=>`<div class="tocg"><div class="toch">${esc(CATS[c])}</div>${by[c].map(t=>`<a href="#t-${t.id}" data-jump="${t.id}">${esc(t.title)}</a>`).join('')}</div>`).join('')||'<p class="note">Keine Treffer.</p>';
+}
+function renderSearch(){
+  const {res,toks,rooms}=matches();
+  renderFilters(res);
+  const n=res.length;
+  $('#count').innerHTML=ST.q||ST.cats.length||ST.kinds.length||ST.uses.length||ST.fav
+    ?`<b>${n}</b> ${n===1?'Thema':'Themen'}${rooms.length?` und <b>${rooms.length}</b> Raum-Steckbrief${rooms.length>1?'e':''}`:''}${ST.q?` für „${esc(ST.q)}“`:''}`
+    :`<b>${TOPICS.length}</b> Themen · ${ROOMS.length} Raum-Steckbriefe · ${STAND}`;
+  let html='';
+  if(rooms.length)html+=`<div class="roomhits">${rooms.slice(0,4).map(({r})=>roomHTML(r,toks)).join('')}</div>`;
+  html+=res.map(m=>cardHTML(m,toks)).join('');
+  if(!n&&!rooms.length)html=`<div class="card empty"><h2>Nichts gefunden</h2><p>Andere Begriffe versuchen (z. B. „Flur lux“, „U-Wert Fenster“, „Klassenraum Temperatur“) oder Filter zurücksetzen.</p><button class="btn" id="emptyClear" type="button">Filter und Suche zurücksetzen</button></div>`;
+  $('#list').innerHTML=html;
+}
+
+/* ---------- Raum-Steckbrief-Reiter ---------- */
+function renderRooms(){
+  const sel=$('#roomUse');sel.value=ST.roomUse||'';
+  const list=ROOMS.map((r,i)=>({r,i})).filter(({r})=>!ST.roomUse||r.use===ST.roomUse);
+  if(!list.some(x=>x.i===ST.room))ST.room=list[0]?.i??0;
+  $('#roomChips').innerHTML=list.map(({r,i})=>`<button type="button" class="fchip${i===ST.room?' on':''}" data-room="${i}" aria-pressed="${i===ST.room}">${esc(r.n)}</button>`).join('');
+  $('#roomCard').innerHTML=roomHTML(ROOMS[ST.room],[],true);
+  $('#roomTable').innerHTML=`<thead><tr><th>Raum</th><th>Nutzung</th><th>Temperatur</th><th>Beleuchtung</th><th>Lüftung</th></tr></thead><tbody>${
+    list.map(({r,i})=>`<tr class="${i===ST.room?'hl':''}" data-room="${i}"><td class="c0">${esc(r.n)}</td><td>${esc(USES[r.use])}</td><td>${esc(r.t)}</td><td>${esc(r.lux)}</td><td>${esc(r.air)}</td></tr>`).join('')}</tbody>`;
+}
+
+/* ---------- Reiter ---------- */
+function setTab(tab){
+  ST.tab=tab;save();
+  document.querySelectorAll('#tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===tab));
+  document.querySelectorAll('.panel').forEach(p=>p.hidden=p.dataset.panel!==tab);
+  $('#inputs').hidden=tab!=='suche';
+  $('main.app').classList.toggle('full',tab!=='suche');
+  if(tab==='raum')renderRooms();
+}
+
+/* ---------- Aktionen ---------- */
+function toast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2200)}
+async function copyText(s){
+  try{await navigator.clipboard.writeText(s);return true}catch(e){
+    const ta=document.createElement('textarea');ta.value=s;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();
+    let ok=false;try{ok=document.execCommand('copy')}catch(_){}ta.remove();return ok}
+}
+function tsv(t){
+  const one=tb=>tb?[...(tb.title?[tb.title]:[]),tb.head.join('\t'),...tb.rows.map(r=>r.join('\t'))].join('\n'):'';
+  return [t.title,'',one(t.table),t.table2?'\n'+one(t.table2):'','','Quelle: '+t.src+' ('+STAND+')'].join('\n');
+}
+let qTimer=null;
+function setQuery(q,push){
+  ST.q=q;$('#q').value=q;renderSearch();
+  if(push!==false){const h=q?'#q='+encodeURIComponent(q):'';if(location.hash!==h)history.replaceState(null,'',h||location.pathname)}
+}
+function jump(id){
+  const el=document.getElementById('t-'+id);
+  if(!el){ST.cats=[];ST.kinds=[];ST.uses=[];ST.fav=false;setQuery('',false);return setTimeout(()=>jump(id),0)}
+  el.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth',block:'start'});
+  el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),1400);
+}
+
+document.addEventListener('click',async e=>{
+  const b=e.target.closest('button,a[data-jump],tr[data-room]');if(!b)return;
+  if(b.dataset.k){const arr=ST[b.dataset.k],v=b.dataset.v,i=arr.indexOf(v);i<0?arr.push(v):arr.splice(i,1);return renderSearch()}
+  if(b.id==='fFav'){ST.fav=!ST.fav;return renderSearch()}
+  if(b.id==='btnClear'||b.id==='emptyClear'){ST.cats=[];ST.kinds=[];ST.uses=[];ST.fav=false;expanded.clear();return setQuery('')}
+  if(b.dataset.fav){const id=b.dataset.fav,i=ST.favs.indexOf(id);i<0?ST.favs.push(id):ST.favs.splice(i,1);save();toast(i<0?'Als Favorit gemerkt':'Favorit entfernt');return renderSearch()}
+  if(b.dataset.copy){const t=TOPICS.find(x=>x.id===b.dataset.copy);toast(await copyText(tsv(t))?'Tabelle kopiert – in Excel oder Word einfügen':'Kopieren nicht möglich');return}
+  if(b.dataset.link){const u=location.origin+location.pathname+'#t='+b.dataset.link;toast(await copyText(u)?'Direktlink kopiert':'Kopieren nicht möglich');return}
+  if(b.classList.contains('showall')){expanded.add(b.dataset.id+'|'+b.dataset.w);return renderSearch()}
+  if(b.dataset.jump){e.preventDefault();jump(b.dataset.jump);return}
+  if(b.dataset.room!==undefined){ST.room=+b.dataset.room;save();renderRooms();if(b.tagName==='TR')$('#roomCard').scrollIntoView({block:'nearest'});return}
+  if(b.dataset.q!==undefined){setTab('suche');setQuery(b.dataset.q);$('#q').focus();return}
+  if(b.dataset.tab){setTab(b.dataset.tab);return}
+  if(b.id==='btnPrint'){printView();return}
+});
+$('#q').addEventListener('input',e=>{clearTimeout(qTimer);const v=e.target.value;qTimer=setTimeout(()=>{if(ST.tab!=='suche')setTab('suche');expanded.clear();setQuery(v)},120)});
+$('#q').addEventListener('keydown',e=>{if(e.key==='Escape'){setQuery('');}if(e.key==='Enter'){const f=document.querySelector('#list .topic');f&&f.scrollIntoView({block:'start'})}});
+addEventListener('hashchange',()=>{const h=decodeURIComponent(location.hash.slice(1));if(h.startsWith('q=')&&h.slice(2)!==ST.q){setTab('suche');setQuery(h.slice(2),false)}else if(h.startsWith('t=')){setTab('suche');jump(h.slice(2))}});
+$('#roomUse').addEventListener('change',e=>{ST.roomUse=e.target.value;renderRooms()});
+document.addEventListener('keydown',e=>{
+  if(e.key==='/'&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)){e.preventDefault();if(ST.tab!=='suche')setTab('suche');$('#q').focus();$('#q').select()}
+});
+
+/* ---------- Drucken ---------- */
+function fillHead(){
+  const who=ST.tab==='raum'?'Raum-Steckbrief: '+ROOMS[ST.room].n:(ST.q?'Suche: „'+ST.q+'“':'Alle Themen');
+  $('#phead').innerHTML=`<div><b>Daten und Vorgaben</b> · ${esc(who)}</div><div>${STAND} · gedruckt ${new Date().toLocaleDateString('de-DE')}</div>`;
+}
+function printView(){fillHead();window.print()}
+addEventListener('beforeprint',fillHead);
+
+/* ---------- Start ---------- */
+$('#roomUse').innerHTML='<option value="">alle Nutzungen</option>'+Object.entries(USES).map(([k,v])=>`<option value="${k}">${esc(v)}</option>`).join('');
+$('#quick').innerHTML=['Klassenraum Temperatur','Flur lux','U-Wert Fenster','Effizienzhaus','Legionellen','CO2 ppm','Hitze 26','Primärenergiefaktor','Solarpflicht','VDE 0100'].map(q=>`<button type="button" class="qchip" data-q="${esc(q)}">${esc(q)}</button>`).join('');
+(function init(){
+  if(innerWidth<900)document.querySelectorAll('#inputs details').forEach(d=>d.open=false);
+  const h=decodeURIComponent(location.hash.slice(1));
+  setTab(ST.tab==='raum'?'raum':ST.tab==='info'?'info':'suche');
+  if(h.startsWith('q=')){setTab('suche');setQuery(h.slice(2),false)}
+  else{renderSearch();if(h.startsWith('t=')){setTab('suche');setTimeout(()=>jump(h.slice(2)),50)}}
+  $('#status').textContent=TOPICS.length+' Themen';fillHead();
+})();
+window.__DV={TOPICS,ROOMS,fold,parseQuery,matches,setQuery,ST};
+
+</script>
+<script src="../../assets/js/toolbar.js" defer></script>
+</body>
+</html>

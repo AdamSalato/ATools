@@ -12,6 +12,7 @@ Sammlung browserbasierter Rechner für Energie- und Gebäudemanagement. Alles l�
 | Lastgang-Analyse | `tools/lastgang/` |
 | Ladesäulenplanung | `tools/ladeplanung/` |
 | Einsparmaßnahmen | `tools/einsparmassnahmen/` |
+| Daten und Vorgaben | `tools/vorgaben/` |
 | Übungsaufgaben | `tools/uebungsaufgaben/` |
 | WP vs. Brennwert | `tools/wp-brennwert/` |
 
